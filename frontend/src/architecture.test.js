@@ -14,6 +14,7 @@ const ALLOWED = {
   auth: [],
   catalog: [],
   history: [],
+  home: ['catalog', 'routine'],
   profile: ['auth'],
   progress: [],
   routine: ['catalog'],

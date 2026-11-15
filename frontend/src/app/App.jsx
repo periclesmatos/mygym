@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { Layout } from '@/app/Layout'
 import { LoginPage } from '@/features/auth'
 import { HistoryDayPage, HistoryDetailPage, HistoryPage } from '@/features/history'
+import { HomePage } from '@/features/home'
 import { ProfilePage } from '@/features/profile'
 import { ProgressDetailPage, ProgressListPage } from '@/features/progress'
 import { RoutineEditorPage, RoutinePage } from '@/features/routine'
@@ -32,7 +33,7 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/perfil" replace />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/rotina" element={<RoutinePage />} />
           <Route path="/rotina/novo" element={<RoutineEditorPage />} />
           <Route path="/rotina/:id" element={<RoutineEditorPage />} />
