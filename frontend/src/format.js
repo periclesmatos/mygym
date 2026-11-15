@@ -70,9 +70,12 @@ export function relativeDay(value, now = new Date()) {
   if (days === 1) return 'Ontem'
   if (days > 1 && days < 7) return `Há ${days} dias`
   const sameYear = date.getFullYear() === now.getFullYear()
-  return formatDay(date, sameYear
-    ? { weekday: 'short', day: 'numeric', month: 'short' }
-    : { day: 'numeric', month: 'short', year: 'numeric' })
+  return formatDay(
+    date,
+    sameYear
+      ? { weekday: 'short', day: 'numeric', month: 'short' }
+      : { day: 'numeric', month: 'short', year: 'numeric' }
+  )
 }
 
 export function formatDuration(seconds) {
@@ -159,7 +162,8 @@ export function validateExercise(exercise) {
   const rest = Number(exercise.restSeconds)
   if (!Number.isInteger(rest) || rest < 0 || rest > 3600) return 'Descanso inválido.'
   const rir = numberOrNull(exercise.rir)
-  if (exercise.rir !== '' && (rir == null || !Number.isInteger(rir) || rir < 0 || rir > 10)) return 'RIR deve ficar entre 0 e 10.'
+  if (exercise.rir !== '' && (rir == null || !Number.isInteger(rir) || rir < 0 || rir > 10))
+    return 'RIR deve ficar entre 0 e 10.'
   return ''
 }
 
@@ -195,9 +199,7 @@ export function sessionTotals(session) {
       if (set.reps != null && set.load != null) volume += Number(set.load) * set.reps
     }
   }
-  const duration = session?.finishedAt
-    ? (new Date(session.finishedAt) - new Date(session.startedAt)) / 1000
-    : null
+  const duration = session?.finishedAt ? (new Date(session.finishedAt) - new Date(session.startedAt)) / 1000 : null
   return { done, total, volume, duration }
 }
 

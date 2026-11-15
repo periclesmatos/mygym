@@ -39,14 +39,23 @@ export function FeedbackProvider({ children }) {
         open={!!dialog}
         onClose={() => close(false)}
         title={dialog?.title}
-        footer={dialog && (
-          <div className="btn-row">
-            <button type="button" className="btn btn-quiet" onClick={() => close(false)}>{dialog.cancelLabel || 'Cancelar'}</button>
-            <button type="button" data-autofocus className={`btn ${dialog.danger ? 'btn-danger' : 'btn-primary'}`} onClick={() => close(true)}>
-              {dialog.confirmLabel || 'Confirmar'}
-            </button>
-          </div>
-        )}
+        footer={
+          dialog && (
+            <div className="btn-row">
+              <button type="button" className="btn btn-quiet" onClick={() => close(false)}>
+                {dialog.cancelLabel || 'Cancelar'}
+              </button>
+              <button
+                type="button"
+                data-autofocus
+                className={`btn ${dialog.danger ? 'btn-danger' : 'btn-primary'}`}
+                onClick={() => close(true)}
+              >
+                {dialog.confirmLabel || 'Confirmar'}
+              </button>
+            </div>
+          )
+        }
       >
         {dialog?.message && <p className="sheet-text">{dialog.message}</p>}
       </Sheet>

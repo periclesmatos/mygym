@@ -10,10 +10,17 @@ export function useAsync(loader, deps) {
   useEffect(() => {
     let active = true
     setState((current) => ({ ...current, loading: true, error: '' }))
-    loaderRef.current()
-      .then((data) => { if (active) setState({ data, error: '', loading: false }) })
-      .catch((error) => { if (active) setState({ data: undefined, error: error.message, loading: false }) })
-    return () => { active = false }
+    loaderRef
+      .current()
+      .then((data) => {
+        if (active) setState({ data, error: '', loading: false })
+      })
+      .catch((error) => {
+        if (active) setState({ data: undefined, error: error.message, loading: false })
+      })
+    return () => {
+      active = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, tick])
 
@@ -40,11 +47,16 @@ export function useExerciseNames() {
   const [names, setNames] = useState(namesCache || [])
   useEffect(() => {
     let active = true
-    api.exerciseNames().then((list) => {
-      namesCache = list
-      if (active) setNames(list)
-    }).catch(() => {})
-    return () => { active = false }
+    api
+      .exerciseNames()
+      .then((list) => {
+        namesCache = list
+        if (active) setNames(list)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
   }, [])
   return names
 }

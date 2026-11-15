@@ -1,7 +1,11 @@
 const TOKEN_KEY = 'appgym_token'
 
 export function getToken() {
-  try { return localStorage.getItem(TOKEN_KEY) } catch { return null }
+  try {
+    return localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
+  }
 }
 
 export function setToken(token) {
@@ -9,7 +13,11 @@ export function setToken(token) {
 }
 
 export function clearToken() {
-  try { localStorage.removeItem(TOKEN_KEY) } catch { /* sem armazenamento */ }
+  try {
+    localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    /* sem armazenamento */
+  }
 }
 
 async function request(path, options = {}) {
@@ -30,7 +38,11 @@ async function request(path, options = {}) {
   const text = await response.text()
   let data = null
   if (text) {
-    try { data = JSON.parse(text) } catch { data = null }
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = null
+    }
   }
 
   const publicAuth = path === '/api/login' || path.startsWith('/api/auth/')
@@ -65,7 +77,8 @@ export const api = {
     setToken(response.token)
     return response
   },
-  changePassword: (currentPassword, newPassword) => request('/api/profile/password', { method: 'PUT', body: json({ currentPassword, newPassword }) }),
+  changePassword: (currentPassword, newPassword) =>
+    request('/api/profile/password', { method: 'PUT', body: json({ currentPassword, newPassword }) }),
 
   templates: () => request('/api/templates'),
   template: (id) => request(`/api/templates/${id}`),

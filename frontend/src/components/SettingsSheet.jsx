@@ -31,7 +31,10 @@ export function SettingsSheet({ open, onClose }) {
             icon={<Icon name="logout" />}
             label="Sair"
             danger
-            onClick={() => { clearToken(); navigate('/login', { replace: true }) }}
+            onClick={() => {
+              clearToken()
+              navigate('/login', { replace: true })
+            }}
           />
         </ActionList>
       </div>

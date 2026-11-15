@@ -19,7 +19,13 @@ export function HistoryDay() {
       {error && <ErrorState message={error} onRetry={reload} />}
       {loading && !data && <Skeleton lines={2} />}
       {data?.length === 0 && <Empty icon="calendar" title="Nenhum treino neste dia" />}
-      {data?.length > 0 && <div className="list">{data.map((session) => <SessionItem key={session.id} session={session} />)}</div>}
+      {data?.length > 0 && (
+        <div className="list">
+          {data.map((session) => (
+            <SessionItem key={session.id} session={session} />
+          ))}
+        </div>
+      )}
     </>
   )
 }

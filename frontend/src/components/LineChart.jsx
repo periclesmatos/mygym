@@ -6,7 +6,10 @@ const H = 180
 const PAD = { top: 16, right: 14, bottom: 26, left: 40 }
 
 function niceTicks(min, max, count = 4) {
-  if (min === max) { min -= 1; max += 1 }
+  if (min === max) {
+    min -= 1
+    max += 1
+  }
   const raw = (max - min) / count
   const magnitude = 10 ** Math.floor(Math.log10(raw))
   const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= raw) || raw
@@ -32,7 +35,9 @@ export function LineChart({ points, unit, formatDate }) {
     const x = (index) => PAD.left + (points.length === 1 ? innerW / 2 : (index / (points.length - 1)) * innerW)
     const y = (value) => PAD.top + innerH - ((value - yMin) / (yMax - yMin || 1)) * innerH
     const coords = points.map((point, index) => ({ ...point, cx: x(index), cy: y(point.value) }))
-    const path = coords.map((point, index) => `${index ? 'L' : 'M'}${point.cx.toFixed(1)},${point.cy.toFixed(1)}`).join(' ')
+    const path = coords
+      .map((point, index) => `${index ? 'L' : 'M'}${point.cx.toFixed(1)},${point.cy.toFixed(1)}`)
+      .join(' ')
     return { ticks, y, coords, path }
   }, [points])
 
@@ -54,8 +59,13 @@ export function LineChart({ points, unit, formatDate }) {
   return (
     <figure className="chart">
       <div className="chart-readout" aria-live="polite">
-        <strong>{formatNumber(point.value, 1)} {unit}</strong>
-        <span className="muted small">{formatDate(point.date)}{active == null ? ' · último' : ''}</span>
+        <strong>
+          {formatNumber(point.value, 1)} {unit}
+        </strong>
+        <span className="muted small">
+          {formatDate(point.date)}
+          {active == null ? ' · último' : ''}
+        </span>
       </div>
       <svg
         ref={svgRef}
@@ -69,15 +79,36 @@ export function LineChart({ points, unit, formatDate }) {
         {geometry.ticks.map((tick) => (
           <g key={tick} className="chart-grid">
             <line x1={PAD.left} x2={W - PAD.right} y1={geometry.y(tick)} y2={geometry.y(tick)} />
-            <text x={PAD.left - 8} y={geometry.y(tick) + 4} textAnchor="end">{formatNumber(tick, 1)}</text>
+            <text x={PAD.left - 8} y={geometry.y(tick) + 4} textAnchor="end">
+              {formatNumber(tick, 1)}
+            </text>
           </g>
         ))}
-        <text className="chart-axis" x={first.cx} y={H - 6} textAnchor={geometry.coords.length === 1 ? 'middle' : 'start'}>{formatDate(first.date, true)}</text>
-        {geometry.coords.length > 1 && <text className="chart-axis" x={last.cx} y={H - 6} textAnchor="end">{formatDate(last.date, true)}</text>}
-        {active != null && <line className="chart-crosshair" x1={point.cx} x2={point.cx} y1={PAD.top} y2={H - PAD.bottom} />}
+        <text
+          className="chart-axis"
+          x={first.cx}
+          y={H - 6}
+          textAnchor={geometry.coords.length === 1 ? 'middle' : 'start'}
+        >
+          {formatDate(first.date, true)}
+        </text>
+        {geometry.coords.length > 1 && (
+          <text className="chart-axis" x={last.cx} y={H - 6} textAnchor="end">
+            {formatDate(last.date, true)}
+          </text>
+        )}
+        {active != null && (
+          <line className="chart-crosshair" x1={point.cx} x2={point.cx} y1={PAD.top} y2={H - PAD.bottom} />
+        )}
         <path className="chart-line" d={geometry.path} />
         {geometry.coords.map((item, index) => (
-          <circle key={index} className={index === shown ? 'chart-dot on' : 'chart-dot'} cx={item.cx} cy={item.cy} r={index === shown ? 5.5 : 4} />
+          <circle
+            key={index}
+            className={index === shown ? 'chart-dot on' : 'chart-dot'}
+            cx={item.cx}
+            cy={item.cy}
+            r={index === shown ? 5.5 : 4}
+          />
         ))}
       </svg>
     </figure>

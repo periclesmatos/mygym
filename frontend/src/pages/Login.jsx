@@ -24,8 +24,15 @@ export function Login() {
 
   useEffect(() => {
     let active = true
-    api.authConfig().then((data) => { if (active) setConfig(data) }).catch(() => {})
-    return () => { active = false }
+    api
+      .authConfig()
+      .then((data) => {
+        if (active) setConfig(data)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
   }, [])
 
   function enter(response) {
@@ -52,17 +59,26 @@ export function Login() {
   useEffect(() => {
     const element = googleRef.current
     if (!config?.googleClientId || !element) return
-    renderGoogleButton(element, config.googleClientId, (credential) => runRef.current(() => api.loginGoogle(credential)))
-      .catch((caught) => setError(caught.message))
+    renderGoogleButton(element, config.googleClientId, (credential) =>
+      runRef.current(() => api.loginGoogle(credential))
+    ).catch((caught) => setError(caught.message))
   }, [config])
 
   function submit(event) {
     event.preventDefault()
-    if (!email.trim() || !password) { setError('Preencha e-mail e senha.'); return }
-    if (registering && password.length < 6) { setError('A senha precisa ter pelo menos 6 caracteres.'); return }
-    run(() => registering
-      ? api.register({ name: name.trim() || null, email: email.trim(), password })
-      : api.login(email.trim(), password))
+    if (!email.trim() || !password) {
+      setError('Preencha e-mail e senha.')
+      return
+    }
+    if (registering && password.length < 6) {
+      setError('A senha precisa ter pelo menos 6 caracteres.')
+      return
+    }
+    run(() =>
+      registering
+        ? api.register({ name: name.trim() || null, email: email.trim(), password })
+        : api.login(email.trim(), password)
+    )
   }
 
   function apple() {
@@ -77,7 +93,9 @@ export function Login() {
   return (
     <main className="login">
       <div className="login-brand">
-        <span className="logo"><Icon name="dumbbell" size={30} strokeWidth={2.4} /></span>
+        <span className="logo">
+          <Icon name="dumbbell" size={30} strokeWidth={2.4} />
+        </span>
         <h1>Treino</h1>
         <p className="muted">Sua rotina, suas cargas e sua evolução num lugar só.</p>
       </div>
@@ -85,37 +103,76 @@ export function Login() {
         <Segmented
           label="Acesso"
           value={mode}
-          onChange={(value) => { setMode(value); setError('') }}
-          options={[{ value: 'login', label: 'Entrar' }, { value: 'register', label: 'Criar conta' }]}
+          onChange={(value) => {
+            setMode(value)
+            setError('')
+          }}
+          options={[
+            { value: 'login', label: 'Entrar' },
+            { value: 'register', label: 'Criar conta' }
+          ]}
         />
         {registering && (
           <label className="field">
             <span className="field-label">Nome</span>
-            <input className="input" autoComplete="name" value={name} maxLength={80} onChange={(event) => setName(event.target.value)} />
+            <input
+              className="input"
+              autoComplete="name"
+              value={name}
+              maxLength={80}
+              onChange={(event) => setName(event.target.value)}
+            />
           </label>
         )}
         <label className="field">
           <span className="field-label">E-mail</span>
-          <input className="input" type="email" autoComplete={registering ? 'email' : 'username'} inputMode="email" value={email} onChange={(event) => setEmail(event.target.value)} autoFocus />
+          <input
+            className="input"
+            type="email"
+            autoComplete={registering ? 'email' : 'username'}
+            inputMode="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoFocus
+          />
         </label>
         <label className="field">
           <span className="field-label">Senha</span>
           <div className="input-wrap">
-            <input className="input" type={showPassword ? 'text' : 'password'} autoComplete={registering ? 'new-password' : 'current-password'} value={password} onChange={(event) => setPassword(event.target.value)} />
-            <button type="button" className="input-addon" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}>
+            <input
+              className="input"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete={registering ? 'new-password' : 'current-password'}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button
+              type="button"
+              className="input-addon"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}
+            >
               <Icon name={showPassword ? 'eyeOff' : 'eye'} size={20} />
             </button>
           </div>
-          {registering && <span className="muted small">Mínimo de 6 caracteres. O cadastro é só para e-mails convidados.</span>}
+          {registering && (
+            <span className="muted small">Mínimo de 6 caracteres. O cadastro é só para e-mails convidados.</span>
+          )}
         </label>
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
         <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={busy}>
-          {busy ? (registering ? 'Criando…' : 'Entrando…') : (registering ? 'Criar conta' : 'Entrar')}
+          {busy ? (registering ? 'Criando…' : 'Entrando…') : registering ? 'Criar conta' : 'Entrar'}
         </button>
 
         {hasSocial && (
           <>
-            <div className="divider"><span>ou</span></div>
+            <div className="divider">
+              <span>ou</span>
+            </div>
             <div className="social">
               {config.googleClientId && <div ref={googleRef} className="google-btn" />}
               {config.appleClientId && (

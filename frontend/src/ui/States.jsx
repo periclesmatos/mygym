@@ -13,7 +13,9 @@ export function Skeleton({ lines = 3, card = true }) {
 export function Empty({ icon = 'dumbbell', title, text, children }) {
   return (
     <div className="empty">
-      <span className="empty-icon"><Icon name={icon} size={26} /></span>
+      <span className="empty-icon">
+        <Icon name={icon} size={26} />
+      </span>
       <strong>{title}</strong>
       {text && <p className="muted">{text}</p>}
       {children}
@@ -26,7 +28,11 @@ export function ErrorState({ message, onRetry }) {
     <div className="empty">
       <strong>Não deu para carregar</strong>
       <p className="muted">{message}</p>
-      {onRetry && <button type="button" className="btn btn-secondary" onClick={onRetry}>Tentar de novo</button>}
+      {onRetry && (
+        <button type="button" className="btn btn-secondary" onClick={onRetry}>
+          Tentar de novo
+        </button>
+      )}
     </div>
   )
 }

@@ -6,17 +6,20 @@ const loading = new Map()
 
 function loadScript(src) {
   if (!loading.has(src)) {
-    loading.set(src, new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = src
-      script.async = true
-      script.onload = resolve
-      script.onerror = () => {
-        loading.delete(src)
-        reject(new Error('Não foi possível carregar o login. Confira a internet.'))
-      }
-      document.head.appendChild(script)
-    }))
+    loading.set(
+      src,
+      new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = src
+        script.async = true
+        script.onload = resolve
+        script.onerror = () => {
+          loading.delete(src)
+          reject(new Error('Não foi possível carregar o login. Confira a internet.'))
+        }
+        document.head.appendChild(script)
+      })
+    )
   }
   return loading.get(src)
 }

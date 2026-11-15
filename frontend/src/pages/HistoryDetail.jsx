@@ -1,7 +1,17 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
-import { bestSet, formatDay, formatDuration, formatLoad, formatSet, formatTime, formatVolume, plural, sessionTotals } from '../format'
+import {
+  bestSet,
+  formatDay,
+  formatDuration,
+  formatLoad,
+  formatSet,
+  formatTime,
+  formatVolume,
+  plural,
+  sessionTotals
+} from '../format'
 import { useFeedback } from '../ui/feedbackContext'
 import { useAsync } from '../ui/hooks'
 import { Icon, IconButton } from '../ui/Icon'
@@ -19,8 +29,21 @@ export function HistoryDetail() {
   const { data: session, error, loading, reload } = useAsync(() => api.session(id), [id])
   const celebration = location.state?.justFinished ? location.state : null
 
-  if (error) return <><PageHeader back="/historico" title="Treino" /><ErrorState message={error} onRetry={reload} /></>
-  if (loading && !session) return <><PageHeader back="/historico" title="Treino" /><Skeleton lines={2} /><Skeleton lines={4} /></>
+  if (error)
+    return (
+      <>
+        <PageHeader back="/historico" title="Treino" />
+        <ErrorState message={error} onRetry={reload} />
+      </>
+    )
+  if (loading && !session)
+    return (
+      <>
+        <PageHeader back="/historico" title="Treino" />
+        <Skeleton lines={2} />
+        <Skeleton lines={4} />
+      </>
+    )
   if (!session.finishedAt) return <Navigate to={`/treino/${session.id}`} replace />
 
   const { done, volume, duration } = sessionTotals(session)
@@ -76,16 +99,22 @@ export function HistoryDetail() {
 
       {celebration && (
         <section className="card celebrate">
-          <span className="hero-icon"><Icon name="trophy" size={26} /></span>
+          <span className="hero-icon">
+            <Icon name="trophy" size={26} />
+          </span>
           <h2>Treino concluído!</h2>
           {celebration.highlights?.length > 0 ? (
             <>
-              <p className="muted">Você superou a última vez em {plural(celebration.highlights.length, 'exercício', 'exercícios')}:</p>
+              <p className="muted">
+                Você superou a última vez em {plural(celebration.highlights.length, 'exercício', 'exercícios')}:
+              </p>
               <ul className="highlights">
                 {celebration.highlights.map((item) => (
                   <li key={item.name}>
                     <Icon name="up" size={16} strokeWidth={3} />
-                    <span><strong>{item.name}</strong> {item.now} <span className="muted">(antes {item.before})</span></span>
+                    <span>
+                      <strong>{item.name}</strong> {item.now} <span className="muted">(antes {item.before})</span>
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -97,9 +126,21 @@ export function HistoryDetail() {
       )}
 
       <section className="stats">
-        <div className="stat"><Icon name="timer" size={20} /><strong>{duration ? formatDuration(duration) : '—'}</strong><span>duração</span></div>
-        <div className="stat"><Icon name="check" size={20} /><strong>{done}</strong><span>{done === 1 ? 'série feita' : 'séries feitas'}</span></div>
-        <div className="stat"><Icon name="dumbbell" size={20} /><strong>{formatVolume(volume) || '—'}</strong><span>volume</span></div>
+        <div className="stat">
+          <Icon name="timer" size={20} />
+          <strong>{duration ? formatDuration(duration) : '—'}</strong>
+          <span>duração</span>
+        </div>
+        <div className="stat">
+          <Icon name="check" size={20} />
+          <strong>{done}</strong>
+          <span>{done === 1 ? 'série feita' : 'séries feitas'}</span>
+        </div>
+        <div className="stat">
+          <Icon name="dumbbell" size={20} />
+          <strong>{formatVolume(volume) || '—'}</strong>
+          <span>volume</span>
+        </div>
       </section>
 
       {session.exercises.map((exercise) => {
@@ -110,11 +151,17 @@ export function HistoryDetail() {
               <div>
                 <h2>{exercise.name}</h2>
                 <p className="muted small">
-                  Meta {exercise.targetReps} reps{formatLoad(exercise.targetLoad) ? ` · ${formatLoad(exercise.targetLoad)}` : ''}
+                  Meta {exercise.targetReps} reps
+                  {formatLoad(exercise.targetLoad) ? ` · ${formatLoad(exercise.targetLoad)}` : ''}
                   {exercise.targetRir != null ? ` · RIR ${exercise.targetRir}` : ''}
                 </p>
               </div>
-              <Link className="icon-btn" to={`/evolucao/exercicio?nome=${encodeURIComponent(exercise.name)}`} aria-label={`Evolução de ${exercise.name}`} title="Ver evolução">
+              <Link
+                className="icon-btn"
+                to={`/evolucao/exercicio?nome=${encodeURIComponent(exercise.name)}`}
+                aria-label={`Evolução de ${exercise.name}`}
+                title="Ver evolução"
+              >
                 <Icon name="chart" size={20} />
               </Link>
             </header>
@@ -131,18 +178,27 @@ export function HistoryDetail() {
                 ))}
               </ol>
             )}
-            {doneSets.length === 0 && exercise.sets.length > 0 && <p className="muted small">Nenhuma série marcada como feita.</p>}
+            {doneSets.length === 0 && exercise.sets.length > 0 && (
+              <p className="muted small">Nenhuma série marcada como feita.</p>
+            )}
           </section>
         )
       })}
 
       <button type="button" className="btn btn-secondary btn-block" disabled={busy} onClick={repeat}>
-        <Icon name="repeat" size={20} />{busy ? 'Começando…' : 'Repetir este treino'}
+        <Icon name="repeat" size={20} />
+        {busy ? 'Começando…' : 'Repetir este treino'}
       </button>
 
       <Sheet open={menu} onClose={() => setMenu(false)} title={session.name}>
         <ActionList>
-          <Action icon={<Icon name="repeat" />} label="Repetir este treino" hint="Começa um treino avulso igual a este" onClick={repeat} disabled={busy} />
+          <Action
+            icon={<Icon name="repeat" />}
+            label="Repetir este treino"
+            hint="Começa um treino avulso igual a este"
+            onClick={repeat}
+            disabled={busy}
+          />
           <Action icon={<Icon name="trash" />} label="Apagar do histórico" danger onClick={remove} />
         </ActionList>
       </Sheet>

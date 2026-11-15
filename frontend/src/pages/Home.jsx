@@ -3,7 +3,16 @@ import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { Avatar } from '../components/Avatar'
 import { WeekStrip } from '../components/WeekStrip'
-import { dateKey, estimateMinutes, formatClock, formatDay, formatDuration, formatVolume, plural, relativeDay } from '../format'
+import {
+  dateKey,
+  estimateMinutes,
+  formatClock,
+  formatDay,
+  formatDuration,
+  formatVolume,
+  plural,
+  relativeDay
+} from '../format'
 import { dayLetter, monthStats, nextInRoutine, orderedDays, sessionsByDay, streak, weekStart } from '../plan'
 import { useFeedback } from '../ui/feedbackContext'
 import { useAsync, useNow } from '../ui/hooks'
@@ -28,8 +37,10 @@ export function Home() {
   const [quickName, setQuickName] = useState('')
   const { data: profile } = useAsync(() => api.profile(), [])
   const { data, error, loading, reload } = useAsync(
-    () => Promise.all([api.templates(), api.sessions('open'), api.sessions('finished')])
-      .then(([templates, open, finished]) => ({ templates, open: open[0] || null, finished })),
+    () =>
+      Promise.all([api.templates(), api.sessions('open'), api.sessions('finished')]).then(
+        ([templates, open, finished]) => ({ templates, open: open[0] || null, finished })
+      ),
     []
   )
 
@@ -67,16 +78,29 @@ export function Home() {
       large
       kicker={formatDay(new Date())}
       title={firstName ? `Olá, ${firstName}` : greeting()}
-      actions={(
+      actions={
         <Link to="/perfil" className="avatar-link" aria-label="Perfil">
           <Avatar profile={profile} size={44} />
         </Link>
-      )}
+      }
     />
   )
 
-  if (error) return <>{header}<ErrorState message={error} onRetry={reload} /></>
-  if (loading && !data) return <>{header}<Skeleton lines={4} /><Skeleton lines={2} /></>
+  if (error)
+    return (
+      <>
+        {header}
+        <ErrorState message={error} onRetry={reload} />
+      </>
+    )
+  if (loading && !data)
+    return (
+      <>
+        {header}
+        <Skeleton lines={4} />
+        <Skeleton lines={2} />
+      </>
+    )
 
   const { templates, open, finished } = data
   const next = nextInRoutine(templates, finished)
@@ -94,14 +118,29 @@ export function Home() {
       {open ? (
         <OpenCard session={open} onDiscard={() => discard(open)} />
       ) : next ? (
-        <NextCard next={next} busy={busy} onStart={() => start({ templateId: next.day.id })} onSwap={() => setPicker(true)} />
+        <NextCard
+          next={next}
+          busy={busy}
+          onStart={() => start({ templateId: next.day.id })}
+          onSwap={() => setPicker(true)}
+        />
       ) : (
         <section className="card hero onboarding">
-          <span className="hero-icon"><Icon name="routine" size={26} /></span>
+          <span className="hero-icon">
+            <Icon name="routine" size={26} />
+          </span>
           <h2>Monte sua rotina</h2>
-          <p className="muted">Crie os treinos da semana, como "Peito e tríceps" e "Costas e bíceps". O app alterna entre eles sozinho: ao concluir um, o próximo fica pronto.</p>
-          <Link className="btn btn-primary btn-lg btn-block" to="/rotina/novo"><Icon name="plus" size={20} />Criar primeiro treino</Link>
-          <button type="button" className="btn btn-quiet btn-block" onClick={() => setPicker(true)}>Fazer um treino avulso</button>
+          <p className="muted">
+            Crie os treinos da semana, como "Peito e tríceps" e "Costas e bíceps". O app alterna entre eles sozinho: ao
+            concluir um, o próximo fica pronto.
+          </p>
+          <Link className="btn btn-primary btn-lg btn-block" to="/rotina/novo">
+            <Icon name="plus" size={20} />
+            Criar primeiro treino
+          </Link>
+          <button type="button" className="btn btn-quiet btn-block" onClick={() => setPicker(true)}>
+            Fazer um treino avulso
+          </button>
         </section>
       )}
 
@@ -135,7 +174,9 @@ export function Home() {
         <section className="section">
           <div className="section-head">
             <h2>Últimos treinos</h2>
-            <Link to="/historico" className="link-btn">Ver tudo</Link>
+            <Link to="/historico" className="link-btn">
+              Ver tudo
+            </Link>
           </div>
           <div className="list">
             {recent.map((session) => (
@@ -173,13 +214,23 @@ export function Home() {
           )}
           <form
             className="quick-start"
-            onSubmit={(event) => { event.preventDefault(); start({ name: quickName.trim(), exercises: [] }) }}
+            onSubmit={(event) => {
+              event.preventDefault()
+              start({ name: quickName.trim(), exercises: [] })
+            }}
           >
             <span className="field-label">Treino avulso</span>
             <p className="muted small">Começa vazio. Você adiciona os exercícios durante o treino.</p>
             <div className="input-row">
-              <input className="input" placeholder="Nome (opcional)" value={quickName} onChange={(event) => setQuickName(event.target.value)} />
-              <button type="submit" className="btn btn-secondary" disabled={busy || !!open}>Começar</button>
+              <input
+                className="input"
+                placeholder="Nome (opcional)"
+                value={quickName}
+                onChange={(event) => setQuickName(event.target.value)}
+              />
+              <button type="submit" className="btn btn-secondary" disabled={busy || !!open}>
+                Começar
+              </button>
             </div>
           </form>
           {open && <p className="muted small">Conclua ou descarte o treino em andamento para começar outro.</p>}
@@ -196,14 +247,26 @@ function OpenCard({ session, onDiscard }) {
   return (
     <section className="card hero live">
       <div className="hero-top">
-        <span className="badge live-badge"><span className="pulse" />Em andamento</span>
+        <span className="badge live-badge">
+          <span className="pulse" />
+          Em andamento
+        </span>
         <span className="hero-clock">{formatClock(elapsed)}</span>
       </div>
       <h2 className="hero-title">{session.name}</h2>
-      <p className="muted">{session.completedSets} de {session.totalSets} séries feitas</p>
-      <div className="progress" aria-hidden="true"><span style={{ width: `${ratio * 100}%` }} /></div>
-      <Link className="btn btn-primary btn-lg btn-block" to={`/treino/${session.id}`}><Icon name="play" size={18} filled />Continuar treino</Link>
-      <button type="button" className="btn btn-quiet btn-block danger-text" onClick={onDiscard}>Descartar</button>
+      <p className="muted">
+        {session.completedSets} de {session.totalSets} séries feitas
+      </p>
+      <div className="progress" aria-hidden="true">
+        <span style={{ width: `${ratio * 100}%` }} />
+      </div>
+      <Link className="btn btn-primary btn-lg btn-block" to={`/treino/${session.id}`}>
+        <Icon name="play" size={18} filled />
+        Continuar treino
+      </Link>
+      <button type="button" className="btn btn-quiet btn-block danger-text" onClick={onDiscard}>
+        Descartar
+      </button>
     </section>
   )
 }
@@ -217,29 +280,46 @@ function NextCard({ next, busy, onStart, onSwap }) {
       {doneToday && (
         <Link to={`/historico/${doneToday.id}`} className="done-banner">
           <Icon name="check" size={18} strokeWidth={3} />
-          <span><strong>{doneToday.name}</strong> concluído hoje{doneToday.durationSeconds ? ` em ${formatDuration(doneToday.durationSeconds)}` : ''}</span>
+          <span>
+            <strong>{doneToday.name}</strong> concluído hoje
+            {doneToday.durationSeconds ? ` em ${formatDuration(doneToday.durationSeconds)}` : ''}
+          </span>
           <Icon name="forward" size={16} />
         </Link>
       )}
       <div className="hero-top">
         <span className="badge">{doneToday ? 'Próximo treino' : 'Treino de hoje'}</span>
-        <span className="muted small">Treino {dayLetter(index)} · {index + 1} de {total}</span>
+        <span className="muted small">
+          Treino {dayLetter(index)} · {index + 1} de {total}
+        </span>
       </div>
       <h2 className="hero-title">{day.name}</h2>
-      <p className="muted">{plural(day.exercises.length, 'exercício', 'exercícios')} · cerca de {estimateMinutes(day.exercises)} min</p>
+      <p className="muted">
+        {plural(day.exercises.length, 'exercício', 'exercícios')} · cerca de {estimateMinutes(day.exercises)} min
+      </p>
       <ul className="hero-list">
         {preview.map((exercise) => (
           <li key={exercise.id}>
             <span>{exercise.name}</span>
-            <span className="muted">{exercise.plannedSets} × {exercise.reps}</span>
+            <span className="muted">
+              {exercise.plannedSets} × {exercise.reps}
+            </span>
           </li>
         ))}
         {hidden > 0 && <li className="muted">+ {plural(hidden, 'exercício', 'exercícios')}</li>}
       </ul>
-      <button type="button" className={doneToday ? 'btn btn-secondary btn-lg btn-block' : 'btn btn-primary btn-lg btn-block'} disabled={busy} onClick={onStart}>
-        <Icon name="play" size={18} filled />{busy ? 'Começando…' : 'Começar treino'}
+      <button
+        type="button"
+        className={doneToday ? 'btn btn-secondary btn-lg btn-block' : 'btn btn-primary btn-lg btn-block'}
+        disabled={busy}
+        onClick={onStart}
+      >
+        <Icon name="play" size={18} filled />
+        {busy ? 'Começando…' : 'Começar treino'}
       </button>
-      <button type="button" className="btn btn-quiet btn-block" onClick={onSwap}>Escolher outro treino</button>
+      <button type="button" className="btn btn-quiet btn-block" onClick={onSwap}>
+        Escolher outro treino
+      </button>
     </section>
   )
 }

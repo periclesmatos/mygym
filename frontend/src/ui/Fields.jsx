@@ -4,7 +4,19 @@ function round(value) {
   return Math.round(value * 100) / 100
 }
 
-export function Stepper({ label, value, onChange, step = 1, min = 0, max, seed, suffix, inputMode = 'decimal', placeholder, allowEmpty }) {
+export function Stepper({
+  label,
+  value,
+  onChange,
+  step = 1,
+  min = 0,
+  max,
+  seed,
+  suffix,
+  inputMode = 'decimal',
+  placeholder,
+  allowEmpty
+}) {
   function bump(direction) {
     const current = numberOrNull(value)
     const seeded = numberOrNull(seed)
@@ -12,7 +24,7 @@ export function Stepper({ label, value, onChange, step = 1, min = 0, max, seed, 
     if (current != null) next = current + direction * step
     else if (seeded != null) next = seeded
     else next = direction > 0 ? step : min
-    next =Math.min(max ?? Infinity, Math.max(min, round(next)))
+    next = Math.min(max ?? Infinity, Math.max(min, round(next)))
     onChange(String(next))
   }
   const current = numberOrNull(value)
@@ -20,7 +32,14 @@ export function Stepper({ label, value, onChange, step = 1, min = 0, max, seed, 
     <div className="field">
       {label && <span className="field-label">{label}</span>}
       <div className="stepper">
-        <button type="button" onClick={() => bump(-1)} aria-label={`Diminuir ${label || ''}`} disabled={!allowEmpty && current != null && current <= min}>−</button>
+        <button
+          type="button"
+          onClick={() => bump(-1)}
+          aria-label={`Diminuir ${label || ''}`}
+          disabled={!allowEmpty && current != null && current <= min}
+        >
+          −
+        </button>
         <div className="stepper-value">
           <input
             inputMode={inputMode}
@@ -32,7 +51,14 @@ export function Stepper({ label, value, onChange, step = 1, min = 0, max, seed, 
           />
           {suffix && <span>{suffix}</span>}
         </div>
-        <button type="button" onClick={() => bump(1)} aria-label={`Aumentar ${label || ''}`} disabled={max != null && current != null && current >= max}>+</button>
+        <button
+          type="button"
+          onClick={() => bump(1)}
+          aria-label={`Aumentar ${label || ''}`}
+          disabled={max != null && current != null && current >= max}
+        >
+          +
+        </button>
       </div>
     </div>
   )

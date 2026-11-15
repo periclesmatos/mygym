@@ -16,7 +16,11 @@ function groupByMonth(sessions) {
     const key = `${date.getFullYear()}-${date.getMonth()}`
     let group = groups[groups.length - 1]
     if (!group || group.key !== key) {
-      group = { key, label: capitalize(date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })), items: [] }
+      group = {
+        key,
+        label: capitalize(date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })),
+        items: []
+      }
       groups.push(group)
     }
     group.items.push(session)
@@ -52,10 +56,21 @@ export function History() {
     <>
       <PageHeader large title="Histórico" />
       {error && <ErrorState message={error} onRetry={reload} />}
-      {loading && !data && <><Skeleton /><Skeleton lines={2} /></>}
+      {loading && !data && (
+        <>
+          <Skeleton />
+          <Skeleton lines={2} />
+        </>
+      )}
       {data?.length === 0 && (
-        <Empty icon="history" title="Nenhum treino concluído" text="Os treinos que você concluir aparecem aqui, com séries, cargas e volume.">
-          <Link className="btn btn-primary" to="/">Ir para o início</Link>
+        <Empty
+          icon="history"
+          title="Nenhum treino concluído"
+          text="Os treinos que você concluir aparecem aqui, com séries, cargas e volume."
+        >
+          <Link className="btn btn-primary" to="/">
+            Ir para o início
+          </Link>
         </Empty>
       )}
       {data?.length > 0 && (
@@ -79,7 +94,9 @@ export function History() {
                   <span className="muted small">{plural(group.items.length, 'treino', 'treinos')}</span>
                 </div>
                 <div className="list">
-                  {group.items.map((session) => <SessionItem key={session.id} session={session} />)}
+                  {group.items.map((session) => (
+                    <SessionItem key={session.id} session={session} />
+                  ))}
                 </div>
               </section>
             ))

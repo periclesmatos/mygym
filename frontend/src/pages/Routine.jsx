@@ -16,8 +16,10 @@ export function Routine() {
   const [organizing, setOrganizing] = useState(false)
   const [menu, setMenu] = useState(null)
   const { data, error, loading, reload, setData } = useAsync(
-    () => Promise.all([api.templates(), api.sessions('finished'), api.sessions('open')])
-      .then(([templates, finished, open]) => ({ templates: orderedDays(templates), finished, open: open[0] || null })),
+    () =>
+      Promise.all([api.templates(), api.sessions('finished'), api.sessions('open')]).then(
+        ([templates, finished, open]) => ({ templates: orderedDays(templates), finished, open: open[0] || null })
+      ),
     []
   )
 
@@ -53,7 +55,14 @@ export function Routine() {
       await api.createTemplate({
         name: `${template.name} (cópia)`.slice(0, 80),
         notes: template.notes || '',
-        exercises: template.exercises.map(({ name, plannedSets, reps, load, restSeconds, rir }) => ({ name, plannedSets, reps, load, restSeconds, rir }))
+        exercises: template.exercises.map(({ name, plannedSets, reps, load, restSeconds, rir }) => ({
+          name,
+          plannedSets,
+          reps,
+          load,
+          restSeconds,
+          rir
+        }))
       })
       toast('Treino duplicado no fim da rotina.', 'success')
       reload()
@@ -89,19 +98,37 @@ export function Routine() {
         large
         title="Rotina"
         subtitle="Os treinos se alternam nesta ordem. Ao concluir um, o seguinte vira o próximo."
-        actions={templates.length > 1 && (
-          <button type="button" className={organizing ? 'btn btn-secondary btn-sm' : 'btn btn-quiet btn-sm'} onClick={() => setOrganizing((value) => !value)}>
-            {organizing ? 'Pronto' : 'Reordenar'}
-          </button>
-        )}
+        actions={
+          templates.length > 1 && (
+            <button
+              type="button"
+              className={organizing ? 'btn btn-secondary btn-sm' : 'btn btn-quiet btn-sm'}
+              onClick={() => setOrganizing((value) => !value)}
+            >
+              {organizing ? 'Pronto' : 'Reordenar'}
+            </button>
+          )
+        }
       />
 
       {error && <ErrorState message={error} onRetry={reload} />}
-      {loading && !data && <><Skeleton /><Skeleton /></>}
+      {loading && !data && (
+        <>
+          <Skeleton />
+          <Skeleton />
+        </>
+      )}
 
       {data && templates.length === 0 && (
-        <Empty icon="routine" title="Nenhum treino na rotina" text="Crie um treino para cada dia, como A, B e C. Eles se alternam sozinhos.">
-          <Link className="btn btn-primary" to="/rotina/novo"><Icon name="plus" size={20} />Criar treino</Link>
+        <Empty
+          icon="routine"
+          title="Nenhum treino na rotina"
+          text="Crie um treino para cada dia, como A, B e C. Eles se alternam sozinhos."
+        >
+          <Link className="btn btn-primary" to="/rotina/novo">
+            <Icon name="plus" size={20} />
+            Criar treino
+          </Link>
         </Empty>
       )}
 
@@ -121,12 +148,27 @@ export function Routine() {
                     ? template.exercises.map((exercise) => exercise.name).join(' · ')
                     : 'Sem exercícios'}
                 </span>
-                <span className="muted small">{plural(template.exercises.length, 'exercício', 'exercícios')} · ~{estimateMinutes(template.exercises)} min</span>
+                <span className="muted small">
+                  {plural(template.exercises.length, 'exercício', 'exercícios')} · ~
+                  {estimateMinutes(template.exercises)} min
+                </span>
               </Link>
               {organizing ? (
                 <div className="move-btns">
-                  <IconButton icon="up" label={`Subir ${template.name}`} disabled={index === 0} onClick={() => move(index, -1)} size={20} />
-                  <IconButton icon="down" label={`Descer ${template.name}`} disabled={index === templates.length - 1} onClick={() => move(index, 1)} size={20} />
+                  <IconButton
+                    icon="up"
+                    label={`Subir ${template.name}`}
+                    disabled={index === 0}
+                    onClick={() => move(index, -1)}
+                    size={20}
+                  />
+                  <IconButton
+                    icon="down"
+                    label={`Descer ${template.name}`}
+                    disabled={index === templates.length - 1}
+                    onClick={() => move(index, 1)}
+                    size={20}
+                  />
                 </div>
               ) : (
                 <IconButton icon="more" label={`Opções de ${template.name}`} onClick={() => setMenu(template)} />
@@ -137,13 +179,22 @@ export function Routine() {
       </ol>
 
       {templates.length > 0 && (
-        <Link className="btn btn-secondary btn-block" to="/rotina/novo"><Icon name="plus" size={20} />Novo treino</Link>
+        <Link className="btn btn-secondary btn-block" to="/rotina/novo">
+          <Icon name="plus" size={20} />
+          Novo treino
+        </Link>
       )}
 
       <Sheet open={!!menu} onClose={() => setMenu(null)} title={menu?.name}>
         {menu && (
           <ActionList>
-            <Action icon={<Icon name="play" />} label="Começar agora" hint={data?.open ? 'Há um treino em andamento' : undefined} disabled={!!data?.open} onClick={() => start(menu)} />
+            <Action
+              icon={<Icon name="play" />}
+              label="Começar agora"
+              hint={data?.open ? 'Há um treino em andamento' : undefined}
+              disabled={!!data?.open}
+              onClick={() => start(menu)}
+            />
             <Action icon={<Icon name="edit" />} label="Editar" onClick={() => navigate(`/rotina/${menu.id}`)} />
             <Action icon={<Icon name="copy" />} label="Duplicar" onClick={() => duplicate(menu)} />
             <Action icon={<Icon name="trash" />} label="Remover da rotina" danger onClick={() => remove(menu)} />

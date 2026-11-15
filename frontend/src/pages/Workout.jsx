@@ -4,8 +4,20 @@ import { api, exerciseKey } from '../api'
 import { ExerciseSheet } from '../components/ExerciseForm'
 import { RestBar } from '../components/RestBar'
 import {
-  bestSet, emptyExercise, estimatedMax, exercisePayload, firstReps, formatClock, formatLoad, formatNumber,
-  formatRest, formatSet, numberOrNull, plural, relativeDay, sessionTotals
+  bestSet,
+  emptyExercise,
+  estimatedMax,
+  exercisePayload,
+  firstReps,
+  formatClock,
+  formatLoad,
+  formatNumber,
+  formatRest,
+  formatSet,
+  numberOrNull,
+  plural,
+  relativeDay,
+  sessionTotals
 } from '../format'
 import { useFeedback } from '../ui/feedbackContext'
 import { Stepper } from '../ui/Fields'
@@ -20,7 +32,9 @@ function readRest(sessionId) {
   try {
     const rest = JSON.parse(localStorage.getItem(REST_KEY))
     if (rest && rest.sessionId === sessionId && rest.endsAt > Date.now()) return rest
-  } catch { /* sem armazenamento */ }
+  } catch {
+    /* sem armazenamento */
+  }
   return null
 }
 
@@ -28,7 +42,9 @@ function writeRest(rest) {
   try {
     if (rest) localStorage.setItem(REST_KEY, JSON.stringify(rest))
     else localStorage.removeItem(REST_KEY)
-  } catch { /* sem armazenamento */ }
+  } catch {
+    /* sem armazenamento */
+  }
 }
 
 function draftFrom(set) {
@@ -65,11 +81,16 @@ function highlights(session, last) {
     const now = estimatedMax(best.load, best.reps)
     // Compara pelos valores brutos: o estimatedMax do servidor vem arredondado.
     const before = estimatedMax(previous.topLoad, previous.topReps)
-    const improved = now > 0 && before > 0
-      ? now > before + 0.05
-      : !best.load && !Number(previous.topLoad) && best.reps > (previous.topReps || 0)
+    const improved =
+      now > 0 && before > 0
+        ? now > before + 0.05
+        : !best.load && !Number(previous.topLoad) && best.reps > (previous.topReps || 0)
     if (improved) {
-      result.push({ name: exercise.name, now: formatSet(best.load, best.reps), before: formatSet(previous.topLoad, previous.topReps) })
+      result.push({
+        name: exercise.name,
+        now: formatSet(best.load, best.reps),
+        before: formatSet(previous.topLoad, previous.topReps)
+      })
     }
   }
   return result
@@ -83,10 +104,14 @@ function useWakeLock(enabled) {
     const acquire = async () => {
       try {
         lock = await navigator.wakeLock.request('screen')
-      } catch { /* o navegador pode recusar */ }
+      } catch {
+        /* o navegador pode recusar */
+      }
       if (cancelled) lock?.release().catch(() => {})
     }
-    const onVisible = () => { if (document.visibilityState === 'visible') acquire() }
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') acquire()
+    }
     acquire()
     document.addEventListener('visibilitychange', onVisible)
     return () => {
@@ -163,13 +188,23 @@ export function Workout() {
     const reps = numberOrNull(draft.reps)
     const load = numberOrNull(draft.load)
     const rir = numberOrNull(draft.rir)
-    if (reps != null && (!Number.isInteger(reps) || reps < 0 || reps > 999)) { toast('Repetições inválidas.', 'error'); return null }
-    if (load != null && (load < 0 || load > 9999.99)) { toast('Carga inválida.', 'error'); return null }
-    if (rir != null && (!Number.isInteger(rir) || rir < 0 || rir > 10)) { toast('RIR deve ficar entre 0 e 10.', 'error'); return null }
+    if (reps != null && (!Number.isInteger(reps) || reps < 0 || reps > 999)) {
+      toast('Repetições inválidas.', 'error')
+      return null
+    }
+    if (load != null && (load < 0 || load > 9999.99)) {
+      toast('Carga inválida.', 'error')
+      return null
+    }
+    if (rir != null && (!Number.isInteger(rir) || rir < 0 || rir > 10)) {
+      toast('RIR deve ficar entre 0 e 10.', 'error')
+      return null
+    }
     try {
       const updated = await api.updateSet(sessionId, setId, { reps, load, rir, completed })
       const fresh = findSet(updated, setId)
-      if (fresh && sessionRef.current) patchSet(setId, { completedAt: fresh.completedAt, reps: fresh.reps, load: fresh.load, rir: fresh.rir })
+      if (fresh && sessionRef.current)
+        patchSet(setId, { completedAt: fresh.completedAt, reps: fresh.reps, load: fresh.load, rir: fresh.rir })
       return updated
     } catch (caught) {
       toast(caught.message, 'error')
@@ -178,22 +213,35 @@ export function Workout() {
   }
 
   function flushAll() {
-    return Promise.all(Object.keys(timers.current).map((key) => {
-      const setId = Number(key)
-      return persist(setId, Boolean(findSet(sessionRef.current, setId)?.completedAt))
-    }))
+    return Promise.all(
+      Object.keys(timers.current).map((key) => {
+        const setId = Number(key)
+        return persist(setId, Boolean(findSet(sessionRef.current, setId)?.completedAt))
+      })
+    )
   }
 
   useEffect(() => {
     let active = true
-    api.session(id).then((data) => {
-      if (!active) return
-      if (data.finishedAt) { navigate(`/historico/${data.id}`, { replace: true }); return }
-      applySession(data)
-      api.lastPerformance(data.exercises.map((exercise) => exercise.name))
-        .then((map) => { if (active) setLast(map) })
-        .catch(() => {})
-    }).catch((caught) => { if (active) setLoadError(caught.message) })
+    api
+      .session(id)
+      .then((data) => {
+        if (!active) return
+        if (data.finishedAt) {
+          navigate(`/historico/${data.id}`, { replace: true })
+          return
+        }
+        applySession(data)
+        api
+          .lastPerformance(data.exercises.map((exercise) => exercise.name))
+          .then((map) => {
+            if (active) setLast(map)
+          })
+          .catch(() => {})
+      })
+      .catch((caught) => {
+        if (active) setLoadError(caught.message)
+      })
     return () => {
       active = false
       // Salva o que ainda estava aguardando o atraso de digitação.
@@ -207,7 +255,11 @@ export function Workout() {
   useEffect(() => {
     if (!rest || rest.endsAt > now || alerted.current === rest.endsAt) return
     alerted.current = rest.endsAt
-    try { navigator.vibrate?.([180, 90, 180]) } catch { /* sem vibração */ }
+    try {
+      navigator.vibrate?.([180, 90, 180])
+    } catch {
+      /* sem vibração */
+    }
     beep()
     setRest(null)
     writeRest(null)
@@ -222,7 +274,9 @@ export function Workout() {
         if (Context) audio.current = new Context()
       }
       audio.current?.resume?.()
-    } catch { /* sem áudio */ }
+    } catch {
+      /* sem áudio */
+    }
   }
 
   function beep() {
@@ -241,7 +295,9 @@ export function Workout() {
         oscillator.start(start)
         oscillator.stop(start + 0.18)
       }
-    } catch { /* sem áudio */ }
+    } catch {
+      /* sem áudio */
+    }
   }
 
   function startRest(exercise, setId) {
@@ -265,7 +321,10 @@ export function Workout() {
     if (!rest) return
     const endsAt = Math.max(Date.now(), rest.endsAt + delta * 1000)
     const left = Math.ceil((endsAt - Date.now()) / 1000)
-    if (left <= 0) { skipRest(); return }
+    if (left <= 0) {
+      skipRest()
+      return
+    }
     const value = { ...rest, endsAt, total: Math.max(rest.total, left) }
     setRest(value)
     writeRest(value)
@@ -298,7 +357,8 @@ export function Workout() {
       const previous = previousFor(exercise, set)
       const fill = {}
       if (draft.reps === '') {
-        fill.reps = beforeDraft?.reps || (previous?.reps != null ? String(previous.reps) : firstReps(exercise.targetReps))
+        fill.reps =
+          beforeDraft?.reps || (previous?.reps != null ? String(previous.reps) : firstReps(exercise.targetReps))
       }
       if (draft.load === '') {
         const load = beforeDraft?.load || (previous?.load != null ? String(Number(previous.load)) : '')
@@ -310,7 +370,11 @@ export function Workout() {
         return
       }
       ensureAudio()
-      try { navigator.vibrate?.(15) } catch { /* sem vibração */ }
+      try {
+        navigator.vibrate?.(15)
+      } catch {
+        /* sem vibração */
+      }
     }
     patchSet(set.id, { completedAt: completing ? new Date().toISOString() : null })
     if (completing) startRest(exercise, set.id)
@@ -363,7 +427,10 @@ export function Workout() {
       })
       if (!ok) return
     }
-    for (const set of exercise.sets) { clearTimeout(timers.current[set.id]); delete timers.current[set.id] }
+    for (const set of exercise.sets) {
+      clearTimeout(timers.current[set.id])
+      delete timers.current[set.id]
+    }
     run(() => api.removeExercise(sessionId, exercise.id), 'Exercício removido.')
   }
 
@@ -371,7 +438,10 @@ export function Workout() {
     const ok = await run(() => api.addExercise(sessionId, exercisePayload(draft)), `${draft.name.trim()} adicionado.`)
     if (!ok) return
     setAdding(null)
-    api.lastPerformance([draft.name]).then((map) => setLast((current) => ({ ...current, ...map }))).catch(() => {})
+    api
+      .lastPerformance([draft.name])
+      .then((map) => setLast((current) => ({ ...current, ...map })))
+      .catch(() => {})
     requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }))
   }
 
@@ -406,7 +476,8 @@ export function Workout() {
     if (done === 0) {
       const ok = await confirm({
         title: 'Nenhuma série marcada',
-        message: 'Marque cada série com ✓ quando terminar. Sem séries feitas, não há o que salvar. Quer descartar este treino?',
+        message:
+          'Marque cada série com ✓ quando terminar. Sem séries feitas, não há o que salvar. Quer descartar este treino?',
         confirmLabel: 'Descartar treino',
         cancelLabel: 'Voltar ao treino',
         danger: true
@@ -439,7 +510,14 @@ export function Workout() {
   }
 
   if (loadError) return <ErrorState message={loadError} onRetry={() => window.location.reload()} />
-  if (!session) return <><Skeleton lines={2} /><Skeleton lines={5} /><Skeleton lines={5} /></>
+  if (!session)
+    return (
+      <>
+        <Skeleton lines={2} />
+        <Skeleton lines={5} />
+        <Skeleton lines={5} />
+      </>
+    )
 
   const { done, total } = sessionTotals(session)
   const elapsed = (now - new Date(session.startedAt).getTime()) / 1000
@@ -452,13 +530,17 @@ export function Workout() {
         <IconButton icon="back" label="Voltar ao início" onClick={() => navigate('/')} />
         <div className="workout-title">
           <h1>{session.name}</h1>
-          <p><span className="tabular">{formatClock(elapsed)}</span> · {done}/{total} séries</p>
+          <p>
+            <span className="tabular">{formatClock(elapsed)}</span> · {done}/{total} séries
+          </p>
         </div>
         <IconButton icon="more" label="Opções do treino" onClick={() => setMenu(true)} />
         <button type="button" className="btn btn-primary btn-sm" onClick={finish} disabled={finishing}>
           {finishing ? 'Salvando…' : 'Concluir'}
         </button>
-        <div className="progress thin" aria-hidden="true"><span style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></div>
+        <div className="progress thin" aria-hidden="true">
+          <span style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+        </div>
       </header>
 
       {session.exercises.length === 0 && (
@@ -474,7 +556,9 @@ export function Workout() {
           formatLoad(exercise.targetLoad),
           exercise.targetRir != null ? `RIR ${exercise.targetRir}` : null,
           exercise.restSeconds > 0 ? `descanso ${formatRest(exercise.restSeconds)}` : null
-        ].filter(Boolean).join(' · ')
+        ]
+          .filter(Boolean)
+          .join(' · ')
         return (
           <section key={exercise.id} className={complete ? 'card exercise complete' : 'card exercise'}>
             <header className="exercise-head">
@@ -490,7 +574,10 @@ export function Workout() {
             {previous && (
               <p className="last-line">
                 <Icon name="history" size={15} />
-                <span>{relativeDay(previous.date)}: {previous.sets.map((item) => formatSet(item.load, item.reps)).join(' · ')}</span>
+                <span>
+                  {relativeDay(previous.date)}:{' '}
+                  {previous.sets.map((item) => formatSet(item.load, item.reps)).join(' · ')}
+                </span>
               </p>
             )}
 
@@ -501,7 +588,9 @@ export function Workout() {
                   <span role="columnheader">Anterior</span>
                   <span role="columnheader">kg</span>
                   <span role="columnheader">Reps</span>
-                  <span role="columnheader" className="sr-only">Feita</span>
+                  <span role="columnheader" className="sr-only">
+                    Feita
+                  </span>
                 </div>
                 {exercise.sets.map((set) => {
                   const draft = drafts[set.id] || draftFrom(set)
@@ -509,7 +598,12 @@ export function Workout() {
                   const isDone = Boolean(set.completedAt)
                   return (
                     <div key={set.id} className={isDone ? 'set-row done' : 'set-row'} role="row">
-                      <button type="button" className="set-num" onClick={() => setSetSheet({ setId: set.id, exercise })} aria-label={`Opções da série ${set.position}`}>
+                      <button
+                        type="button"
+                        className="set-num"
+                        onClick={() => setSetSheet({ setId: set.id, exercise })}
+                        aria-label={`Opções da série ${set.position}`}
+                      >
                         {set.position}
                       </button>
                       <button
@@ -536,7 +630,7 @@ export function Workout() {
                         inputMode="numeric"
                         enterKeyHint="done"
                         aria-label={`Repetições da série ${set.position}`}
-                        placeholder={prior?.reps != null ? String(prior.reps) : (firstReps(exercise.targetReps) || '—')}
+                        placeholder={prior?.reps != null ? String(prior.reps) : firstReps(exercise.targetReps) || '—'}
                         value={draft.reps}
                         onChange={(event) => changeDraft(set.id, 'reps', event.target.value)}
                         onFocus={(event) => event.target.select()}
@@ -545,7 +639,9 @@ export function Workout() {
                         type="button"
                         className={isDone ? 'set-check on' : 'set-check'}
                         aria-pressed={isDone}
-                        aria-label={isDone ? `Desmarcar série ${set.position}` : `Marcar série ${set.position} como feita`}
+                        aria-label={
+                          isDone ? `Desmarcar série ${set.position}` : `Marcar série ${set.position} como feita`
+                        }
                         onClick={() => toggle(exercise, set)}
                       >
                         <Icon name="check" size={20} strokeWidth={3} />
@@ -557,28 +653,51 @@ export function Workout() {
             )}
 
             <button type="button" className="btn btn-quiet btn-sm btn-block" onClick={() => addSet(exercise)}>
-              <Icon name="plus" size={18} />Adicionar série
+              <Icon name="plus" size={18} />
+              Adicionar série
             </button>
           </section>
         )
       })}
 
       <button type="button" className="btn btn-secondary btn-block" onClick={() => setAdding(emptyExercise())}>
-        <Icon name="plus" size={20} />Adicionar exercício
+        <Icon name="plus" size={20} />
+        Adicionar exercício
       </button>
 
       {allDone && (
-        <button type="button" className="btn btn-primary btn-lg btn-block finish-cta" onClick={finish} disabled={finishing}>
-          <Icon name="check" size={20} strokeWidth={3} />Concluir treino
+        <button
+          type="button"
+          className="btn btn-primary btn-lg btn-block finish-cta"
+          onClick={finish}
+          disabled={finishing}
+        >
+          <Icon name="check" size={20} strokeWidth={3} />
+          Concluir treino
         </button>
       )}
 
-      {rest && <RestBar remaining={remaining} total={rest.total} label={rest.label} onAdjust={adjustRest} onSkip={skipRest} />}
+      {rest && (
+        <RestBar remaining={remaining} total={rest.total} label={rest.label} onAdjust={adjustRest} onSkip={skipRest} />
+      )}
 
       <Sheet open={menu} onClose={() => setMenu(false)} title={session.name}>
         <ActionList>
-          <Action icon={<Icon name="check" />} label="Concluir treino" onClick={() => { setMenu(false); finish() }} />
-          <Action icon={<Icon name="trash" />} label="Descartar treino" hint="Apaga o treino e as séries" danger onClick={discard} />
+          <Action
+            icon={<Icon name="check" />}
+            label="Concluir treino"
+            onClick={() => {
+              setMenu(false)
+              finish()
+            }}
+          />
+          <Action
+            icon={<Icon name="trash" />}
+            label="Descartar treino"
+            hint="Apaga o treino e as séries"
+            danger
+            onClick={discard}
+          />
         </ActionList>
       </Sheet>
 
@@ -586,8 +705,17 @@ export function Workout() {
         {exerciseMenu && (
           <ActionList>
             <Action icon={<Icon name="plus" />} label="Adicionar série" onClick={() => addSet(exerciseMenu)} />
-            <Action icon={<Icon name="chart" />} label="Ver evolução" onClick={() => navigate(`/evolucao/exercicio?nome=${encodeURIComponent(exerciseMenu.name)}`)} />
-            <Action icon={<Icon name="trash" />} label="Remover exercício" danger onClick={() => removeExercise(exerciseMenu)} />
+            <Action
+              icon={<Icon name="chart" />}
+              label="Ver evolução"
+              onClick={() => navigate(`/evolucao/exercicio?nome=${encodeURIComponent(exerciseMenu.name)}`)}
+            />
+            <Action
+              icon={<Icon name="trash" />}
+              label="Remover exercício"
+              danger
+              onClick={() => removeExercise(exerciseMenu)}
+            />
           </ActionList>
         )}
       </Sheet>

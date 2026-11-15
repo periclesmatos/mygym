@@ -9,7 +9,17 @@ export function squarePhoto(file, size = 320) {
       canvas.width = size
       canvas.height = size
       const context = canvas.getContext('2d')
-      context.drawImage(image, (image.naturalWidth - side) / 2, (image.naturalHeight - side) / 2, side, side, 0, 0, size, size)
+      context.drawImage(
+        image,
+        (image.naturalWidth - side) / 2,
+        (image.naturalHeight - side) / 2,
+        side,
+        side,
+        0,
+        0,
+        size,
+        size
+      )
       URL.revokeObjectURL(url)
       resolve(canvas.toDataURL('image/jpeg', 0.85))
     }

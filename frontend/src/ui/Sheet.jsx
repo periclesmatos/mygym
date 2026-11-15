@@ -14,7 +14,9 @@ export function Sheet({ open, onClose, title, subtitle, children, footer }) {
     openCount += 1
     document.body.classList.add('no-scroll')
     const previous = document.activeElement
-    const onKey = (event) => { if (event.key === 'Escape') closeRef.current?.() }
+    const onKey = (event) => {
+      if (event.key === 'Escape') closeRef.current?.()
+    }
     window.addEventListener('keydown', onKey)
     requestAnimationFrame(() => {
       const target = panelRef.current?.querySelector('[data-autofocus]') || panelRef.current
@@ -31,8 +33,20 @@ export function Sheet({ open, onClose, title, subtitle, children, footer }) {
   if (!open) return null
 
   return createPortal(
-    <div className="sheet-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.() }}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined} ref={panelRef} tabIndex={-1}>
+    <div
+      className="sheet-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose?.()
+      }}
+    >
+      <div
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        ref={panelRef}
+        tabIndex={-1}
+      >
         <div className="sheet-grip" aria-hidden="true" />
         {title && (
           <header className="sheet-head">

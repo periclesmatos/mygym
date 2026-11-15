@@ -19,22 +19,39 @@ export function ProgressList() {
 
   return (
     <>
-      <PageHeader large title="Evolução" subtitle="Escolha um exercício para ver cargas e recordes ao longo do tempo." />
+      <PageHeader
+        large
+        title="Evolução"
+        subtitle="Escolha um exercício para ver cargas e recordes ao longo do tempo."
+      />
       {error && <ErrorState message={error} onRetry={reload} />}
       {loading && !data && <Skeleton lines={5} />}
       {data?.length === 0 && (
-        <Empty icon="chart" title="Nada para mostrar ainda" text="Conclua treinos com cargas e repetições e a evolução de cada exercício aparece aqui." />
+        <Empty
+          icon="chart"
+          title="Nada para mostrar ainda"
+          text="Conclua treinos com cargas e repetições e a evolução de cada exercício aparece aqui."
+        />
       )}
       {data?.length > 0 && (
         <>
           <div className="search">
             <Icon name="search" size={20} />
-            <input className="input" type="search" placeholder="Buscar exercício" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar exercício" />
+            <input
+              className="input"
+              type="search"
+              placeholder="Buscar exercício"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              aria-label="Buscar exercício"
+            />
           </div>
           <div className="list">
             {filtered.map((name) => (
               <Link key={name} className="list-item" to={`/evolucao/exercicio?nome=${encodeURIComponent(name)}`}>
-                <span className="list-main"><strong>{name}</strong></span>
+                <span className="list-main">
+                  <strong>{name}</strong>
+                </span>
                 <Icon name="forward" size={18} className="muted" />
               </Link>
             ))}
@@ -54,7 +71,10 @@ const METRICS = {
 }
 
 function chartDate(value, short) {
-  return new Date(value).toLocaleDateString('pt-BR', short ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Date(value).toLocaleDateString(
+    'pt-BR',
+    short ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'long', year: 'numeric' }
+  )
 }
 
 export function ProgressDetail() {
@@ -84,11 +104,24 @@ export function ProgressDetail() {
 
   return (
     <>
-      <PageHeader back="/evolucao" title={name || 'Exercício'} subtitle={data?.length ? `${plural(data.length, 'treino registrado', 'treinos registrados')}` : undefined} />
+      <PageHeader
+        back="/evolucao"
+        title={name || 'Exercício'}
+        subtitle={data?.length ? `${plural(data.length, 'treino registrado', 'treinos registrados')}` : undefined}
+      />
       {error && <ErrorState message={error} onRetry={reload} />}
-      {loading && !data && <><Skeleton lines={2} /><Skeleton lines={6} /></>}
+      {loading && !data && (
+        <>
+          <Skeleton lines={2} />
+          <Skeleton lines={6} />
+        </>
+      )}
       {data?.length === 0 && (
-        <Empty icon="chart" title="Sem registros ainda" text="Quando você concluir um treino com este exercício, a evolução aparece aqui." />
+        <Empty
+          icon="chart"
+          title="Sem registros ainda"
+          text="Quando você concluir um treino com este exercício, a evolução aparece aqui."
+        />
       )}
       {data?.length > 0 && (
         <>
@@ -115,19 +148,31 @@ export function ProgressDetail() {
           <section className="card">
             {options.length > 1 && <Segmented label="Métrica" value={active} onChange={setMetric} options={options} />}
             <LineChart points={points} unit={METRICS[active].unit} formatDate={chartDate} />
-            {active === 'max' && <p className="muted small">Estimativa de 1 repetição máxima pela fórmula de Epley: carga × (1 + reps ÷ 30), na melhor série do dia.</p>}
+            {active === 'max' && (
+              <p className="muted small">
+                Estimativa de 1 repetição máxima pela fórmula de Epley: carga × (1 + reps ÷ 30), na melhor série do dia.
+              </p>
+            )}
           </section>
 
           <section className="section">
-            <div className="section-head"><h2>Registros</h2></div>
+            <div className="section-head">
+              <h2>Registros</h2>
+            </div>
             <div className="list">
               {[...data].reverse().map((item) => (
                 <Link key={item.sessionId} to={`/historico/${item.sessionId}`} className="list-item">
                   <span className="list-main">
-                    <strong>{formatDay(item.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</strong>
-                    <span className="muted small">{item.sets.map((set) => formatSet(set.load, set.reps)).join(' · ')}</span>
+                    <strong>
+                      {formatDay(item.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                    </strong>
+                    <span className="muted small">
+                      {item.sets.map((set) => formatSet(set.load, set.reps)).join(' · ')}
+                    </span>
                   </span>
-                  {formatVolume(item.volume) && <span className="list-meta muted small">{formatVolume(item.volume)}</span>}
+                  {formatVolume(item.volume) && (
+                    <span className="list-meta muted small">{formatVolume(item.volume)}</span>
+                  )}
                 </Link>
               ))}
             </div>

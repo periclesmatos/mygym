@@ -15,7 +15,8 @@ const PATHS = {
   play: 'M8 5.5v13a.5.5 0 0 0 .77.42l10-6.5a.5.5 0 0 0 0-.84l-10-6.5A.5.5 0 0 0 8 5.5Z',
   timer: 'M12 13V9M9 2h6M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z',
   dumbbell: 'M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11',
-  flame: 'M12 21c3.9 0 7-2.7 7-6.8 0-3.6-2.6-6.3-4.3-8.2-.4 2.2-1.7 3.6-3.2 3.6.6-2.8-.4-5.5-2.6-7.6C9 5.6 5 9 5 14.2 5 18.3 8.1 21 12 21Z',
+  flame:
+    'M12 21c3.9 0 7-2.7 7-6.8 0-3.6-2.6-6.3-4.3-8.2-.4 2.2-1.7 3.6-3.2 3.6.6-2.8-.4-5.5-2.6-7.6C9 5.6 5 9 5 14.2 5 18.3 8.1 21 12 21Z',
   sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
   moon: 'M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5Z',
   monitor: 'M4 5h16v11H4zM9 20h6M12 16v4',
@@ -23,9 +24,11 @@ const PATHS = {
   edit: 'M4 20h4L19 9l-4-4L4 16v4ZM13.5 6.5l4 4',
   copy: 'M8 8h11v11H8zM5 16V5h11',
   search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14ZM20 20l-4-4',
-  trophy: 'M8 4h8v5a4 4 0 0 1-8 0V4ZM8 6H4.5v1.5A3.5 3.5 0 0 0 8 11M16 6h3.5v1.5A3.5 3.5 0 0 1 16 11M12 13v4M8.5 20h7M10 17h4',
+  trophy:
+    'M8 4h8v5a4 4 0 0 1-8 0V4ZM8 6H4.5v1.5A3.5 3.5 0 0 0 8 11M16 6h3.5v1.5A3.5 3.5 0 0 1 16 11M12 13v4M8.5 20h7M10 17h4',
   eye: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
-  eyeOff: 'M3 3l18 18M10.6 5.6A9.6 9.6 0 0 1 12 5.5C18 5.5 21.5 12 21.5 12a17 17 0 0 1-3 3.8M6.6 6.6C3.9 8.4 2.5 12 2.5 12S6 18.5 12 18.5c1.8 0 3.3-.5 4.6-1.3M9.9 9.9a3 3 0 0 0 4.2 4.2',
+  eyeOff:
+    'M3 3l18 18M10.6 5.6A9.6 9.6 0 0 1 12 5.5C18 5.5 21.5 12 21.5 12a17 17 0 0 1-3 3.8M6.6 6.6C3.9 8.4 2.5 12 2.5 12S6 18.5 12 18.5c1.8 0 3.3-.5 4.6-1.3M9.9 9.9a3 3 0 0 0 4.2 4.2',
   repeat: 'M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4',
   calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
@@ -34,7 +37,8 @@ const PATHS = {
   camera: 'M4 8h3l2-3h6l2 3h3v11H4V8ZM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
   mail: 'M3.5 6h17v12h-17zM4 6.5l8 6.5 8-6.5',
   lock: 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3',
-  settings: 'M4 7h10M18 7h2M4 17h4M12 17h8M16 9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM10 19.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'
+  settings:
+    'M4 7h10M18 7h2M4 17h4M12 17h8M16 9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM10 19.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'
 }
 
 export function Icon({ name, size = 22, className, strokeWidth = 2, filled = false }) {
@@ -58,7 +62,14 @@ export function Icon({ name, size = 22, className, strokeWidth = 2, filled = fal
 
 export function IconButton({ icon, label, onClick, disabled, className = '', size = 22, type = 'button' }) {
   return (
-    <button type={type} className={`icon-btn ${className}`} aria-label={label} title={label} onClick={onClick} disabled={disabled}>
+    <button
+      type={type}
+      className={`icon-btn ${className}`}
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      disabled={disabled}
+    >
       <Icon name={icon} size={size} />
     </button>
   )

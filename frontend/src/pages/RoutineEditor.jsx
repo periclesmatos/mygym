@@ -2,7 +2,15 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { ExerciseSheet } from '../components/ExerciseForm'
-import { emptyExercise, estimateMinutes, exerciseFromTemplate, exercisePayload, exerciseSummary, plural, validateExercise } from '../format'
+import {
+  emptyExercise,
+  estimateMinutes,
+  exerciseFromTemplate,
+  exercisePayload,
+  exerciseSummary,
+  plural,
+  validateExercise
+} from '../format'
 import { useFeedback } from '../ui/feedbackContext'
 import { Icon, IconButton } from '../ui/Icon'
 import { PageHeader } from '../ui/PageHeader'
@@ -26,20 +34,30 @@ export function RoutineEditor() {
   useEffect(() => {
     if (!id) return undefined
     let active = true
-    api.template(id).then((template) => {
-      if (!active) return
-      setName(template.name)
-      setNotes(template.notes || '')
-      setShowNotes(Boolean(template.notes))
-      setExercises(template.exercises.map(exerciseFromTemplate))
-      setLoaded(true)
-    }).catch((caught) => { if (active) setLoadError(caught.message) })
-    return () => { active = false }
+    api
+      .template(id)
+      .then((template) => {
+        if (!active) return
+        setName(template.name)
+        setNotes(template.notes || '')
+        setShowNotes(Boolean(template.notes))
+        setExercises(template.exercises.map(exerciseFromTemplate))
+        setLoaded(true)
+      })
+      .catch((caught) => {
+        if (active) setLoadError(caught.message)
+      })
+    return () => {
+      active = false
+    }
   }, [id])
 
   useEffect(() => {
     if (!dirty) return undefined
-    const warn = (event) => { event.preventDefault(); event.returnValue = '' }
+    const warn = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
     window.addEventListener('beforeunload', warn)
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty])
@@ -53,17 +71,21 @@ export function RoutineEditor() {
   function move(index, delta) {
     const target = index + delta
     if (target < 0 || target >= exercises.length) return
-    change(() => setExercises((current) => {
-      const next = current.slice()
-      ;[next[index], next[target]] = [next[target], next[index]]
-      return next
-    }))
+    change(() =>
+      setExercises((current) => {
+        const next = current.slice()
+        ;[next[index], next[target]] = [next[target], next[index]]
+        return next
+      })
+    )
   }
 
   function saveExercise(draft) {
-    change(() => setExercises((current) => (
-      editing.isNew ? [...current, draft] : current.map((item) => (item.key === draft.key ? draft : item))
-    )))
+    change(() =>
+      setExercises((current) =>
+        editing.isNew ? [...current, draft] : current.map((item) => (item.key === draft.key ? draft : item))
+      )
+    )
     setEditing(null)
   }
 
@@ -74,10 +96,19 @@ export function RoutineEditor() {
   }
 
   async function save() {
-    if (!name.trim()) { setError('Dê um nome ao treino.'); return }
-    if (exercises.length === 0) { setError('Adicione pelo menos um exercício.'); return }
+    if (!name.trim()) {
+      setError('Dê um nome ao treino.')
+      return
+    }
+    if (exercises.length === 0) {
+      setError('Adicione pelo menos um exercício.')
+      return
+    }
     const invalid = exercises.map(validateExercise).find(Boolean)
-    if (invalid) { setError(invalid); return }
+    if (invalid) {
+      setError(invalid)
+      return
+    }
     setBusy(true)
     const body = { name: name.trim(), notes: notes.trim(), exercises: exercises.map(exercisePayload) }
     try {
@@ -112,7 +143,13 @@ export function RoutineEditor() {
 
   async function leave() {
     if (dirty) {
-      const ok = await confirm({ title: 'Sair sem salvar?', message: 'As mudanças neste treino serão perdidas.', confirmLabel: 'Sair sem salvar', cancelLabel: 'Continuar editando', danger: true })
+      const ok = await confirm({
+        title: 'Sair sem salvar?',
+        message: 'As mudanças neste treino serão perdidas.',
+        confirmLabel: 'Sair sem salvar',
+        cancelLabel: 'Continuar editando',
+        danger: true
+      })
       if (!ok) return
     }
     navigate('/rotina')
@@ -120,15 +157,34 @@ export function RoutineEditor() {
 
   const title = id ? 'Editar treino' : 'Novo treino'
 
-  if (loadError) return <><PageHeader back="/rotina" title={title} /><ErrorState message={loadError} /></>
-  if (!loaded) return <><PageHeader back="/rotina" title={title} /><Skeleton lines={2} /><Skeleton /></>
+  if (loadError)
+    return (
+      <>
+        <PageHeader back="/rotina" title={title} />
+        <ErrorState message={loadError} />
+      </>
+    )
+  if (!loaded)
+    return (
+      <>
+        <PageHeader back="/rotina" title={title} />
+        <Skeleton lines={2} />
+        <Skeleton />
+      </>
+    )
 
   return (
     <div className="with-actionbar">
       <header className="page-header">
         <IconButton icon="back" label="Voltar" onClick={leave} className="back-btn" />
-        <div className="page-header-text"><h1>{title}</h1></div>
-        {id && <div className="page-header-actions"><IconButton icon="trash" label="Remover treino" onClick={removeTemplate} className="danger-text" /></div>}
+        <div className="page-header-text">
+          <h1>{title}</h1>
+        </div>
+        {id && (
+          <div className="page-header-actions">
+            <IconButton icon="trash" label="Remover treino" onClick={removeTemplate} className="danger-text" />
+          </div>
+        )}
       </header>
 
       <div className="stack">
@@ -147,17 +203,31 @@ export function RoutineEditor() {
         {showNotes ? (
           <label className="field">
             <span className="field-label">Observações</span>
-            <textarea className="input" rows={3} maxLength={2000} placeholder="Aquecimento, ajustes de máquina, lembretes…" value={notes} onChange={(event) => change(() => setNotes(event.target.value))} />
+            <textarea
+              className="input"
+              rows={3}
+              maxLength={2000}
+              placeholder="Aquecimento, ajustes de máquina, lembretes…"
+              value={notes}
+              onChange={(event) => change(() => setNotes(event.target.value))}
+            />
           </label>
         ) : (
-          <button type="button" className="link-btn" onClick={() => setShowNotes(true)}><Icon name="plus" size={18} />Adicionar observações</button>
+          <button type="button" className="link-btn" onClick={() => setShowNotes(true)}>
+            <Icon name="plus" size={18} />
+            Adicionar observações
+          </button>
         )}
       </div>
 
       <section className="section">
         <div className="section-head">
           <h2>Exercícios</h2>
-          {exercises.length > 0 && <span className="muted small">{plural(exercises.length, 'exercício', 'exercícios')} · ~{estimateMinutes(exercises)} min</span>}
+          {exercises.length > 0 && (
+            <span className="muted small">
+              {plural(exercises.length, 'exercício', 'exercícios')} · ~{estimateMinutes(exercises)} min
+            </span>
+          )}
         </div>
 
         {exercises.length === 0 ? (
@@ -174,21 +244,42 @@ export function RoutineEditor() {
                   </span>
                 </button>
                 <div className="move-btns">
-                  <IconButton icon="up" label={`Subir ${exercise.name}`} disabled={index === 0} onClick={() => move(index, -1)} size={20} />
-                  <IconButton icon="down" label={`Descer ${exercise.name}`} disabled={index === exercises.length - 1} onClick={() => move(index, 1)} size={20} />
+                  <IconButton
+                    icon="up"
+                    label={`Subir ${exercise.name}`}
+                    disabled={index === 0}
+                    onClick={() => move(index, -1)}
+                    size={20}
+                  />
+                  <IconButton
+                    icon="down"
+                    label={`Descer ${exercise.name}`}
+                    disabled={index === exercises.length - 1}
+                    onClick={() => move(index, 1)}
+                    size={20}
+                  />
                 </div>
               </li>
             ))}
           </ol>
         )}
 
-        <button type="button" className="btn btn-secondary btn-block" onClick={() => setEditing({ exercise: emptyExercise(), isNew: true })}>
-          <Icon name="plus" size={20} />Adicionar exercício
+        <button
+          type="button"
+          className="btn btn-secondary btn-block"
+          onClick={() => setEditing({ exercise: emptyExercise(), isNew: true })}
+        >
+          <Icon name="plus" size={20} />
+          Adicionar exercício
         </button>
       </section>
 
       <div className="actionbar">
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
         <button type="button" className="btn btn-primary btn-lg btn-block" disabled={busy} onClick={save}>
           {busy ? 'Salvando…' : id ? 'Salvar alterações' : 'Criar treino'}
         </button>
