@@ -29,9 +29,14 @@ public class ExerciseService {
     public record SetDone(int position, Integer reps, BigDecimal load) {}
 
     public record Performance(
-            Long sessionId, String sessionName, Instant date, List<SetDone> sets,
-            BigDecimal topLoad, Integer topReps, BigDecimal volume, BigDecimal estimatedMax
-    ) {}
+            Long sessionId,
+            String sessionName,
+            Instant date,
+            List<SetDone> sets,
+            BigDecimal topLoad,
+            Integer topReps,
+            BigDecimal volume,
+            BigDecimal estimatedMax) {}
 
     @Transactional(readOnly = true)
     public List<String> names() {
@@ -46,7 +51,11 @@ public class ExerciseService {
     public Map<String, Performance> last(List<String> names) {
         Map<String, Performance> result = new LinkedHashMap<>();
         if (names == null || names.isEmpty()) return result;
-        List<String> keys = names.stream().map(ExerciseService::key).filter(name -> !name.isEmpty()).distinct().toList();
+        List<String> keys = names.stream()
+                .map(ExerciseService::key)
+                .filter(name -> !name.isEmpty())
+                .distinct()
+                .toList();
         if (keys.isEmpty()) return result;
         if (keys.size() > 60) throw new ApiException(400, "Peça no máximo 60 exercícios.");
         for (SessionExercise exercise : history.findFinishedByNames(AuthenticatedUser.id(), keys)) {
@@ -89,7 +98,9 @@ public class ExerciseService {
         for (SetDone set : sets) {
             BigDecimal load = set.load() == null ? BigDecimal.ZERO : set.load();
             volume = volume.add(load.multiply(BigDecimal.valueOf(set.reps())));
-            if (topLoad == null || load.compareTo(topLoad) > 0 || (load.compareTo(topLoad) == 0 && set.reps() > topReps)) {
+            if (topLoad == null
+                    || load.compareTo(topLoad) > 0
+                    || (load.compareTo(topLoad) == 0 && set.reps() > topReps)) {
                 topLoad = load;
                 topReps = set.reps();
             }
@@ -101,8 +112,13 @@ public class ExerciseService {
             }
         }
         return new Performance(
-                exercise.getSession().getId(), exercise.getSession().getName(), exercise.getSession().getFinishedAt(),
-                sets, topLoad, topReps, volume.setScale(2, RoundingMode.HALF_UP),
+                exercise.getSession().getId(),
+                exercise.getSession().getName(),
+                exercise.getSession().getFinishedAt(),
+                sets,
+                topLoad,
+                topReps,
+                volume.setScale(2, RoundingMode.HALF_UP),
                 estimatedMax == null ? null : estimatedMax.setScale(1, RoundingMode.HALF_UP));
     }
 }

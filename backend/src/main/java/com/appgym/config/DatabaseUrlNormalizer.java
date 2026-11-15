@@ -65,7 +65,8 @@ public class DatabaseUrlNormalizer implements EnvironmentPostProcessor, Ordered 
         properties.put("spring.datasource.url", jdbc);
     }
 
-    private void copy(ConfigurableEnvironment environment, String sourceKey, String target, Map<String, Object> properties) {
+    private void copy(
+            ConfigurableEnvironment environment, String sourceKey, String target, Map<String, Object> properties) {
         String value = environment.getProperty(sourceKey);
         if (value != null && !value.isBlank()) {
             properties.put(target, value);

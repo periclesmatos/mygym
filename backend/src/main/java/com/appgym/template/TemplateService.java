@@ -30,7 +30,9 @@ public class TemplateService {
 
     @Transactional
     public List<TemplateResponse> list() {
-        return loadOrdered(AuthenticatedUser.id()).stream().map(TemplateResponse::of).toList();
+        return loadOrdered(AuthenticatedUser.id()).stream()
+                .map(TemplateResponse::of)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +44,11 @@ public class TemplateService {
     public TemplateResponse create(TemplateRequest request) {
         Long userId = AuthenticatedUser.id();
         List<Template> current = loadOrdered(userId);
-        int next = current.stream().map(Template::getPosition).max(Comparator.naturalOrder()).orElse(0) + 1;
+        int next = current.stream()
+                        .map(Template::getPosition)
+                        .max(Comparator.naturalOrder())
+                        .orElse(0)
+                + 1;
         Template template = new Template();
         template.setUser(users.findById(userId).orElseThrow(() -> new ApiException(401, "Não autenticado.")));
         template.setCreatedAt(Instant.now());
@@ -54,7 +60,11 @@ public class TemplateService {
     @Transactional
     public List<TemplateResponse> reorder(List<Long> ids) {
         List<Template> found = loadOrdered(AuthenticatedUser.id());
-        if (ids.size() != found.size() || !found.stream().map(Template::getId).collect(Collectors.toSet()).equals(new HashSet<>(ids))) {
+        if (ids.size() != found.size()
+                || !found.stream()
+                        .map(Template::getId)
+                        .collect(Collectors.toSet())
+                        .equals(new HashSet<>(ids))) {
             throw new ApiException(400, "A ordem não corresponde aos treinos.");
         }
         Map<Long, Template> byId = found.stream().collect(Collectors.toMap(Template::getId, Function.identity()));

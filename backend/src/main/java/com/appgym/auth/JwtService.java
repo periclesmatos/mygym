@@ -18,8 +18,7 @@ public class JwtService {
     private final long expirationHours;
 
     public JwtService(
-            @Value("${app.jwt.secret}") String secret,
-            @Value("${app.jwt.expiration-hours}") long expirationHours) {
+            @Value("${app.jwt.secret}") String secret, @Value("${app.jwt.expiration-hours}") long expirationHours) {
         byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
             throw new IllegalStateException("JWT_SECRET must be at least 32 characters.");
@@ -40,11 +39,8 @@ public class JwtService {
     }
 
     public Long userId(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Claims claims =
+                Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
         return Long.valueOf(claims.getSubject());
     }
 }

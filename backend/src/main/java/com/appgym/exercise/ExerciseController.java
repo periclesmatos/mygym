@@ -18,7 +18,9 @@ public class ExerciseController {
     }
 
     @GetMapping
-    public List<String> names() { return exercises.names(); }
+    public List<String> names() {
+        return exercises.names();
+    }
 
     @GetMapping("/last")
     public Map<String, ExerciseService.Performance> last(@RequestParam(required = false) List<String> names) {

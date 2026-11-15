@@ -15,8 +15,7 @@ public record SessionSummary(
         int completedSets,
         int totalSets,
         BigDecimal volume,
-        Long durationSeconds
-) {
+        Long durationSeconds) {
     public static SessionSummary of(Session session) {
         int completed = 0;
         int total = 0;
@@ -31,11 +30,24 @@ public record SessionSummary(
                 }
             }
         }
-        Long templateId = session.getTemplate() == null ? null : session.getTemplate().getId();
-        Long duration = session.getFinishedAt() == null ? null
-                : Math.max(0, Duration.between(session.getStartedAt(), session.getFinishedAt()).getSeconds());
+        Long templateId =
+                session.getTemplate() == null ? null : session.getTemplate().getId();
+        Long duration = session.getFinishedAt() == null
+                ? null
+                : Math.max(
+                        0,
+                        Duration.between(session.getStartedAt(), session.getFinishedAt())
+                                .getSeconds());
         return new SessionSummary(
-                session.getId(), session.getName(), templateId, session.getStartedAt(), session.getFinishedAt(),
-                session.getExercises().size(), completed, total, volume.setScale(2, RoundingMode.HALF_UP), duration);
+                session.getId(),
+                session.getName(),
+                templateId,
+                session.getStartedAt(),
+                session.getFinishedAt(),
+                session.getExercises().size(),
+                completed,
+                total,
+                volume.setScale(2, RoundingMode.HALF_UP),
+                duration);
     }
 }

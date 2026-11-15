@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class SpaController {
 
     @GetMapping({
-            "/{page:^(?!api$)[^\\.]*}",
-            "/{page:^(?!api$)[^\\.]*}/{detail:[^\\.]*}",
-            "/{page:^(?!api$)[^\\.]*}/{detail:[^\\.]*}/{extra:[^\\.]*}"
+        "/{page:^(?!api$)[^\\.]*}",
+        "/{page:^(?!api$)[^\\.]*}/{detail:[^\\.]*}",
+        "/{page:^(?!api$)[^\\.]*}/{detail:[^\\.]*}/{extra:[^\\.]*}"
     })
     public String index() {
         return "forward:/index.html";

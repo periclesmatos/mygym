@@ -16,8 +16,12 @@ public class SocialLoginService {
     private final PasswordEncoder encoder;
     private final JwtService jwt;
 
-    public SocialLoginService(SocialTokenVerifier verifier, UserRepository users, SignupPolicy signup,
-                              PasswordEncoder encoder, JwtService jwt) {
+    public SocialLoginService(
+            SocialTokenVerifier verifier,
+            UserRepository users,
+            SignupPolicy signup,
+            PasswordEncoder encoder,
+            JwtService jwt) {
         this.verifier = verifier;
         this.users = users;
         this.signup = signup;

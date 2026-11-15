@@ -26,14 +26,20 @@ public class SessionController {
     }
 
     @GetMapping
-    public List<SessionSummary> list(@RequestParam String status) { return sessions.list(status); }
+    public List<SessionSummary> list(@RequestParam String status) {
+        return sessions.list(status);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SessionResponse create(@Valid @RequestBody SessionRequest request) { return sessions.create(request); }
+    public SessionResponse create(@Valid @RequestBody SessionRequest request) {
+        return sessions.create(request);
+    }
 
     @GetMapping("/{id}")
-    public SessionResponse get(@PathVariable Long id) { return sessions.get(id); }
+    public SessionResponse get(@PathVariable Long id) {
+        return sessions.get(id);
+    }
 
     @PostMapping("/{id}/exercises")
     public SessionResponse addExercise(@PathVariable Long id, @Valid @RequestBody ExerciseInput request) {
@@ -46,16 +52,21 @@ public class SessionController {
     }
 
     @PutMapping({"/{id}/sets/{setId}", "/{id}/series/{setId}"})
-    public SessionResponse updateSet(@PathVariable Long id, @PathVariable Long setId, @Valid @RequestBody SetRequest request) {
+    public SessionResponse updateSet(
+            @PathVariable Long id, @PathVariable Long setId, @Valid @RequestBody SetRequest request) {
         return sessions.updateSet(id, setId, request);
     }
 
     @PostMapping({"/{id}/finish", "/{id}/encerrar"})
-    public SessionResponse finish(@PathVariable Long id) { return sessions.finish(id); }
+    public SessionResponse finish(@PathVariable Long id) {
+        return sessions.finish(id);
+    }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) { sessions.delete(id); }
+    public void delete(@PathVariable Long id) {
+        sessions.delete(id);
+    }
 
     @DeleteMapping("/{id}/exercises/{exerciseId}")
     public SessionResponse removeExercise(@PathVariable Long id, @PathVariable Long exerciseId) {

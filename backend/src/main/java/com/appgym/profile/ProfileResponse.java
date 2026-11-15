@@ -15,6 +15,4 @@ public record ProfileResponse(
         String photo,
         boolean hasPassword,
         boolean google,
-        boolean apple
-) {
-}
+        boolean apple) {}

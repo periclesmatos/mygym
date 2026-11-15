@@ -46,16 +46,51 @@ public class Session {
     @OrderBy("position ASC")
     private List<SessionExercise> exercises = new ArrayList<>();
 
-    public Long getId() { return id; }
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-    public Template getTemplate() { return template; }
-    public void setTemplate(Template template) { this.template = template; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public Instant getStartedAt() { return startedAt; }
-    public void setStartedAt(Instant startedAt) { this.startedAt = startedAt; }
-    public Instant getFinishedAt() { return finishedAt; }
-    public void setFinishedAt(Instant finishedAt) { this.finishedAt = finishedAt; }
-    public List<SessionExercise> getExercises() { return exercises; }
+    public Long getId() {
+        return id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Template getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(Template template) {
+        this.template = template;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Instant getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(Instant startedAt) {
+        this.startedAt = startedAt;
+    }
+
+    public Instant getFinishedAt() {
+        return finishedAt;
+    }
+
+    public void setFinishedAt(Instant finishedAt) {
+        this.finishedAt = finishedAt;
+    }
+
+    public List<SessionExercise> getExercises() {
+        return exercises;
+    }
 }

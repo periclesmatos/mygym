@@ -21,7 +21,9 @@ public class ProfileController {
     }
 
     @GetMapping
-    public ProfileResponse get() { return profile.get(); }
+    public ProfileResponse get() {
+        return profile.get();
+    }
 
     @PutMapping
     public ProfileResponse update(@Valid @RequestBody ProfileRequests.Update request) {

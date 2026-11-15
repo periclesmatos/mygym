@@ -22,18 +22,23 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwt) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
+        return http.csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/google", "/api/auth/apple").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/config").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/api/login")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/google", "/api/auth/apple")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/config")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/health")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                        .permitAll()
+                        .requestMatchers("/api/**")
+                        .authenticated()
+                        .anyRequest()
+                        .permitAll())
                 .exceptionHandling(errors -> errors.authenticationEntryPoint((request, response, exception) -> {
                     response.setStatus(401);
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);

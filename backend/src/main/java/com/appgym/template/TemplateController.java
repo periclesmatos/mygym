@@ -24,7 +24,9 @@ public class TemplateController {
     }
 
     @GetMapping
-    public List<TemplateResponse> list() { return templates.list(); }
+    public List<TemplateResponse> list() {
+        return templates.list();
+    }
 
     @PutMapping("/order")
     public List<TemplateResponse> reorder(@Valid @RequestBody OrderRequest request) {
@@ -32,11 +34,15 @@ public class TemplateController {
     }
 
     @GetMapping("/{id}")
-    public TemplateResponse get(@PathVariable Long id) { return templates.get(id); }
+    public TemplateResponse get(@PathVariable Long id) {
+        return templates.get(id);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public TemplateResponse create(@Valid @RequestBody TemplateRequest request) { return templates.create(request); }
+    public TemplateResponse create(@Valid @RequestBody TemplateRequest request) {
+        return templates.create(request);
+    }
 
     @PutMapping("/{id}")
     public TemplateResponse update(@PathVariable Long id, @Valid @RequestBody TemplateRequest request) {
@@ -45,5 +51,7 @@ public class TemplateController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) { templates.delete(id); }
+    public void delete(@PathVariable Long id) {
+        templates.delete(id);
+    }
 }

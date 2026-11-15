@@ -7,9 +7,8 @@ import java.util.List;
 
 public record SessionRequest(
         Long templateId,
+
         @Size(max = 80, message = "O nome do treino está longo demais.")
         String name,
-        @Valid
-        List<ExerciseInput> exercises
-) {
-}
+
+        @Valid List<ExerciseInput> exercises) {}

@@ -38,11 +38,20 @@ public class ProfileService {
     public ProfileResponse get() {
         User user = current();
         String photo = photos.findById(user.getId())
-                .map(p -> "data:" + p.getContentType() + ";base64," + Base64.getEncoder().encodeToString(p.getData()))
+                .map(p -> "data:" + p.getContentType() + ";base64,"
+                        + Base64.getEncoder().encodeToString(p.getData()))
                 .orElse(null);
-        return new ProfileResponse(user.getEmail(), user.getName(), user.getWeightKg(), user.getHeightCm(),
-                user.getBirthDate(), user.getCreatedAt(), photo, user.hasPassword(),
-                user.getGoogleSub() != null, user.getAppleSub() != null);
+        return new ProfileResponse(
+                user.getEmail(),
+                user.getName(),
+                user.getWeightKg(),
+                user.getHeightCm(),
+                user.getBirthDate(),
+                user.getCreatedAt(),
+                photo,
+                user.hasPassword(),
+                user.getGoogleSub() != null,
+                user.getAppleSub() != null);
     }
 
     @Transactional
@@ -114,7 +123,6 @@ public class ProfileService {
     }
 
     private User current() {
-        return users.findById(AuthenticatedUser.id())
-                .orElseThrow(() -> new ApiException(401, "Não autenticado."));
+        return users.findById(AuthenticatedUser.id()).orElseThrow(() -> new ApiException(401, "Não autenticado."));
     }
 }

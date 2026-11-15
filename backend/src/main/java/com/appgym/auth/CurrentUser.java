@@ -14,7 +14,6 @@ public class CurrentUser {
 
     @Transactional(readOnly = true)
     public User get() {
-        return users.findById(AuthenticatedUser.id())
-                .orElseThrow(() -> new ApiException(401, "Não autenticado."));
+        return users.findById(AuthenticatedUser.id()).orElseThrow(() -> new ApiException(401, "Não autenticado."));
     }
 }

@@ -16,13 +16,24 @@ public record TemplateResponse(Long id, String name, String notes, int position,
     }
 
     public record ExerciseResponse(
-            Long id, int position, String name, int plannedSets, String reps,
-            BigDecimal load, int restSeconds, Integer rir
-    ) {
+            Long id,
+            int position,
+            String name,
+            int plannedSets,
+            String reps,
+            BigDecimal load,
+            int restSeconds,
+            Integer rir) {
         public static ExerciseResponse of(TemplateExercise exercise) {
             return new ExerciseResponse(
-                    exercise.getId(), exercise.getPosition(), exercise.getName(), exercise.getPlannedSets(),
-                    exercise.getReps(), exercise.getLoad(), exercise.getRestSeconds(), exercise.getRir());
+                    exercise.getId(),
+                    exercise.getPosition(),
+                    exercise.getName(),
+                    exercise.getPlannedSets(),
+                    exercise.getReps(),
+                    exercise.getLoad(),
+                    exercise.getRestSeconds(),
+                    exercise.getRir());
         }
     }
 }

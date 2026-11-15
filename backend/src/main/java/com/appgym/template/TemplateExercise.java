@@ -43,20 +43,67 @@ public class TemplateExercise {
 
     private Integer rir;
 
-    public Long getId() { return id; }
-    public void setTemplate(Template template) { this.template = template; }
-    public int getPosition() { return position; }
-    public void setPosition(int position) { this.position = position; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public int getPlannedSets() { return plannedSets; }
-    public void setPlannedSets(int plannedSets) { this.plannedSets = plannedSets; }
-    public String getReps() { return reps; }
-    public void setReps(String reps) { this.reps = reps; }
-    public BigDecimal getLoad() { return load; }
-    public void setLoad(BigDecimal load) { this.load = load; }
-    public int getRestSeconds() { return restSeconds; }
-    public void setRestSeconds(int restSeconds) { this.restSeconds = restSeconds; }
-    public Integer getRir() { return rir; }
-    public void setRir(Integer rir) { this.rir = rir; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setTemplate(Template template) {
+        this.template = template;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getPlannedSets() {
+        return plannedSets;
+    }
+
+    public void setPlannedSets(int plannedSets) {
+        this.plannedSets = plannedSets;
+    }
+
+    public String getReps() {
+        return reps;
+    }
+
+    public void setReps(String reps) {
+        this.reps = reps;
+    }
+
+    public BigDecimal getLoad() {
+        return load;
+    }
+
+    public void setLoad(BigDecimal load) {
+        this.load = load;
+    }
+
+    public int getRestSeconds() {
+        return restSeconds;
+    }
+
+    public void setRestSeconds(int restSeconds) {
+        this.restSeconds = restSeconds;
+    }
+
+    public Integer getRir() {
+        return rir;
+    }
+
+    public void setRir(Integer rir) {
+        this.rir = rir;
+    }
 }

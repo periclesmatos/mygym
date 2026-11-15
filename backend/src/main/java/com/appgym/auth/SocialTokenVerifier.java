@@ -21,7 +21,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class SocialTokenVerifier {
 
-    public enum Provider { GOOGLE, APPLE }
+    public enum Provider {
+        GOOGLE,
+        APPLE
+    }
 
     public record Identity(String subject, String email) {}
 
@@ -33,8 +36,9 @@ public class SocialTokenVerifier {
     private final JwtDecoder google;
     private final JwtDecoder apple;
 
-    public SocialTokenVerifier(@Value("${app.google.client-id:}") String googleClientId,
-                               @Value("${app.apple.client-id:}") String appleClientId) {
+    public SocialTokenVerifier(
+            @Value("${app.google.client-id:}") String googleClientId,
+            @Value("${app.apple.client-id:}") String appleClientId) {
         this.google = decoder(GOOGLE_JWKS, GOOGLE_ISSUERS, googleClientId);
         this.apple = decoder(APPLE_JWKS, APPLE_ISSUERS, appleClientId);
     }
@@ -69,7 +73,8 @@ public class SocialTokenVerifier {
         OAuth2TokenValidator<Jwt> issuer = jwt -> issuers.contains(jwt.getClaimAsString("iss"))
                 ? OAuth2TokenValidatorResult.success()
                 : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Emissor inválido.", null));
-        OAuth2TokenValidator<Jwt> audience = jwt -> jwt.getAudience() != null && jwt.getAudience().contains(clientId)
+        OAuth2TokenValidator<Jwt> audience = jwt -> jwt.getAudience() != null
+                        && jwt.getAudience().contains(clientId)
                 ? OAuth2TokenValidatorResult.success()
                 : OAuth2TokenValidatorResult.failure(new OAuth2Error("invalid_token", "Audiência inválida.", null));
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(new JwtTimestampValidator(), issuer, audience));

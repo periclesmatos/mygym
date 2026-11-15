@@ -15,9 +15,11 @@ public class InitialUser implements ApplicationRunner {
     private final String email;
     private final String password;
 
-    public InitialUser(UserRepository users, PasswordEncoder encoder,
-                       @Value("${app.user.email}") String email,
-                       @Value("${app.user.password}") String password) {
+    public InitialUser(
+            UserRepository users,
+            PasswordEncoder encoder,
+            @Value("${app.user.email}") String email,
+            @Value("${app.user.password}") String password) {
         this.users = users;
         this.encoder = encoder;
         this.email = email;

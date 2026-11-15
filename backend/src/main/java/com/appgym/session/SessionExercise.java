@@ -49,20 +49,67 @@ public class SessionExercise {
     @OrderBy("position ASC")
     private List<WorkoutSet> sets = new ArrayList<>();
 
-    public Long getId() { return id; }
-    public Session getSession() { return session; }
-    public void setSession(Session session) { this.session = session; }
-    public int getPosition() { return position; }
-    public void setPosition(int position) { this.position = position; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getTargetReps() { return targetReps; }
-    public void setTargetReps(String targetReps) { this.targetReps = targetReps; }
-    public BigDecimal getTargetLoad() { return targetLoad; }
-    public void setTargetLoad(BigDecimal targetLoad) { this.targetLoad = targetLoad; }
-    public int getRestSeconds() { return restSeconds; }
-    public void setRestSeconds(int restSeconds) { this.restSeconds = restSeconds; }
-    public Integer getTargetRir() { return targetRir; }
-    public void setTargetRir(Integer targetRir) { this.targetRir = targetRir; }
-    public List<WorkoutSet> getSets() { return sets; }
+    public Long getId() {
+        return id;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getTargetReps() {
+        return targetReps;
+    }
+
+    public void setTargetReps(String targetReps) {
+        this.targetReps = targetReps;
+    }
+
+    public BigDecimal getTargetLoad() {
+        return targetLoad;
+    }
+
+    public void setTargetLoad(BigDecimal targetLoad) {
+        this.targetLoad = targetLoad;
+    }
+
+    public int getRestSeconds() {
+        return restSeconds;
+    }
+
+    public void setRestSeconds(int restSeconds) {
+        this.restSeconds = restSeconds;
+    }
+
+    public Integer getTargetRir() {
+        return targetRir;
+    }
+
+    public void setTargetRir(Integer targetRir) {
+        this.targetRir = targetRir;
+    }
+
+    public List<WorkoutSet> getSets() {
+        return sets;
+    }
 }

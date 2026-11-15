@@ -5,8 +5,7 @@ import java.math.RoundingMode;
 
 public final class Numbers {
 
-    private Numbers() {
-    }
+    private Numbers() {}
 
     public static String clean(String value) {
         if (value == null) return null;

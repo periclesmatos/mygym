@@ -25,12 +25,25 @@ public class UserPhoto {
 
     protected UserPhoto() {}
 
-    public UserPhoto(Long userId) { this.userId = userId; }
+    public UserPhoto(Long userId) {
+        this.userId = userId;
+    }
 
-    public Long getUserId() { return userId; }
-    public String getContentType() { return contentType; }
-    public byte[] getData() { return data; }
-    public Instant getUpdatedAt() { return updatedAt; }
+    public Long getUserId() {
+        return userId;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
 
     public void replace(String contentType, byte[] data) {
         this.contentType = contentType;

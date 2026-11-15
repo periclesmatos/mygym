@@ -41,7 +41,8 @@ public class SessionService {
             case "finished" -> sessions.findByUser_IdAndFinishedAtIsNotNullOrderByStartedAtDesc(userId);
             default -> throw new ApiException(400, "Use o status open ou finished.");
         };
-        found.forEach(session -> session.getExercises().forEach(exercise -> exercise.getSets().size()));
+        found.forEach(session ->
+                session.getExercises().forEach(exercise -> exercise.getSets().size()));
         return found.stream().map(SessionSummary::of).toList();
     }
 
@@ -67,15 +68,27 @@ public class SessionService {
             session.setName(template.getName());
             template.getExercises().stream()
                     .sorted(Comparator.comparingInt(TemplateExercise::getPosition))
-                    .forEach(exercise -> addExercise(session, exercise.getName(), exercise.getPlannedSets(),
-                            exercise.getReps(), exercise.getLoad(), exercise.getRestSeconds(), exercise.getRir()));
+                    .forEach(exercise -> addExercise(
+                            session,
+                            exercise.getName(),
+                            exercise.getPlannedSets(),
+                            exercise.getReps(),
+                            exercise.getLoad(),
+                            exercise.getRestSeconds(),
+                            exercise.getRir()));
         } else {
             String name = Numbers.clean(request.name());
             session.setName(name == null ? "Treino avulso" : name);
             if (request.exercises() != null) {
                 for (ExerciseInput exercise : request.exercises()) {
-                    addExercise(session, exercise.name().trim(), exercise.plannedSets(), exercise.reps().trim(),
-                            exercise.load(), exercise.restSeconds(), exercise.rir());
+                    addExercise(
+                            session,
+                            exercise.name().trim(),
+                            exercise.plannedSets(),
+                            exercise.reps().trim(),
+                            exercise.load(),
+                            exercise.restSeconds(),
+                            exercise.rir());
                 }
             }
         }
@@ -85,8 +98,14 @@ public class SessionService {
     @Transactional
     public SessionResponse addExercise(Long id, ExerciseInput request) {
         Session session = open(id);
-        addExercise(session, request.name().trim(), request.plannedSets(), request.reps().trim(),
-                request.load(), request.restSeconds(), request.rir());
+        addExercise(
+                session,
+                request.name().trim(),
+                request.plannedSets(),
+                request.reps().trim(),
+                request.load(),
+                request.restSeconds(),
+                request.rir());
         sessions.saveAndFlush(session);
         return SessionResponse.of(session);
     }
@@ -143,7 +162,8 @@ public class SessionService {
         session.getExercises().remove(exercise);
         int position = 1;
         for (SessionExercise current : session.getExercises().stream()
-                .sorted(Comparator.comparingInt(SessionExercise::getPosition)).toList()) {
+                .sorted(Comparator.comparingInt(SessionExercise::getPosition))
+                .toList()) {
             current.setPosition(position++);
         }
         sessions.saveAndFlush(session);
@@ -162,7 +182,8 @@ public class SessionService {
             exercise.getSets().remove(found);
             int position = 1;
             for (WorkoutSet set : exercise.getSets().stream()
-                    .sorted(Comparator.comparingInt(WorkoutSet::getPosition)).toList()) {
+                    .sorted(Comparator.comparingInt(WorkoutSet::getPosition))
+                    .toList()) {
                 set.setPosition(position++);
             }
             sessions.saveAndFlush(session);
@@ -171,7 +192,8 @@ public class SessionService {
         throw new ApiException(404, "Série não encontrada.");
     }
 
-    private void addExercise(Session session, String name, int plannedSets, String reps, BigDecimal load, int restSeconds, Integer rir) {
+    private void addExercise(
+            Session session, String name, int plannedSets, String reps, BigDecimal load, int restSeconds, Integer rir) {
         SessionExercise exercise = new SessionExercise();
         exercise.setSession(session);
         exercise.setPosition(session.getExercises().size() + 1);
