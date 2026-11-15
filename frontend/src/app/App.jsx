@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { Layout } from '@/app/Layout'
 import { LoginPage } from '@/features/auth'
 import { ProfilePage } from '@/features/profile'
+import { RoutineEditorPage, RoutinePage } from '@/features/routine'
 import { AUTH_EXPIRED_EVENT } from '@/shared/api/client'
 import { getToken } from '@/shared/api/token'
 
@@ -29,6 +30,9 @@ export function App() {
       <Route element={<RequireAuth />}>
         <Route element={<Layout />}>
           <Route path="/" element={<Navigate to="/perfil" replace />} />
+          <Route path="/rotina" element={<RoutinePage />} />
+          <Route path="/rotina/novo" element={<RoutineEditorPage />} />
+          <Route path="/rotina/:id" element={<RoutineEditorPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
         </Route>
       </Route>

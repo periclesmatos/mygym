@@ -13,7 +13,8 @@ import { describe, expect, it } from 'vitest'
 const ALLOWED = {
   auth: [],
   catalog: [],
-  profile: ['auth']
+  profile: ['auth'],
+  routine: ['catalog']
 }
 
 const SRC = fileURLToPath(new URL('.', import.meta.url))
