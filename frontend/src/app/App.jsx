@@ -4,6 +4,7 @@ import { Layout } from '@/app/Layout'
 import { LoginPage } from '@/features/auth'
 import { HistoryDayPage, HistoryDetailPage, HistoryPage } from '@/features/history'
 import { ProfilePage } from '@/features/profile'
+import { ProgressDetailPage, ProgressListPage } from '@/features/progress'
 import { RoutineEditorPage, RoutinePage } from '@/features/routine'
 import { WorkoutPage } from '@/features/workout'
 import { AUTH_EXPIRED_EVENT } from '@/shared/api/client'
@@ -39,6 +40,8 @@ export function App() {
           <Route path="/historico" element={<HistoryPage />} />
           <Route path="/historico/dia/:date" element={<HistoryDayPage />} />
           <Route path="/historico/:id" element={<HistoryDetailPage />} />
+          <Route path="/evolucao" element={<ProgressListPage />} />
+          <Route path="/evolucao/exercicio" element={<ProgressDetailPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
         </Route>
       </Route>

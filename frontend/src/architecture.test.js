@@ -15,6 +15,7 @@ const ALLOWED = {
   catalog: [],
   history: [],
   profile: ['auth'],
+  progress: [],
   routine: ['catalog'],
   workout: ['routine']
 }
