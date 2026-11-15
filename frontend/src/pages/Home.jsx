@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { SettingsSheet } from '../components/SettingsSheet'
+import { Avatar } from '../components/Avatar'
 import { WeekStrip } from '../components/WeekStrip'
 import { dateKey, estimateMinutes, formatClock, formatDay, formatDuration, formatVolume, plural, relativeDay } from '../format'
 import { dayLetter, monthStats, nextInRoutine, orderedDays, sessionsByDay, streak, weekStart } from '../plan'
 import { useFeedback } from '../ui/Feedback'
 import { useAsync, useNow } from '../ui/hooks'
-import { Icon, IconButton } from '../ui/Icon'
+import { Icon } from '../ui/Icon'
+import { PageHeader } from '../ui/PageHeader'
 import { Action, ActionList, Sheet } from '../ui/Sheet'
 import { ErrorState, Skeleton } from '../ui/States'
 
@@ -23,9 +24,9 @@ export function Home() {
   const navigate = useNavigate()
   const { toast, confirm } = useFeedback()
   const [busy, setBusy] = useState(false)
-  const [settings, setSettings] = useState(false)
   const [picker, setPicker] = useState(false)
   const [quickName, setQuickName] = useState('')
+  const { data: profile } = useAsync(() => api.profile(), [])
   const { data, error, loading, reload } = useAsync(
     () => Promise.all([api.templates(), api.sessions('open'), api.sessions('finished')])
       .then(([templates, open, finished]) => ({ templates, open: open[0] || null, finished })),
@@ -60,14 +61,18 @@ export function Home() {
     }
   }
 
+  const firstName = profile?.name?.trim().split(/\s+/)[0] || ''
   const header = (
-    <header className="home-header">
-      <div>
-        <p className="muted">{formatDay(new Date())}</p>
-        <h1>{greeting()}</h1>
-      </div>
-      <IconButton icon="more" label="Ajustes" onClick={() => setSettings(true)} />
-    </header>
+    <PageHeader
+      large
+      kicker={formatDay(new Date())}
+      title={firstName ? `Olá, ${firstName}` : greeting()}
+      actions={(
+        <Link to="/perfil" className="avatar-link" aria-label="Perfil">
+          <Avatar profile={profile} size={44} />
+        </Link>
+      )}
+    />
   )
 
   if (error) return <>{header}<ErrorState message={error} onRetry={reload} /></>
@@ -180,8 +185,6 @@ export function Home() {
           {open && <p className="muted small">Conclua ou descarte o treino em andamento para começar outro.</p>}
         </div>
       </Sheet>
-
-      <SettingsSheet open={settings} onClose={() => setSettings(false)} />
     </>
   )
 }

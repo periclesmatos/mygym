@@ -6,6 +6,7 @@ import { HistoryDay } from './pages/HistoryDay'
 import { HistoryDetail } from './pages/HistoryDetail'
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
+import { Profile } from './pages/Profile'
 import { ProgressDetail, ProgressList } from './pages/Progress'
 import { Routine } from './pages/Routine'
 import { RoutineEditor } from './pages/RoutineEditor'
@@ -32,6 +33,7 @@ export function App() {
           <Route path="/historico/:id" element={<HistoryDetail />} />
           <Route path="/evolucao" element={<ProgressList />} />
           <Route path="/evolucao/exercicio" element={<ProgressDetail />} />
+          <Route path="/perfil" element={<Profile />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

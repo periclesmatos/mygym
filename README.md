@@ -7,6 +7,7 @@ Personal workout log. React talks to a Spring Boot API, and the API stores templ
 - **Rotina**: workouts (A, B, C…) that rotate in order. Finishing one makes the next one current.
 - **Treino**: log each set (kg, reps, optional RIR) with last time's numbers alongside, a rest timer that survives a reload, vibration and a beep when rest ends, and the screen kept awake. Sets and exercises can be added or removed, and the whole workout can be discarded.
 - **Histórico**: list and calendar, with duration, sets and volume. A workout can be repeated or deleted.
+- **Perfil**: name, photo, weight, height, birth date (age and BMI), a summary of all workouts, and changing e-mail or password. Opened from the avatar on Início.
 - **Evolução**: per-exercise chart (estimated 1RM, top load, reps, volume) with every record.
 
 ## Run it locally
@@ -26,7 +27,7 @@ For a hosted database, set `DATABASE_URL` to the provider URL (`postgresql://...
 
 ## Accounts and sign-in
 
-The first boot on an empty database creates the user from `APP_USER_EMAIL` / `APP_USER_PASSWORD`. Later boots don't touch users.
+The first boot on an empty database creates the user from `APP_USER_EMAIL` / `APP_USER_PASSWORD`. Later boots don't touch users, so that e-mail can be changed from Perfil.
 
 Sign-up is invite-only. `APP_ALLOWED_EMAILS` holds the e-mails (comma separated) that may create an account with a password, Google or Apple. If it is empty, nobody new can sign up. Each account only sees its own workouts.
 

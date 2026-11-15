@@ -5,7 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "app_user")
@@ -27,11 +31,25 @@ public class User {
     @Column(length = 80)
     private String name;
 
+    @Column(precision = 5, scale = 2)
+    private BigDecimal weightKg;
+
+    private Integer heightCm;
+
+    private LocalDate birthDate;
+
+    private Instant createdAt;
+
     @Column(unique = true)
     private String googleSub;
 
     @Column(unique = true)
     private String appleSub;
+
+    @PrePersist
+    void prePersist() {
+        if (createdAt == null) createdAt = Instant.now();
+    }
 
     public Long getId() { return id; }
     public String getEmail() { return email; }
@@ -42,6 +60,13 @@ public class User {
     public void setPasswordSet(boolean passwordSet) { this.passwordSet = passwordSet; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    public BigDecimal getWeightKg() { return weightKg; }
+    public void setWeightKg(BigDecimal weightKg) { this.weightKg = weightKg; }
+    public Integer getHeightCm() { return heightCm; }
+    public void setHeightCm(Integer heightCm) { this.heightCm = heightCm; }
+    public LocalDate getBirthDate() { return birthDate; }
+    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+    public Instant getCreatedAt() { return createdAt; }
     public String getGoogleSub() { return googleSub; }
     public void setGoogleSub(String googleSub) { this.googleSub = googleSub; }
     public String getAppleSub() { return appleSub; }

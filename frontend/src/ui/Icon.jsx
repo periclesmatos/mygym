@@ -29,7 +29,12 @@ const PATHS = {
   repeat: 'M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4',
   calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
-  skip: 'M6 5l9 7-9 7V5ZM18 5v14'
+  skip: 'M6 5l9 7-9 7V5ZM18 5v14',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0',
+  camera: 'M4 8h3l2-3h6l2 3h3v11H4V8ZM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
+  mail: 'M3.5 6h17v12h-17zM4 6.5l8 6.5 8-6.5',
+  lock: 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3',
+  settings: 'M4 7h10M18 7h2M4 17h4M12 17h8M16 9.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM10 19.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'
 }
 
 export function Icon({ name, size = 22, className, strokeWidth = 2, filled = false }) {

@@ -56,6 +56,17 @@ export const api = {
   loginApple: (idToken, name) => request('/api/auth/apple', { method: 'POST', body: json({ idToken, name }) }),
   authConfig: () => request('/api/auth/config'),
 
+  profile: () => request('/api/profile'),
+  updateProfile: (body) => request('/api/profile', { method: 'PUT', body: json(body) }),
+  updatePhoto: (dataUrl) => request('/api/profile/photo', { method: 'PUT', body: json({ dataUrl }) }),
+  deletePhoto: () => request('/api/profile/photo', { method: 'DELETE' }),
+  changeEmail: async (email, currentPassword) => {
+    const response = await request('/api/profile/email', { method: 'PUT', body: json({ email, currentPassword }) })
+    setToken(response.token)
+    return response
+  },
+  changePassword: (currentPassword, newPassword) => request('/api/profile/password', { method: 'PUT', body: json({ currentPassword, newPassword }) }),
+
   templates: () => request('/api/templates'),
   template: (id) => request(`/api/templates/${id}`),
   createTemplate: (body) => request('/api/templates', { method: 'POST', body: json(body) }),
