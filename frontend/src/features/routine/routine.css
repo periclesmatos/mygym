@@ -1,0 +1,114 @@
+/* ---------- Routine ---------- */
+.routine {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.routine-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 8px 14px 14px;
+}
+.routine-card.next {
+  border-color: color-mix(in srgb, var(--accent-text) 60%, var(--line));
+}
+[data-theme='light'] .routine-card.next {
+  box-shadow: 0 0 0 1.5px var(--accent-text);
+}
+.routine-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.routine-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.routine-title strong {
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+.routine-exercises {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.move-btns {
+  display: flex;
+  flex-direction: column;
+}
+.move-btns .icon-btn {
+  width: 40px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.ex-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ex-row {
+  display: flex;
+  align-items: center;
+  padding: 4px 4px 4px 0;
+}
+.ex-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px 10px 14px;
+  text-align: left;
+  border-radius: var(--radius-sm);
+}
+.ex-num {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.ex-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ex-text strong {
+  overflow-wrap: anywhere;
+}
+
+.with-actionbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 96px;
+}
+.actionbar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(520px, 100%);
+  padding: 12px var(--gutter) calc(12px + var(--safe-b));
+  background: var(--bar);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 20;
+}
