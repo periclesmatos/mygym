@@ -9,8 +9,7 @@ import com.appgym.session.domain.SessionExercise;
 import com.appgym.session.domain.SessionRepository;
 import com.appgym.session.domain.WorkoutSet;
 import com.appgym.shared.error.ApiException;
-import com.appgym.shared.security.AuthenticatedUser;
-import com.appgym.shared.util.Numbers;
+import com.appgym.shared.util.Values;
 import com.appgym.template.api.dto.ExerciseInput;
 import com.appgym.template.domain.Template;
 import com.appgym.template.domain.TemplateExercise;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SessionService {
-
     private final SessionRepository sessions;
     private final TemplateRepository templates;
     private final UserRepository users;
@@ -37,217 +35,169 @@ public class SessionService {
     }
 
     @Transactional(readOnly = true)
-    public List<SessionSummary> list(String status) {
-        Long userId = AuthenticatedUser.id();
-        String normalized = switch (status) {
-            case "open", "aberta" -> "open";
-            case "finished", "encerrada" -> "finished";
+    public List<SessionSummary> list(Long userId, String status) {
+        List<Session> found = switch (status) {
+            case "open", "aberta" -> sessions.findByUser_IdAndFinishedAtIsNullOrderByStartedAtDesc(userId);
+            case "finished", "encerrada" -> sessions.findByUser_IdAndFinishedAtIsNotNullOrderByStartedAtDesc(userId);
             default -> throw new ApiException(400, "Use o status open ou finished.");
         };
-        List<Session> found = switch (normalized) {
-            case "open" -> sessions.findByUser_IdAndFinishedAtIsNullOrderByStartedAtDesc(userId);
-            case "finished" -> sessions.findByUser_IdAndFinishedAtIsNotNullOrderByStartedAtDesc(userId);
-            default -> throw new ApiException(400, "Use o status open ou finished.");
-        };
-        found.forEach(session ->
-                session.getExercises().forEach(exercise -> exercise.getSets().size()));
-        return found.stream().map(SessionSummary::of).toList();
+        return found.stream().map(SessionMapper::toSummary).toList();
     }
 
     @Transactional(readOnly = true)
-    public SessionResponse get(Long id) {
-        return SessionResponse.of(load(id));
+    public SessionResponse get(Long userId, Long id) {
+        return SessionMapper.toResponse(load(userId, id));
     }
 
     @Transactional
-    public SessionResponse create(SessionRequest request) {
-        Long userId = AuthenticatedUser.id();
+    public SessionResponse create(Long userId, SessionRequest request) {
         if (sessions.existsByUser_IdAndFinishedAtIsNull(userId)) {
             throw new ApiException(409, "Encerre o treino atual antes de começar outro.");
         }
         Session session = new Session();
-        session.setUser(users.findById(userId).orElseThrow(() -> new ApiException(401, "Não autenticado.")));
+        session.setUser(users.getReferenceById(userId));
         session.setStartedAt(Instant.now());
         if (request.templateId() != null) {
-            List<Template> found = templates.findDetailed(request.templateId(), userId);
-            if (found.isEmpty()) throw new ApiException(404, "Treino não encontrado.");
-            Template template = found.get(0);
+            Template template = templates
+                    .findDetailed(request.templateId(), userId)
+                    .orElseThrow(() -> new ApiException(404, "Treino não encontrado."));
             session.setTemplate(template);
             session.setName(template.getName());
             template.getExercises().stream()
                     .sorted(Comparator.comparingInt(TemplateExercise::getPosition))
-                    .forEach(exercise -> addExercise(
-                            session,
+                    .forEach(exercise -> session.addExercise(newExercise(
                             exercise.getName(),
                             exercise.getPlannedSets(),
                             exercise.getReps(),
                             exercise.getLoad(),
                             exercise.getRestSeconds(),
-                            exercise.getRir()));
+                            exercise.getRir())));
         } else {
-            String name = Numbers.clean(request.name());
+            String name = Values.blankToNull(request.name());
             session.setName(name == null ? "Treino avulso" : name);
             if (request.exercises() != null) {
-                for (ExerciseInput exercise : request.exercises()) {
-                    addExercise(
-                            session,
-                            exercise.name().trim(),
-                            exercise.plannedSets(),
-                            exercise.reps().trim(),
-                            exercise.load(),
-                            exercise.restSeconds(),
-                            exercise.rir());
-                }
+                request.exercises().forEach(input -> session.addExercise(newExercise(input)));
             }
         }
-        return SessionResponse.of(sessions.saveAndFlush(session));
+        return SessionMapper.toResponse(sessions.save(session));
     }
 
     @Transactional
-    public SessionResponse addExercise(Long id, ExerciseInput request) {
-        Session session = open(id);
-        addExercise(
-                session,
-                request.name().trim(),
-                request.plannedSets(),
-                request.reps().trim(),
-                request.load(),
-                request.restSeconds(),
-                request.rir());
-        sessions.saveAndFlush(session);
-        return SessionResponse.of(session);
+    public SessionResponse addExercise(Long userId, Long id, ExerciseInput request) {
+        Session session = open(userId, id);
+        session.addExercise(newExercise(request));
+        return saved(session);
     }
 
     @Transactional
-    public SessionResponse addSet(Long id, Long exerciseId) {
-        Session session = open(id);
-        SessionExercise exercise = findExercise(session, exerciseId);
+    public SessionResponse addSet(Long userId, Long id, Long exerciseId) {
+        Session session = open(userId, id);
+        SessionExercise exercise = exercise(session, exerciseId);
         WorkoutSet set = new WorkoutSet();
-        set.setExercise(exercise);
-        set.setPosition(exercise.getSets().size() + 1);
-        WorkoutSet previous = exercise.getSets().stream()
-                .max(Comparator.comparingInt(WorkoutSet::getPosition))
-                .orElse(null);
-        set.setLoad(previous == null ? exercise.getTargetLoad() : previous.getLoad());
-        set.setRir(previous == null ? exercise.getTargetRir() : previous.getRir());
-        exercise.getSets().add(set);
-        sessions.saveAndFlush(session);
-        return SessionResponse.of(session);
+        // A série nova repete carga e RIR da anterior, ou o alvo do exercício.
+        exercise.lastSet()
+                .ifPresentOrElse(
+                        previous -> {
+                            set.setLoad(previous.getLoad());
+                            set.setRir(previous.getRir());
+                        },
+                        () -> {
+                            set.setLoad(exercise.getTargetLoad());
+                            set.setRir(exercise.getTargetRir());
+                        });
+        exercise.addSet(set);
+        return saved(session);
     }
 
     @Transactional
-    public SessionResponse updateSet(Long id, Long setId, SetRequest request) {
-        Session session = open(id);
-        WorkoutSet set = findSet(session, setId);
+    public SessionResponse updateSet(Long userId, Long id, Long setId, SetRequest request) {
+        Session session = open(userId, id);
+        WorkoutSet set = session.findSet(setId).orElseThrow(() -> new ApiException(404, "Série não encontrada."));
         set.setReps(request.reps());
-        set.setLoad(Numbers.load(request.load()));
+        set.setLoad(Values.scale2(request.load()));
         set.setRir(request.rir());
-        if (request.completed()) {
-            if (set.getCompletedAt() == null) set.setCompletedAt(Instant.now());
-        } else {
-            set.setCompletedAt(null);
-        }
-        return SessionResponse.of(session);
+        set.markCompleted(request.completed(), Instant.now());
+        return SessionMapper.toResponse(session);
     }
 
     @Transactional
-    public SessionResponse finish(Long id) {
-        Session session = load(id);
-        if (session.getFinishedAt() != null) throw new ApiException(409, "Este treino já foi encerrado.");
+    public SessionResponse finish(Long userId, Long id) {
+        Session session = open(userId, id);
         session.setFinishedAt(Instant.now());
-        return SessionResponse.of(session);
+        return SessionMapper.toResponse(session);
     }
 
     @Transactional
-    public void delete(Long id) {
-        sessions.delete(load(id));
+    public void delete(Long userId, Long id) {
+        sessions.delete(load(userId, id));
     }
 
     @Transactional
-    public SessionResponse removeExercise(Long id, Long exerciseId) {
-        Session session = open(id);
-        SessionExercise exercise = findExercise(session, exerciseId);
-        session.getExercises().remove(exercise);
-        int position = 1;
-        for (SessionExercise current : session.getExercises().stream()
-                .sorted(Comparator.comparingInt(SessionExercise::getPosition))
-                .toList()) {
-            current.setPosition(position++);
-        }
-        sessions.saveAndFlush(session);
-        return SessionResponse.of(session);
+    public SessionResponse removeExercise(Long userId, Long id, Long exerciseId) {
+        Session session = open(userId, id);
+        session.removeExercise(exercise(session, exerciseId));
+        return saved(session);
     }
 
     @Transactional
-    public SessionResponse removeSet(Long id, Long setId) {
-        Session session = open(id);
+    public SessionResponse removeSet(Long userId, Long id, Long setId) {
+        Session session = open(userId, id);
         for (SessionExercise exercise : session.getExercises()) {
-            WorkoutSet found = exercise.getSets().stream()
-                    .filter(set -> set.getId().equals(setId))
+            WorkoutSet set = exercise.getSets().stream()
+                    .filter(candidate -> candidate.getId().equals(setId))
                     .findFirst()
                     .orElse(null);
-            if (found == null) continue;
-            exercise.getSets().remove(found);
-            int position = 1;
-            for (WorkoutSet set : exercise.getSets().stream()
-                    .sorted(Comparator.comparingInt(WorkoutSet::getPosition))
-                    .toList()) {
-                set.setPosition(position++);
+            if (set != null) {
+                exercise.removeSet(set);
+                return saved(session);
             }
-            sessions.saveAndFlush(session);
-            return SessionResponse.of(session);
         }
         throw new ApiException(404, "Série não encontrada.");
     }
 
-    private void addExercise(
-            Session session, String name, int plannedSets, String reps, BigDecimal load, int restSeconds, Integer rir) {
+    /** Grava já, para que exercícios e séries novos voltem com id na resposta. */
+    private SessionResponse saved(Session session) {
+        return SessionMapper.toResponse(sessions.saveAndFlush(session));
+    }
+
+    private Session open(Long userId, Long id) {
+        Session session = load(userId, id);
+        if (session.isFinished()) throw new ApiException(409, "Este treino já foi encerrado.");
+        return session;
+    }
+
+    private Session load(Long userId, Long id) {
+        return sessions.findDetailed(id, userId).orElseThrow(() -> new ApiException(404, "Treino não encontrado."));
+    }
+
+    private static SessionExercise exercise(Session session, Long exerciseId) {
+        return session.findExercise(exerciseId).orElseThrow(() -> new ApiException(404, "Exercício não encontrado."));
+    }
+
+    private static SessionExercise newExercise(ExerciseInput input) {
+        return newExercise(
+                input.name().trim(),
+                input.plannedSets(),
+                input.reps().trim(),
+                input.load(),
+                input.restSeconds(),
+                input.rir());
+    }
+
+    private static SessionExercise newExercise(
+            String name, int plannedSets, String reps, BigDecimal load, int restSeconds, Integer rir) {
         SessionExercise exercise = new SessionExercise();
-        exercise.setSession(session);
-        exercise.setPosition(session.getExercises().size() + 1);
         exercise.setName(name);
         exercise.setTargetReps(reps);
-        exercise.setTargetLoad(Numbers.load(load));
+        exercise.setTargetLoad(Values.scale2(load));
         exercise.setRestSeconds(restSeconds);
         exercise.setTargetRir(rir);
         for (int number = 1; number <= plannedSets; number++) {
             WorkoutSet set = new WorkoutSet();
-            set.setExercise(exercise);
-            set.setPosition(number);
-            set.setLoad(Numbers.load(load));
+            set.setLoad(Values.scale2(load));
             set.setRir(rir);
-            exercise.getSets().add(set);
+            exercise.addSet(set);
         }
-        session.getExercises().add(exercise);
-    }
-
-    private Session open(Long id) {
-        Session session = load(id);
-        if (session.getFinishedAt() != null) throw new ApiException(409, "Este treino já foi encerrado.");
-        return session;
-    }
-
-    private Session load(Long id) {
-        List<Session> found = sessions.findDetailed(id, AuthenticatedUser.id());
-        if (found.isEmpty()) throw new ApiException(404, "Treino não encontrado.");
-        Session session = found.get(0);
-        session.getExercises().forEach(exercise -> exercise.getSets().size());
-        return session;
-    }
-
-    private SessionExercise findExercise(Session session, Long exerciseId) {
-        return session.getExercises().stream()
-                .filter(exercise -> exercise.getId().equals(exerciseId))
-                .findFirst()
-                .orElseThrow(() -> new ApiException(404, "Exercício não encontrado."));
-    }
-
-    private WorkoutSet findSet(Session session, Long setId) {
-        for (SessionExercise exercise : session.getExercises()) {
-            for (WorkoutSet set : exercise.getSets()) {
-                if (set.getId().equals(setId)) return set;
-            }
-        }
-        throw new ApiException(404, "Série não encontrada.");
+        return exercise;
     }
 }

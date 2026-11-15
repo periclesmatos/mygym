@@ -2,21 +2,18 @@ package com.appgym.template.service;
 
 import com.appgym.session.domain.SessionRepository;
 import com.appgym.shared.error.ApiException;
-import com.appgym.shared.security.AuthenticatedUser;
-import com.appgym.shared.util.Numbers;
-import com.appgym.template.api.dto.ExerciseInput;
+import com.appgym.shared.util.Values;
 import com.appgym.template.api.dto.TemplateRequest;
 import com.appgym.template.api.dto.TemplateResponse;
 import com.appgym.template.domain.Template;
-import com.appgym.template.domain.TemplateExercise;
 import com.appgym.template.domain.TemplateRepository;
 import com.appgym.user.domain.UserRepository;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -24,6 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TemplateService {
+    /** Ordem da rotina; treinos ainda sem posição vão para o fim, pela data de criação. */
+    private static final Comparator<Template> ROUTINE_ORDER = Comparator.comparing(
+                    Template::getPosition, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(Template::getCreatedAt)
+            .thenComparing(Template::getId);
 
     private final TemplateRepository templates;
     private final SessionRepository sessions;
@@ -35,107 +37,75 @@ public class TemplateService {
         this.users = users;
     }
 
-    @Transactional
-    public List<TemplateResponse> list() {
-        return loadOrdered(AuthenticatedUser.id()).stream()
-                .map(TemplateResponse::of)
-                .toList();
+    @Transactional(readOnly = true)
+    public List<TemplateResponse> list(Long userId) {
+        return ordered(userId).stream().map(TemplateMapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public TemplateResponse get(Long id) {
-        return TemplateResponse.of(load(id));
+    public TemplateResponse get(Long userId, Long id) {
+        return TemplateMapper.toResponse(load(userId, id));
     }
 
     @Transactional
-    public TemplateResponse create(TemplateRequest request) {
-        Long userId = AuthenticatedUser.id();
-        List<Template> current = loadOrdered(userId);
-        int next = current.stream()
+    public TemplateResponse create(Long userId, TemplateRequest request) {
+        int next = ordered(userId).stream()
                         .map(Template::getPosition)
+                        .filter(Objects::nonNull)
                         .max(Comparator.naturalOrder())
                         .orElse(0)
                 + 1;
         Template template = new Template();
-        template.setUser(users.findById(userId).orElseThrow(() -> new ApiException(401, "Não autenticado.")));
+        template.setUser(users.getReferenceById(userId));
         template.setCreatedAt(Instant.now());
         template.setPosition(next);
         apply(template, request);
-        return TemplateResponse.of(templates.saveAndFlush(template));
+        return TemplateMapper.toResponse(templates.saveAndFlush(template));
     }
 
     @Transactional
-    public List<TemplateResponse> reorder(List<Long> ids) {
-        List<Template> found = loadOrdered(AuthenticatedUser.id());
-        if (ids.size() != found.size()
-                || !found.stream()
+    public List<TemplateResponse> reorder(Long userId, List<Long> ids) {
+        List<Template> found = ordered(userId);
+        boolean sameTemplates = ids.size() == found.size()
+                && found.stream()
                         .map(Template::getId)
                         .collect(Collectors.toSet())
-                        .equals(new HashSet<>(ids))) {
-            throw new ApiException(400, "A ordem não corresponde aos treinos.");
-        }
+                        .equals(new HashSet<>(ids));
+        if (!sameTemplates) throw new ApiException(400, "A ordem não corresponde aos treinos.");
         Map<Long, Template> byId = found.stream().collect(Collectors.toMap(Template::getId, Function.identity()));
         int position = 1;
-        List<Template> ordered = new ArrayList<>();
-        for (Long id : ids) {
-            Template template = byId.get(id);
-            template.setPosition(position++);
-            ordered.add(template);
-        }
-        return ordered.stream().map(TemplateResponse::of).toList();
+        for (Long id : ids) byId.get(id).setPosition(position++);
+        return ids.stream().map(byId::get).map(TemplateMapper::toResponse).toList();
     }
 
     @Transactional
-    public TemplateResponse update(Long id, TemplateRequest request) {
-        Template template = load(id);
+    public TemplateResponse update(Long userId, Long id, TemplateRequest request) {
+        Template template = load(userId, id);
         apply(template, request);
-        templates.saveAndFlush(template);
-        return TemplateResponse.of(template);
+        // Grava já, para os exercícios novos voltarem com id.
+        return TemplateMapper.toResponse(templates.saveAndFlush(template));
     }
 
     @Transactional
-    public void delete(Long id) {
-        load(id);
+    public void delete(Long userId, Long id) {
+        load(userId, id);
         sessions.unlinkTemplate(id);
         templates.deleteById(id);
     }
 
-    private Template load(Long id) {
-        List<Template> found = templates.findDetailed(id, AuthenticatedUser.id());
-        if (found.isEmpty()) throw new ApiException(404, "Treino não encontrado.");
-        return found.get(0);
+    private Template load(Long userId, Long id) {
+        return templates.findDetailed(id, userId).orElseThrow(() -> new ApiException(404, "Treino não encontrado."));
     }
 
-    private List<Template> loadOrdered(Long userId) {
-        List<Template> found = new ArrayList<>(templates.listByUser(userId));
-        if (found.stream().anyMatch(template -> template.getPosition() == null)) {
-            found.sort(Comparator.comparing(Template::getCreatedAt).thenComparing(Template::getId));
-            int position = 1;
-            for (Template template : found) template.setPosition(position++);
-            templates.saveAll(found);
-        } else {
-            found.sort(Comparator.comparing(Template::getPosition).thenComparing(Template::getId));
-        }
-        return found;
+    private List<Template> ordered(Long userId) {
+        return templates.listByUser(userId).stream().sorted(ROUTINE_ORDER).toList();
     }
 
-    private void apply(Template template, TemplateRequest request) {
+    private static void apply(Template template, TemplateRequest request) {
         template.setName(request.name().trim());
-        template.setNotes(Numbers.clean(request.notes()));
+        template.setNotes(Values.blankToNull(request.notes()));
         template.setUpdatedAt(Instant.now());
-        template.getExercises().clear();
-        int position = 1;
-        for (ExerciseInput item : request.exercises()) {
-            TemplateExercise exercise = new TemplateExercise();
-            exercise.setTemplate(template);
-            exercise.setPosition(position++);
-            exercise.setName(item.name().trim());
-            exercise.setPlannedSets(item.plannedSets());
-            exercise.setReps(item.reps().trim());
-            exercise.setLoad(Numbers.load(item.load()));
-            exercise.setRestSeconds(item.restSeconds());
-            exercise.setRir(item.rir());
-            template.getExercises().add(exercise);
-        }
+        template.replaceExercises(
+                request.exercises().stream().map(TemplateMapper::toEntity).toList());
     }
 }

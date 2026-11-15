@@ -27,6 +27,10 @@ public class JwtService {
         this.expirationHours = properties.jwt().expirationHours();
     }
 
+    public TokenResponse issue(User user) {
+        return new TokenResponse(generate(user), user.getEmail());
+    }
+
     public String generate(User user) {
         Instant now = Instant.now();
         return Jwts.builder()

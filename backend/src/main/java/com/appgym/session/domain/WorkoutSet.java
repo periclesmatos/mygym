@@ -36,6 +36,22 @@ public class WorkoutSet {
 
     private Instant completedAt;
 
+    public boolean isCompleted() {
+        return completedAt != null;
+    }
+
+    /** Marca ou desmarca a série; o horário da primeira conclusão é mantido. */
+    public void markCompleted(boolean completed, Instant now) {
+        if (!completed) completedAt = null;
+        else if (completedAt == null) completedAt = now;
+    }
+
+    /** Carga x reps de uma série concluída (zero se faltar carga ou reps). */
+    public BigDecimal volume() {
+        if (!isCompleted() || reps == null || load == null) return BigDecimal.ZERO;
+        return load.multiply(BigDecimal.valueOf(reps));
+    }
+
     public Long getId() {
         return id;
     }

@@ -1,6 +1,7 @@
 package com.appgym.user;
 
 import com.appgym.shared.config.AppProperties;
+import com.appgym.shared.util.Emails;
 import com.appgym.user.domain.User;
 import com.appgym.user.domain.UserRepository;
 import org.springframework.boot.ApplicationArguments;
@@ -26,10 +27,10 @@ public class InitialUserSeeder implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         // Só no banco vazio: depois disso o e-mail pode ser trocado pelo perfil.
         if (users.count() > 0) return;
-        String normalized = email.trim().toLowerCase();
         User user = new User();
-        user.setEmail(normalized);
+        user.setEmail(Emails.normalize(email));
         user.setPasswordHash(encoder.encode(password));
+        user.setPasswordSet(true);
         users.save(user);
     }
 }

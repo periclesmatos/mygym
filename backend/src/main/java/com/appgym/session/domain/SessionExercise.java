@@ -14,7 +14,9 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "session_exercise")
@@ -48,6 +50,28 @@ public class SessionExercise {
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<WorkoutSet> sets = new ArrayList<>();
+
+    /** Acrescenta uma série no fim. */
+    public void addSet(WorkoutSet set) {
+        set.setExercise(this);
+        set.setPosition(sets.size() + 1);
+        sets.add(set);
+    }
+
+    /** Remove a série e renumera as restantes. */
+    public void removeSet(WorkoutSet set) {
+        sets.remove(set);
+        int position = 1;
+        for (WorkoutSet current : sets.stream()
+                .sorted(Comparator.comparingInt(WorkoutSet::getPosition))
+                .toList()) {
+            current.setPosition(position++);
+        }
+    }
+
+    public Optional<WorkoutSet> lastSet() {
+        return sets.stream().max(Comparator.comparingInt(WorkoutSet::getPosition));
+    }
 
     public Long getId() {
         return id;

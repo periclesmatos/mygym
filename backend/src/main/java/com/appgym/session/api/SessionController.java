@@ -9,6 +9,7 @@ import com.appgym.template.api.dto.ExerciseInput;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping({"/api/sessions", "/api/sessoes"})
 public class SessionController {
-
     private final SessionService sessions;
 
     public SessionController(SessionService sessions) {
@@ -31,55 +31,62 @@ public class SessionController {
     }
 
     @GetMapping
-    public List<SessionSummary> list(@RequestParam String status) {
-        return sessions.list(status);
+    public List<SessionSummary> list(@AuthenticationPrincipal Long userId, @RequestParam String status) {
+        return sessions.list(userId, status);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public SessionResponse create(@Valid @RequestBody SessionRequest request) {
-        return sessions.create(request);
+    public SessionResponse create(@AuthenticationPrincipal Long userId, @Valid @RequestBody SessionRequest request) {
+        return sessions.create(userId, request);
     }
 
     @GetMapping("/{id}")
-    public SessionResponse get(@PathVariable Long id) {
-        return sessions.get(id);
+    public SessionResponse get(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
+        return sessions.get(userId, id);
     }
 
     @PostMapping("/{id}/exercises")
-    public SessionResponse addExercise(@PathVariable Long id, @Valid @RequestBody ExerciseInput request) {
-        return sessions.addExercise(id, request);
+    public SessionResponse addExercise(
+            @AuthenticationPrincipal Long userId, @PathVariable Long id, @Valid @RequestBody ExerciseInput request) {
+        return sessions.addExercise(userId, id, request);
     }
 
     @PostMapping("/{id}/exercises/{exerciseId}/sets")
-    public SessionResponse addSet(@PathVariable Long id, @PathVariable Long exerciseId) {
-        return sessions.addSet(id, exerciseId);
+    public SessionResponse addSet(
+            @AuthenticationPrincipal Long userId, @PathVariable Long id, @PathVariable Long exerciseId) {
+        return sessions.addSet(userId, id, exerciseId);
     }
 
     @PutMapping({"/{id}/sets/{setId}", "/{id}/series/{setId}"})
     public SessionResponse updateSet(
-            @PathVariable Long id, @PathVariable Long setId, @Valid @RequestBody SetRequest request) {
-        return sessions.updateSet(id, setId, request);
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long id,
+            @PathVariable Long setId,
+            @Valid @RequestBody SetRequest request) {
+        return sessions.updateSet(userId, id, setId, request);
     }
 
     @PostMapping({"/{id}/finish", "/{id}/encerrar"})
-    public SessionResponse finish(@PathVariable Long id) {
-        return sessions.finish(id);
+    public SessionResponse finish(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
+        return sessions.finish(userId, id);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        sessions.delete(id);
+    public void delete(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
+        sessions.delete(userId, id);
     }
 
     @DeleteMapping("/{id}/exercises/{exerciseId}")
-    public SessionResponse removeExercise(@PathVariable Long id, @PathVariable Long exerciseId) {
-        return sessions.removeExercise(id, exerciseId);
+    public SessionResponse removeExercise(
+            @AuthenticationPrincipal Long userId, @PathVariable Long id, @PathVariable Long exerciseId) {
+        return sessions.removeExercise(userId, id, exerciseId);
     }
 
     @DeleteMapping("/{id}/sets/{setId}")
-    public SessionResponse removeSet(@PathVariable Long id, @PathVariable Long setId) {
-        return sessions.removeSet(id, setId);
+    public SessionResponse removeSet(
+            @AuthenticationPrincipal Long userId, @PathVariable Long id, @PathVariable Long setId) {
+        return sessions.removeSet(userId, id, setId);
     }
 }

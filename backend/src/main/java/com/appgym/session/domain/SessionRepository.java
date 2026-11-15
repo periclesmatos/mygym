@@ -1,6 +1,7 @@
 package com.appgym.session.domain;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,7 +19,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
             left join fetch s.exercises
             where s.id = :id and s.user.id = :userId
             """)
-    List<Session> findDetailed(Long id, Long userId);
+    Optional<Session> findDetailed(Long id, Long userId);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Session s set s.template = null where s.template.id = :templateId")

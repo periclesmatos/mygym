@@ -1,9 +1,10 @@
 package com.appgym.auth.service;
 
-import com.appgym.auth.api.dto.LoginResponse;
 import com.appgym.auth.service.SocialTokenVerifier.Identity;
 import com.appgym.auth.service.SocialTokenVerifier.Provider;
 import com.appgym.shared.security.JwtService;
+import com.appgym.shared.security.TokenResponse;
+import com.appgym.shared.util.Values;
 import com.appgym.user.domain.User;
 import com.appgym.user.domain.UserRepository;
 import java.util.Optional;
@@ -38,7 +39,7 @@ public class SocialLoginService {
      * vinculada; 3) conta nova, se o e-mail estiver liberado para cadastro.
      */
     @Transactional
-    public LoginResponse login(Provider provider, String token, String name) {
+    public TokenResponse login(Provider provider, String token, String name) {
         Identity identity = verifier.verify(provider, token);
         Optional<User> linked = provider == Provider.GOOGLE
                 ? users.findByGoogleSub(identity.subject())
@@ -55,10 +56,10 @@ public class SocialLoginService {
 
         if (provider == Provider.GOOGLE) user.setGoogleSub(identity.subject());
         else user.setAppleSub(identity.subject());
-        if ((user.getName() == null || user.getName().isBlank()) && name != null && !name.isBlank()) {
-            user.setName(name.trim().length() > 80 ? name.trim().substring(0, 80) : name.trim());
+        String cleanName = Values.blankToNull(name);
+        if (user.getName() == null && cleanName != null) {
+            user.setName(cleanName.length() > 80 ? cleanName.substring(0, 80) : cleanName);
         }
-        user = users.save(user);
-        return new LoginResponse(jwt.generate(user), user.getEmail());
+        return jwt.issue(users.save(user));
     }
 }

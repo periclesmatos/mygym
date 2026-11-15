@@ -47,6 +47,17 @@ public class Template {
     @OrderBy("position ASC")
     private List<TemplateExercise> exercises = new ArrayList<>();
 
+    /** Troca todos os exercícios, numerando na ordem recebida. */
+    public void replaceExercises(List<TemplateExercise> items) {
+        exercises.clear();
+        int position = 1;
+        for (TemplateExercise exercise : items) {
+            exercise.setTemplate(this);
+            exercise.setPosition(position++);
+            exercises.add(exercise);
+        }
+    }
+
     public Long getId() {
         return id;
     }
