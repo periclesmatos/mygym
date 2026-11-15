@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/api/sessions", "/api/sessoes"})
+@RequestMapping("/api/sessions")
 public class SessionController {
     private final SessionService sessions;
 
@@ -58,7 +58,7 @@ public class SessionController {
         return sessions.addSet(userId, id, exerciseId);
     }
 
-    @PutMapping({"/{id}/sets/{setId}", "/{id}/series/{setId}"})
+    @PutMapping("/{id}/sets/{setId}")
     public SessionResponse updateSet(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long id,
@@ -67,7 +67,7 @@ public class SessionController {
         return sessions.updateSet(userId, id, setId, request);
     }
 
-    @PostMapping({"/{id}/finish", "/{id}/encerrar"})
+    @PostMapping("/{id}/finish")
     public SessionResponse finish(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
         return sessions.finish(userId, id);
     }

@@ -8,7 +8,9 @@ import com.appgym.session.domain.Session;
 import com.appgym.session.domain.SessionExercise;
 import com.appgym.session.domain.SessionRepository;
 import com.appgym.session.domain.WorkoutSet;
-import com.appgym.shared.error.ApiException;
+import com.appgym.shared.error.BadRequestException;
+import com.appgym.shared.error.ConflictException;
+import com.appgym.shared.error.NotFoundException;
 import com.appgym.shared.util.Values;
 import com.appgym.template.api.dto.ExerciseInput;
 import com.appgym.template.domain.Template;
@@ -37,9 +39,9 @@ public class SessionService {
     @Transactional(readOnly = true)
     public List<SessionSummary> list(Long userId, String status) {
         List<Session> found = switch (status) {
-            case "open", "aberta" -> sessions.findByUser_IdAndFinishedAtIsNullOrderByStartedAtDesc(userId);
-            case "finished", "encerrada" -> sessions.findByUser_IdAndFinishedAtIsNotNullOrderByStartedAtDesc(userId);
-            default -> throw new ApiException(400, "Use o status open ou finished.");
+            case "open" -> sessions.findByUser_IdAndFinishedAtIsNullOrderByStartedAtDesc(userId);
+            case "finished" -> sessions.findByUser_IdAndFinishedAtIsNotNullOrderByStartedAtDesc(userId);
+            default -> throw new BadRequestException("Use o status open ou finished.");
         };
         return found.stream().map(SessionMapper::toSummary).toList();
     }
@@ -52,7 +54,7 @@ public class SessionService {
     @Transactional
     public SessionResponse create(Long userId, SessionRequest request) {
         if (sessions.existsByUser_IdAndFinishedAtIsNull(userId)) {
-            throw new ApiException(409, "Encerre o treino atual antes de começar outro.");
+            throw new ConflictException("Encerre o treino atual antes de começar outro.");
         }
         Session session = new Session();
         session.setUser(users.getReferenceById(userId));
@@ -60,7 +62,7 @@ public class SessionService {
         if (request.templateId() != null) {
             Template template = templates
                     .findDetailed(request.templateId(), userId)
-                    .orElseThrow(() -> new ApiException(404, "Treino não encontrado."));
+                    .orElseThrow(() -> new NotFoundException("Treino não encontrado."));
             session.setTemplate(template);
             session.setName(template.getName());
             template.getExercises().stream()
@@ -112,7 +114,7 @@ public class SessionService {
     @Transactional
     public SessionResponse updateSet(Long userId, Long id, Long setId, SetRequest request) {
         Session session = open(userId, id);
-        WorkoutSet set = session.findSet(setId).orElseThrow(() -> new ApiException(404, "Série não encontrada."));
+        WorkoutSet set = session.findSet(setId).orElseThrow(() -> new NotFoundException("Série não encontrada."));
         set.setReps(request.reps());
         set.setLoad(Values.scale2(request.load()));
         set.setRir(request.rir());
@@ -152,7 +154,7 @@ public class SessionService {
                 return saved(session);
             }
         }
-        throw new ApiException(404, "Série não encontrada.");
+        throw new NotFoundException("Série não encontrada.");
     }
 
     /** Grava já, para que exercícios e séries novos voltem com id na resposta. */
@@ -162,16 +164,16 @@ public class SessionService {
 
     private Session open(Long userId, Long id) {
         Session session = load(userId, id);
-        if (session.isFinished()) throw new ApiException(409, "Este treino já foi encerrado.");
+        if (session.isFinished()) throw new ConflictException("Este treino já foi encerrado.");
         return session;
     }
 
     private Session load(Long userId, Long id) {
-        return sessions.findDetailed(id, userId).orElseThrow(() -> new ApiException(404, "Treino não encontrado."));
+        return sessions.findDetailed(id, userId).orElseThrow(() -> new NotFoundException("Treino não encontrado."));
     }
 
     private static SessionExercise exercise(Session session, Long exerciseId) {
-        return session.findExercise(exerciseId).orElseThrow(() -> new ApiException(404, "Exercício não encontrado."));
+        return session.findExercise(exerciseId).orElseThrow(() -> new NotFoundException("Exercício não encontrado."));
     }
 
     private static SessionExercise newExercise(ExerciseInput input) {

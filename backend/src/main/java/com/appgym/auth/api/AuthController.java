@@ -25,7 +25,7 @@ public class AuthController {
         this.social = social;
     }
 
-    @PostMapping("/api/login")
+    @PostMapping("/api/auth/login")
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
         return auth.login(request);
     }

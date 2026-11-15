@@ -5,7 +5,8 @@ import com.appgym.profile.api.dto.ChangePasswordRequest;
 import com.appgym.profile.api.dto.PhotoRequest;
 import com.appgym.profile.api.dto.ProfileResponse;
 import com.appgym.profile.api.dto.UpdateProfileRequest;
-import com.appgym.shared.error.ApiException;
+import com.appgym.shared.error.BadRequestException;
+import com.appgym.shared.error.UnauthorizedException;
 import com.appgym.shared.security.JwtService;
 import com.appgym.shared.security.TokenResponse;
 import com.appgym.shared.util.Emails;
@@ -64,11 +65,11 @@ public class ProfileService {
     @Transactional
     public TokenResponse changeEmail(Long userId, ChangeEmailRequest request) {
         User user = user(userId);
-        if (!user.hasPassword()) throw new ApiException(400, "Defina uma senha antes de trocar o e-mail.");
+        if (!user.hasPassword()) throw new BadRequestException("Defina uma senha antes de trocar o e-mail.");
         checkPassword(user, request.currentPassword());
         String email = Emails.normalize(request.email());
         if (!email.equals(user.getEmail())) {
-            if (users.existsByEmail(email)) throw new ApiException(400, "Já existe uma conta com este e-mail.");
+            if (users.existsByEmail(email)) throw new BadRequestException("Já existe uma conta com este e-mail.");
             user.setEmail(email);
         }
         return jwt.issue(user);
@@ -84,7 +85,7 @@ public class ProfileService {
 
     private void checkPassword(User user, String password) {
         if (password == null || !encoder.matches(password, user.getPasswordHash())) {
-            throw new ApiException(400, "Senha atual incorreta.");
+            throw new BadRequestException("Senha atual incorreta.");
         }
     }
 
@@ -104,6 +105,6 @@ public class ProfileService {
     }
 
     private User user(Long userId) {
-        return users.findById(userId).orElseThrow(() -> new ApiException(401, "Não autenticado."));
+        return users.findById(userId).orElseThrow(() -> UnauthorizedException.notAuthenticated());
     }
 }

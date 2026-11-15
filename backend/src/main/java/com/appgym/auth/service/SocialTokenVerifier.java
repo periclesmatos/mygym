@@ -1,7 +1,8 @@
 package com.appgym.auth.service;
 
 import com.appgym.shared.config.AppProperties;
-import com.appgym.shared.error.ApiException;
+import com.appgym.shared.error.BadRequestException;
+import com.appgym.shared.error.UnauthorizedException;
 import com.appgym.shared.util.Emails;
 import java.util.Set;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -45,18 +46,18 @@ public class SocialTokenVerifier {
     public Identity verify(Provider provider, String token) {
         JwtDecoder decoder = provider == Provider.GOOGLE ? google : apple;
         String label = provider == Provider.GOOGLE ? "Google" : "Apple";
-        if (decoder == null) throw new ApiException(400, "Login com " + label + " não está configurado.");
-        if (token == null || token.isBlank()) throw new ApiException(400, "Token do " + label + " ausente.");
+        if (decoder == null) throw new BadRequestException("Login com " + label + " não está configurado.");
+        if (token == null || token.isBlank()) throw new BadRequestException("Token do " + label + " ausente.");
 
         Jwt jwt;
         try {
             jwt = decoder.decode(token);
         } catch (JwtException exception) {
-            throw new ApiException(401, "Não foi possível confirmar o login com " + label + ". Tente de novo.");
+            throw new UnauthorizedException("Não foi possível confirmar o login com " + label + ". Tente de novo.");
         }
         String email = jwt.getClaimAsString("email");
         if (email == null || email.isBlank() || !isTrue(jwt.getClaims().get("email_verified"))) {
-            throw new ApiException(401, "A conta " + label + " não tem um e-mail verificado.");
+            throw new UnauthorizedException("A conta " + label + " não tem um e-mail verificado.");
         }
         return new Identity(jwt.getSubject(), Emails.normalize(email));
     }

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/api/templates", "/api/fichas"})
+@RequestMapping("/api/templates")
 public class TemplateController {
     private final TemplateService templates;
 

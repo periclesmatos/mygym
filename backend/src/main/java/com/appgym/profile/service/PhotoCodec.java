@@ -1,6 +1,6 @@
 package com.appgym.profile.service;
 
-import com.appgym.shared.error.ApiException;
+import com.appgym.shared.error.BadRequestException;
 import com.appgym.user.domain.UserPhoto;
 import java.util.Base64;
 import java.util.Set;
@@ -20,16 +20,16 @@ public final class PhotoCodec {
     public static Decoded decode(String dataUrl) {
         Matcher matcher = DATA_URL.matcher(dataUrl == null ? "" : dataUrl);
         if (!matcher.matches() || !TYPES.contains(matcher.group(1))) {
-            throw new ApiException(400, "Envie uma imagem JPG, PNG ou WebP.");
+            throw new BadRequestException("Envie uma imagem JPG, PNG ou WebP.");
         }
         byte[] bytes;
         try {
             bytes = Base64.getDecoder().decode(matcher.group(2));
         } catch (IllegalArgumentException exception) {
-            throw new ApiException(400, "Não foi possível ler a imagem.");
+            throw new BadRequestException("Não foi possível ler a imagem.");
         }
-        if (bytes.length == 0) throw new ApiException(400, "Não foi possível ler a imagem.");
-        if (bytes.length > MAX_BYTES) throw new ApiException(400, "A foto pode ter até 512 KB.");
+        if (bytes.length == 0) throw new BadRequestException("Não foi possível ler a imagem.");
+        if (bytes.length > MAX_BYTES) throw new BadRequestException("A foto pode ter até 512 KB.");
         return new Decoded(matcher.group(1), bytes);
     }
 

@@ -3,7 +3,7 @@ package com.appgym.exercise.service;
 import com.appgym.exercise.api.dto.Performance;
 import com.appgym.exercise.domain.ExerciseHistoryRepository;
 import com.appgym.session.domain.SessionExercise;
-import com.appgym.shared.error.ApiException;
+import com.appgym.shared.error.BadRequestException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -44,7 +44,7 @@ public class ExerciseService {
                 .distinct()
                 .toList();
         if (keys.isEmpty()) return result;
-        if (keys.size() > MAX_NAMES) throw new ApiException(400, "Peça no máximo 60 exercícios.");
+        if (keys.size() > MAX_NAMES) throw new BadRequestException("Peça no máximo 60 exercícios.");
         // A consulta vem do mais recente para o mais antigo: o primeiro com séries válidas vence.
         for (SessionExercise exercise : history.findFinishedByNames(userId, keys)) {
             String key = ExerciseStats.key(exercise.getName());
@@ -59,7 +59,7 @@ public class ExerciseService {
     @Transactional(readOnly = true)
     public List<Performance> progress(Long userId, String name) {
         String key = ExerciseStats.key(name);
-        if (key.isEmpty()) throw new ApiException(400, "Informe o exercício.");
+        if (key.isEmpty()) throw new BadRequestException("Informe o exercício.");
         return history.findFinishedByNames(userId, List.of(key)).stream()
                 .map(ExerciseStats::performance)
                 .flatMap(Optional::stream)

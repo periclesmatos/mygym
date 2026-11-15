@@ -1,9 +1,10 @@
 package com.appgym.shared.error;
 
-public class ApiException extends RuntimeException {
+/** Erro esperado da API: vira {@code {"message": ...}} com o status HTTP dado. Use as subclasses. */
+public abstract class ApiException extends RuntimeException {
     private final int status;
 
-    public ApiException(int status, String message) {
+    protected ApiException(int status, String message) {
         super(message);
         this.status = status;
     }

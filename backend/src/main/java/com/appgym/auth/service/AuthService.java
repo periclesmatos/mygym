@@ -4,7 +4,8 @@ import com.appgym.auth.api.dto.AuthConfigResponse;
 import com.appgym.auth.api.dto.LoginRequest;
 import com.appgym.auth.api.dto.RegisterRequest;
 import com.appgym.shared.config.AppProperties;
-import com.appgym.shared.error.ApiException;
+import com.appgym.shared.error.BadRequestException;
+import com.appgym.shared.error.UnauthorizedException;
 import com.appgym.shared.security.JwtService;
 import com.appgym.shared.security.TokenResponse;
 import com.appgym.shared.util.Emails;
@@ -43,7 +44,7 @@ public class AuthService {
     public TokenResponse login(LoginRequest request) {
         User user = users.findByEmail(Emails.normalize(request.email()))
                 .filter(found -> found.hasPassword() && encoder.matches(request.password(), found.getPasswordHash()))
-                .orElseThrow(() -> new ApiException(401, "E-mail ou senha inválidos."));
+                .orElseThrow(() -> new UnauthorizedException("E-mail ou senha inválidos."));
         return jwt.issue(user);
     }
 
@@ -52,7 +53,7 @@ public class AuthService {
         String email = Emails.normalize(request.email());
         signup.assertAllowed(email);
         if (users.existsByEmail(email)) {
-            throw new ApiException(400, "Já existe uma conta com este e-mail. Entre com ele.");
+            throw new BadRequestException("Já existe uma conta com este e-mail. Entre com ele.");
         }
         User user = new User();
         user.setEmail(email);

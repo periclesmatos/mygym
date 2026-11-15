@@ -1,7 +1,8 @@
 package com.appgym.template.service;
 
 import com.appgym.session.domain.SessionRepository;
-import com.appgym.shared.error.ApiException;
+import com.appgym.shared.error.BadRequestException;
+import com.appgym.shared.error.NotFoundException;
 import com.appgym.shared.util.Values;
 import com.appgym.template.api.dto.TemplateRequest;
 import com.appgym.template.api.dto.TemplateResponse;
@@ -71,7 +72,7 @@ public class TemplateService {
                         .map(Template::getId)
                         .collect(Collectors.toSet())
                         .equals(new HashSet<>(ids));
-        if (!sameTemplates) throw new ApiException(400, "A ordem não corresponde aos treinos.");
+        if (!sameTemplates) throw new BadRequestException("A ordem não corresponde aos treinos.");
         Map<Long, Template> byId = found.stream().collect(Collectors.toMap(Template::getId, Function.identity()));
         int position = 1;
         for (Long id : ids) byId.get(id).setPosition(position++);
@@ -94,7 +95,7 @@ public class TemplateService {
     }
 
     private Template load(Long userId, Long id) {
-        return templates.findDetailed(id, userId).orElseThrow(() -> new ApiException(404, "Treino não encontrado."));
+        return templates.findDetailed(id, userId).orElseThrow(() -> new NotFoundException("Treino não encontrado."));
     }
 
     private List<Template> ordered(Long userId) {

@@ -1,10 +1,14 @@
 package com.appgym.shared.config;
 
+import com.appgym.shared.error.ErrorResponse;
+import com.appgym.shared.error.UnauthorizedException;
 import com.appgym.shared.security.JwtAuthFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,17 +25,18 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwt) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwt, ObjectMapper json) throws Exception {
         return http.csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/api/login")
+                .authorizeHttpRequests(auth -> auth.requestMatchers(
+                                HttpMethod.POST,
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/google",
+                                "/api/auth/apple")
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/google", "/api/auth/apple")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/config")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/health")
+                        .requestMatchers(HttpMethod.GET, "/api/auth/config", "/api/health")
                         .permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
@@ -40,10 +45,10 @@ public class SecurityConfig {
                         .anyRequest()
                         .permitAll())
                 .exceptionHandling(errors -> errors.authenticationEntryPoint((request, response, exception) -> {
-                    response.setStatus(401);
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     response.setCharacterEncoding("UTF-8");
-                    response.getWriter().write("{\"message\":\"Não autenticado.\"}");
+                    json.writeValue(response.getWriter(), new ErrorResponse(UnauthorizedException.NOT_AUTHENTICATED));
                 }))
                 .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class)
                 .build();
