@@ -73,6 +73,23 @@ class TemplateApiTest extends IntegrationTest {
     }
 
     @Test
+    void deletingKeepsWorkoutHistory() throws Exception {
+        Account account = newAccount();
+        long id = create(account, "A");
+        long session = body(perform(post("/api/sessions"), account, Map.of("templateId", id)))
+                .get("id")
+                .asLong();
+        perform(post("/api/sessions/" + session + "/finish"), account, null).andExpect(status().isOk());
+
+        perform(delete("/api/templates/" + id), account, null).andExpect(status().isNoContent());
+        perform(get("/api/sessions/" + session), account, null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("A"));
+        perform(get("/api/sessions?status=finished"), account, null)
+                .andExpect(jsonPath("$[0].templateId").doesNotExist());
+    }
+
+    @Test
     void templateExercisesKeepTheMuscleGroup() throws Exception {
         Account account = newAccount();
         Map<String, Object> exercise = new HashMap<>(Map.of(

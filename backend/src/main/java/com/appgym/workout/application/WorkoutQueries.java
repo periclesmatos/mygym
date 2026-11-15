@@ -1,0 +1,34 @@
+package com.appgym.workout.application;
+
+import com.appgym.workout.CompletedExercise;
+import com.appgym.workout.WorkoutApi;
+import com.appgym.workout.domain.SessionRepository;
+import java.util.Collection;
+import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/** Implementação da API pública do módulo. */
+@Service
+class WorkoutQueries implements WorkoutApi {
+    private final SessionRepository sessions;
+
+    WorkoutQueries(SessionRepository sessions) {
+        this.sessions = sessions;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompletedExercise> finishedExercises(Long userId, Collection<String> nameKeys) {
+        if (nameKeys.isEmpty()) return List.of();
+        return sessions.findFinishedExercises(userId, nameKeys).stream()
+                .map(SessionMapper::toCompleted)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> exerciseNames(Long userId) {
+        return sessions.exerciseNames(userId);
+    }
+}
