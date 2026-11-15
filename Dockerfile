@@ -3,6 +3,8 @@ WORKDIR /front
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./
+# Lint, formatação e testes falham o build antes de gerar o front.
+RUN npm run lint && npm run format:check && npm test
 RUN npm run build
 
 FROM maven:3.9-eclipse-temurin-21 AS backend

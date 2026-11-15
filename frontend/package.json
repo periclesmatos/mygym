@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest run"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -24,6 +25,7 @@
     "eslint-plugin-react-refresh": "^0.5.8",
     "globals": "^17.14.0",
     "prettier": "^3.10.1",
-    "vite": "^6.3.0"
+    "vite": "^6.3.0",
+    "vitest": "^5.1.0"
   }
 }
