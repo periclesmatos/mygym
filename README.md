@@ -12,12 +12,22 @@ Personal workout log. React talks to a Spring Boot API, and the API stores templ
 
 ## Run it locally
 
-1. Start Postgres: `docker compose up -d`
+1. Start Postgres: `docker compose --profile db up -d`
 2. Start the API from `backend`: `mvn spring-boot:run`
 3. Start the UI from `frontend`: `npm install` then `npm run dev`
 4. Open http://localhost:5173
 
 The first login is `you@appgym.local` / `appgym` unless you change `APP_USER_EMAIL` and `APP_USER_PASSWORD`.
+
+## Auto-reload while developing
+
+`docker compose --profile dev up` starts the API and the UI in containers, so Java and Node don't need to be installed. Open http://localhost:5173.
+
+- UI: Vite updates the page as soon as a file is saved.
+- API: `backend/dev.sh` recompiles when something in `backend/src` changes, and Spring DevTools restarts the API in a few seconds.
+- It uses the Postgres already listening on port 5432 (override with `DEV_DATABASE_URL`). If none is running, start one with `docker compose --profile db up -d` first.
+- The first start downloads Maven dependencies and runs `npm ci`, which takes a few minutes. Later starts use the cached volumes.
+- After changing `pom.xml` or `package.json`, restart that service: `docker compose restart api-dev` or `docker compose restart web-dev`.
 
 ## One URL for the gym
 

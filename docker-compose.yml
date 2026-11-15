@@ -1,5 +1,6 @@
 services:
   postgres:
+    profiles: ["db", "app"]
     image: postgres:16
     environment:
       POSTGRES_DB: appgym
@@ -32,5 +33,41 @@ services:
     ports:
       - "8080:8080"
 
+  # Desenvolvimento com recarga automática: docker compose --profile dev up
+  # Usa o Postgres que já estiver na porta 5432 da máquina.
+  api-dev:
+    profiles: ["dev"]
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /app/backend
+    command: ["sh", "dev.sh"]
+    volumes:
+      - ./backend:/app/backend
+      - m2:/root/.m2
+    environment:
+      DATABASE_URL: ${DEV_DATABASE_URL:-jdbc:postgresql://host.docker.internal:5432/appgym}
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "false"
+      APP_ALLOWED_EMAILS: ${APP_ALLOWED_EMAILS:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  web-dev:
+    profiles: ["dev"]
+    image: node:22-alpine
+    working_dir: /front
+    command: ["sh", "-c", "npm ci && npm run dev -- --host 0.0.0.0"]
+    volumes:
+      - ./frontend:/front
+      - node_modules:/front/node_modules
+    environment:
+      API_PROXY: http://api-dev:8080
+      VITE_POLL: "1"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api-dev
+
 volumes:
   pgdata:
+  m2:
+  node_modules:
