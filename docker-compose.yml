@@ -67,6 +67,22 @@ services:
     depends_on:
       - api-dev
 
+  # Testes do backend: docker compose --profile test run --rm api-test
+  # O Testcontainers sobe um Postgres próprio pelo Docker da máquina (socket montado).
+  api-test:
+    profiles: ["test"]
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /app/backend
+    command: ["mvn", "-B", "verify"]
+    volumes:
+      - ./backend:/app/backend
+      - m2:/root/.m2
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   pgdata:
   m2:
