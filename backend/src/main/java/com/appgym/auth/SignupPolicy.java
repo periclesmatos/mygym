@@ -1,10 +1,8 @@
 package com.appgym.auth;
 
+import com.appgym.config.AppProperties;
 import com.appgym.error.ApiException;
-import java.util.Arrays;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /** Cadastro por convite: só e-mails de APP_ALLOWED_EMAILS criam conta. Lista vazia fecha o cadastro. */
@@ -12,11 +10,8 @@ import org.springframework.stereotype.Component;
 public class SignupPolicy {
     private final Set<String> allowed;
 
-    public SignupPolicy(@Value("${app.signup.allowed-emails:}") String allowedEmails) {
-        this.allowed = Arrays.stream(allowedEmails.split(","))
-                .map(Emails::normalize)
-                .filter(email -> !email.isEmpty())
-                .collect(Collectors.toUnmodifiableSet());
+    public SignupPolicy(AppProperties properties) {
+        this.allowed = properties.signup().allowedSet();
     }
 
     public void assertAllowed(String email) {

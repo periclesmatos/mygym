@@ -26,6 +26,9 @@ app:
   apple:
     client-id: ${APPLE_CLIENT_ID:}
     redirect-uri: ${APPLE_REDIRECT_URI:}
+  cors:
+    # Origens que podem chamar a API de outro endereço (o Vite em dev). Em produção o front é servido pela própria API.
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173
   jwt:
     secret: ${JWT_SECRET:dev-secret-change-me-in-production-32}
     expiration-hours: ${JWT_EXPIRATION_HOURS:720}

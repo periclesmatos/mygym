@@ -1,9 +1,9 @@
 package com.appgym.auth;
 
 import com.appgym.auth.SocialTokenVerifier.Provider;
+import com.appgym.config.AppProperties;
 import com.appgym.error.ApiException;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,16 +27,16 @@ public class AuthController {
             JwtService jwt,
             SignupPolicy signup,
             SocialLoginService social,
-            @Value("${app.google.client-id:}") String googleClientId,
-            @Value("${app.apple.client-id:}") String appleClientId,
-            @Value("${app.apple.redirect-uri:}") String appleRedirectUri) {
+            AppProperties properties) {
         this.users = users;
         this.encoder = encoder;
         this.jwt = jwt;
         this.signup = signup;
         this.social = social;
         this.config = new SocialRequests.Config(
-                blankToNull(googleClientId), blankToNull(appleClientId), blankToNull(appleRedirectUri));
+                blankToNull(properties.google().clientId()),
+                blankToNull(properties.apple().clientId()),
+                blankToNull(properties.apple().redirectUri()));
     }
 
     @PostMapping("/api/login")

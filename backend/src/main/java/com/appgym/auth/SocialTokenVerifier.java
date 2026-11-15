@@ -1,8 +1,8 @@
 package com.appgym.auth;
 
+import com.appgym.config.AppProperties;
 import com.appgym.error.ApiException;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -36,11 +36,9 @@ public class SocialTokenVerifier {
     private final JwtDecoder google;
     private final JwtDecoder apple;
 
-    public SocialTokenVerifier(
-            @Value("${app.google.client-id:}") String googleClientId,
-            @Value("${app.apple.client-id:}") String appleClientId) {
-        this.google = decoder(GOOGLE_JWKS, GOOGLE_ISSUERS, googleClientId);
-        this.apple = decoder(APPLE_JWKS, APPLE_ISSUERS, appleClientId);
+    public SocialTokenVerifier(AppProperties properties) {
+        this.google = decoder(GOOGLE_JWKS, GOOGLE_ISSUERS, properties.google().clientId());
+        this.apple = decoder(APPLE_JWKS, APPLE_ISSUERS, properties.apple().clientId());
     }
 
     public Identity verify(Provider provider, String token) {

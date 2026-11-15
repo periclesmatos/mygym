@@ -1,5 +1,6 @@
 package com.appgym.auth;
 
+import com.appgym.config.AppProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -8,7 +9,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import javax.crypto.SecretKey;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,14 +17,13 @@ public class JwtService {
     private final SecretKey key;
     private final long expirationHours;
 
-    public JwtService(
-            @Value("${app.jwt.secret}") String secret, @Value("${app.jwt.expiration-hours}") long expirationHours) {
-        byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+    public JwtService(AppProperties properties) {
+        byte[] bytes = properties.jwt().secret().getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
             throw new IllegalStateException("JWT_SECRET must be at least 32 characters.");
         }
         this.key = Keys.hmacShaKeyFor(bytes);
-        this.expirationHours = expirationHours;
+        this.expirationHours = properties.jwt().expirationHours();
     }
 
     public String generate(User user) {
