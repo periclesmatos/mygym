@@ -35,6 +35,61 @@ The first login is `you@appgym.local` / `appgym` unless you change `APP_USER_EMA
 
 For a hosted database, set `DATABASE_URL` to the provider URL (`postgresql://...` or a JDBC URL), plus `APP_USER_EMAIL`, `APP_USER_PASSWORD`, and a `JWT_SECRET` of at least 32 characters. `render.yaml` describes that setup on Render.
 
+## Tests and checks
+
+| What | Command |
+|---|---|
+| Backend tests (unit + API against a real Postgres via Testcontainers) and format check | `docker compose --profile test run --rm api-test` |
+| Frontend tests (Vitest, pure domain functions) | `docker compose exec web-dev npm test` |
+| Frontend lint / format | `docker compose exec web-dev npm run lint` · `npm run format` |
+| Backend format | `docker compose exec api-dev mvn spotless:apply` |
+
+The Docker image build runs the frontend lint, format check and tests, so a broken build never ships. The backend tests need Docker (Testcontainers), so they run through the `test` profile instead.
+
+## Database migrations
+
+The schema lives in `backend/src/main/resources/db/migration` (Flyway) and Hibernate only validates it (`ddl-auto: validate`).
+
+- Add a change as a new file `V<n>__description.sql`. Never edit a migration that already ran.
+- Databases created before Flyway are marked as V1 on their first start (`baseline-on-migrate`) and receive only the later migrations. That is why V2 is written to be safe when its columns already exist.
+- Back up the database before deploying a release with new migrations.
+
+## Architecture
+
+### Backend (`backend/src/main/java/com/appgym`)
+
+Organized by domain. Inside each domain, `api/` has the controller and its DTOs (`api/dto`, one record per file), `service/` has the rules and the entity ↔ DTO mapping, and `domain/` has the JPA entities and repositories.
+
+| Package | Contents |
+|---|---|
+| `shared` | Typed configuration (`AppProperties`, the `app.*` keys), security (JWT filter and service), errors (`ApiException` subclasses and the global handler), small utilities |
+| `user` | `User` and `UserPhoto` entities, the first-boot seeder |
+| `auth` | Password login, invite-only sign-up, Google/Apple sign-in |
+| `profile` | Profile data, photo, e-mail and password changes |
+| `template` | Routine workouts (templates) and their exercises |
+| `session` | Workouts being done or finished, with exercises and sets |
+| `exercise` | Per-exercise history: last time, progress, estimated 1RM |
+
+Rules of thumb:
+- Dependencies go one way: `session → template`, `exercise → session`, and everything may use `user` and `shared`.
+- Controllers stay thin. They receive the authenticated user id (`@AuthenticationPrincipal Long userId`) and pass it to the service, so every query is scoped to that user.
+- Errors are thrown as `BadRequestException`, `NotFoundException` and so on, and always reach the client as `{"message": "..."}` in Portuguese.
+
+### Frontend (`frontend/src`)
+
+| Folder | Contents |
+|---|---|
+| `app/` | Entry point, routes, layout, the style index (`styles.css`, which imports every stylesheet in order) |
+| `shared/api/` | HTTP client (token, errors, 401 → login) and one module per backend resource |
+| `shared/ui/`, `shared/hooks/`, `shared/lib/` | Reusable components, hooks (`useAsync`, `useAction`…), and pure helpers (dates, numbers, training math) |
+| `shared/styles/` | Design tokens, base and shared component styles |
+| `features/<name>/` | One folder per screen area (`auth`, `home`, `routine`, `workout`, `history`, `progress`, `profile`), with its page(s), `components/`, `hooks/`, `lib/` and stylesheet |
+
+Imports use the `@/` alias for `src/`. Rules worth keeping:
+- Pure logic goes in a `lib/` file with a `*.test.js` next to it.
+- Pages compose hooks and components and don't call `fetch` directly.
+- Async actions that can fail go through `useAction`, which shows the error as a toast.
+
 ## Accounts and sign-in
 
 The first boot on an empty database creates the user from `APP_USER_EMAIL` / `APP_USER_PASSWORD`. Later boots don't touch users, so that e-mail can be changed from Perfil.
