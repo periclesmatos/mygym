@@ -12,6 +12,7 @@ import { describe, expect, it } from 'vitest'
  */
 const ALLOWED = {
   auth: [],
+  catalog: [],
   profile: ['auth']
 }
 
