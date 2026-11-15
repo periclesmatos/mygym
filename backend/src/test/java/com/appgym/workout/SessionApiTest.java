@@ -73,6 +73,12 @@ class SessionApiTest extends IntegrationTest {
         perform(post("/api/sessions/" + id + "/finish"), account, null).andExpect(status().isConflict());
         perform(get("/api/sessions?status=finished"), account, null)
                 .andExpect(jsonPath("$[0].durationSeconds").isNumber());
+
+        perform(get("/api/exercises/last?names=supino"), account, null)
+                .andExpect(jsonPath("$.supino.topLoad").value(42.5))
+                .andExpect(jsonPath("$.supino.estimatedMax").value(56.7));
+        perform(get("/api/exercises/progress?name=Supino"), account, null)
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
