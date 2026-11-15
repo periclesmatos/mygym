@@ -1,0 +1,90 @@
+services:
+  postgres:
+    profiles: ["db", "app"]
+    image: postgres:16
+    environment:
+      POSTGRES_DB: appgym
+      POSTGRES_USER: appgym
+      POSTGRES_PASSWORD: appgym
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appgym -d appgym"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    profiles: ["app"]
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/appgym
+      DATABASE_USER: appgym
+      DATABASE_PASSWORD: appgym
+      APP_USER_EMAIL: you@appgym.local
+      APP_USER_PASSWORD: appgym
+      JWT_SECRET: dev-secret-change-me-in-production-32
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+
+  # Desenvolvimento com recarga automática: docker compose --profile dev up
+  # Usa o Postgres que já estiver na porta 5432 da máquina.
+  api-dev:
+    profiles: ["dev"]
+    image: maven:3.9-eclipse-temurin-21
+    working_dir: /app/backend
+    command: ["sh", "dev.sh"]
+    volumes:
+      - ./backend:/app/backend
+      - m2:/root/.m2
+    environment:
+      DATABASE_URL: ${DEV_DATABASE_URL:-jdbc:postgresql://host.docker.internal:5432/appgym}
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "false"
+      APP_ALLOWED_EMAILS: ${APP_ALLOWED_EMAILS:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  web-dev:
+    profiles: ["dev"]
+    image: node:22-alpine
+    working_dir: /front
+    command: ["sh", "-c", "npm ci && npm run dev -- --host 0.0.0.0"]
+    volumes:
+      - ./frontend:/front
+      - node_modules:/front/node_modules
+    environment:
+      API_PROXY: http://api-dev:8080
+      VITE_POLL: "1"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api-dev
+
+  # Testes do backend: docker compose --profile test run --rm api-test
+  # O Testcontainers sobe um Postgres próprio pelo Docker da máquina (socket montado).
+  api-test:
+    profiles: ["test"]
+    image: maven:3.9-eclipse-temurin-21
+    # Compila numa cópia (/tmp/build) para não mexer no backend/target do api-dev,
+    # que reiniciaria a API de desenvolvimento no meio da compilação.
+    command: ["sh", "-c", "mkdir -p /tmp/build && cp -r /src/pom.xml /src/src /tmp/build/ && cd /tmp/build && mvn -B verify"]
+    volumes:
+      - ./backend:/src:ro
+      - m2:/root/.m2
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  pgdata:
+  m2:
+  node_modules:

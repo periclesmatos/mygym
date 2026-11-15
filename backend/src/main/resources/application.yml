@@ -1,0 +1,39 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/appgym
+    username: appgym
+    password: appgym
+  flyway:
+    # Bancos criados antes do Flyway são marcados como V1 e recebem só as migrations seguintes.
+    baseline-on-migrate: true
+    baseline-version: 1
+  jpa:
+    open-in-view: false
+    hibernate:
+      # O schema vem das migrations em db/migration; o Hibernate só confere.
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+      hibernate.default_batch_fetch_size: 32
+
+app:
+  user:
+    email: ${APP_USER_EMAIL:you@appgym.local}
+    password: ${APP_USER_PASSWORD:appgym}
+  signup:
+    # E-mails que podem criar conta (separados por vírgula). Vazio = cadastro fechado.
+    allowed-emails: ${APP_ALLOWED_EMAILS:}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+  apple:
+    client-id: ${APPLE_CLIENT_ID:}
+    redirect-uri: ${APPLE_REDIRECT_URI:}
+  cors:
+    # Origens que podem chamar a API de outro endereço (o Vite em dev). Em produção o front é servido pela própria API.
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-me-in-production-32}
+    expiration-hours: ${JWT_EXPIRATION_HOURS:720}
