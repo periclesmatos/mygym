@@ -7,5 +7,6 @@
 @import './layout.css';
 @import '../shared/styles/components.css';
 @import '../features/routine/routine.css';
+@import '../features/workout/workout.css';
 @import '../features/auth/auth.css';
 @import '../features/profile/profile.css';

@@ -14,7 +14,8 @@ const ALLOWED = {
   auth: [],
   catalog: [],
   profile: ['auth'],
-  routine: ['catalog']
+  routine: ['catalog'],
+  workout: ['routine']
 }
 
 const SRC = fileURLToPath(new URL('.', import.meta.url))

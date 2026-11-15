@@ -4,6 +4,7 @@ import { Layout } from '@/app/Layout'
 import { LoginPage } from '@/features/auth'
 import { ProfilePage } from '@/features/profile'
 import { RoutineEditorPage, RoutinePage } from '@/features/routine'
+import { WorkoutPage } from '@/features/workout'
 import { AUTH_EXPIRED_EVENT } from '@/shared/api/client'
 import { getToken } from '@/shared/api/token'
 
@@ -33,6 +34,7 @@ export function App() {
           <Route path="/rotina" element={<RoutinePage />} />
           <Route path="/rotina/novo" element={<RoutineEditorPage />} />
           <Route path="/rotina/:id" element={<RoutineEditorPage />} />
+          <Route path="/treino/:id" element={<WorkoutPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
         </Route>
       </Route>
