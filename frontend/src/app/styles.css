@@ -1,0 +1,10 @@
+/*
+ * Índice dos estilos. A ordem importa: tokens e base primeiro, depois os componentes
+ * compartilhados e, por fim, os estilos de cada feature (que ficam ao lado do código dela).
+ */
+@import '../shared/styles/tokens.css';
+@import '../shared/styles/base.css';
+@import './layout.css';
+@import '../shared/styles/components.css';
+@import '../features/auth/auth.css';
+@import '../features/profile/profile.css';

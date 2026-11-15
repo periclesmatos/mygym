@@ -1,0 +1,65 @@
+/* ---------- App shell ---------- */
+.app {
+  width: min(520px, 100%);
+  min-height: 100dvh;
+  margin: 0 auto;
+}
+.page {
+  padding: calc(12px + var(--safe-t)) var(--gutter) calc(var(--tabbar-h) + 32px + var(--safe-b));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: page-in 0.22s ease-out;
+}
+.app.focused .page {
+  padding-bottom: calc(40px + var(--safe-b));
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(520px, 100%);
+  height: calc(var(--tabbar-h) + var(--safe-b));
+  padding: 0 8px var(--safe-b);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--bar);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  z-index: 20;
+}
+.tabbar a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  position: relative;
+}
+.tabbar a.active {
+  color: var(--text);
+}
+.tabbar a.active svg {
+  color: var(--accent-text);
+}
+.tabbar a.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 28px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--accent);
+}
