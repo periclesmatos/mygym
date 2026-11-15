@@ -4,6 +4,7 @@ import com.appgym.template.ExerciseInput;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,4 +52,18 @@ public class SessionController {
 
     @PostMapping({"/{id}/finish", "/{id}/encerrar"})
     public SessionResponse finish(@PathVariable Long id) { return sessions.finish(id); }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) { sessions.delete(id); }
+
+    @DeleteMapping("/{id}/exercises/{exerciseId}")
+    public SessionResponse removeExercise(@PathVariable Long id, @PathVariable Long exerciseId) {
+        return sessions.removeExercise(id, exerciseId);
+    }
+
+    @DeleteMapping("/{id}/sets/{setId}")
+    public SessionResponse removeSet(@PathVariable Long id, @PathVariable Long setId) {
+        return sessions.removeSet(id, setId);
+    }
 }

@@ -1,43 +1,91 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import { dateKey, formatVolume, formatWhen } from '../format'
+import { MonthCalendar } from '../components/MonthCalendar'
+import { capitalize, formatDuration, formatVolume, plural, relativeDay } from '../format'
+import { Segmented } from '../ui/Fields'
+import { useAsync } from '../ui/hooks'
+import { Icon } from '../ui/Icon'
+import { PageHeader } from '../ui/PageHeader'
+import { Empty, ErrorState, Skeleton } from '../ui/States'
 
-export function History() {
-  const [sessions, setSessions] = useState(null)
-  const [error, setError] = useState('')
+function groupByMonth(sessions) {
+  const groups = []
+  for (const session of sessions) {
+    const date = new Date(session.finishedAt)
+    const key = `${date.getFullYear()}-${date.getMonth()}`
+    let group = groups[groups.length - 1]
+    if (!group || group.key !== key) {
+      group = { key, label: capitalize(date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })), items: [] }
+      groups.push(group)
+    }
+    group.items.push(session)
+  }
+  return groups
+}
 
-  useEffect(() => {
-    let active = true
-    api.sessions('finished').then((list) => { if (active) setSessions(list) }).catch((caught) => { if (active) setError(caught.message) })
-    return () => { active = false }
-  }, [])
-
+export function SessionItem({ session }) {
+  const volume = formatVolume(session.volume)
   return (
-    <div>
-      <h1>Histórico</h1>
-      {error && <p className="error">{error}</p>}
-      {sessions === null && <p className="muted">Carregando…</p>}
-      {sessions?.length === 0 && <p className="muted">Nenhum treino encerrado ainda.</p>}
-      {sessions?.map((session, index) => (
-        <div key={session.id}>
-          {dateKey(session.finishedAt) !== dateKey(sessions[index - 1]?.finishedAt) && (
-            <h2 className="history-day">{dayHeading(session.finishedAt)}</h2>
-          )}
-          <Link className="card link-card history-card" to={`/history/${session.id}`}>
-          <span>
-            <strong>{session.name}</strong>
-            <span className="muted small">{formatWhen(session.finishedAt)} · {session.exerciseCount === 1 ? '1 exercício' : `${session.exerciseCount} exercícios`}</span>
-          </span>
-          <span className="history-meta">{session.completedSets}/{session.totalSets} séries{formatVolume(session.volume) ? ` · ${formatVolume(session.volume)}` : ''}</span>
-          </Link>
-        </div>
-      ))}
-    </div>
+    <Link to={`/historico/${session.id}`} className="list-item">
+      <span className="list-main">
+        <strong>{session.name}</strong>
+        <span className="muted small">
+          {relativeDay(session.finishedAt)}
+          {session.durationSeconds ? ` · ${formatDuration(session.durationSeconds)}` : ''}
+        </span>
+      </span>
+      <span className="list-meta">
+        <strong>{plural(session.completedSets, 'série', 'séries')}</strong>
+        {volume && <span className="muted small">{volume}</span>}
+      </span>
+      <Icon name="forward" size={18} className="muted" />
+    </Link>
   )
 }
 
-function dayHeading(iso) {
-  const raw = new Date(iso).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })
-  return raw.charAt(0).toUpperCase() + raw.slice(1)
+export function History() {
+  const [view, setView] = useState('list')
+  const { data, error, loading, reload } = useAsync(() => api.sessions('finished'), [])
+
+  return (
+    <>
+      <PageHeader large title="Histórico" />
+      {error && <ErrorState message={error} onRetry={reload} />}
+      {loading && !data && <><Skeleton /><Skeleton lines={2} /></>}
+      {data?.length === 0 && (
+        <Empty icon="history" title="Nenhum treino concluído" text="Os treinos que você concluir aparecem aqui, com séries, cargas e volume.">
+          <Link className="btn btn-primary" to="/">Ir para o início</Link>
+        </Empty>
+      )}
+      {data?.length > 0 && (
+        <>
+          <Segmented
+            label="Visualização"
+            value={view}
+            onChange={setView}
+            options={[
+              { value: 'list', label: 'Lista', icon: <Icon name="list" size={18} /> },
+              { value: 'calendar', label: 'Calendário', icon: <Icon name="calendar" size={18} /> }
+            ]}
+          />
+          {view === 'calendar' ? (
+            <MonthCalendar sessions={data} />
+          ) : (
+            groupByMonth(data).map((group) => (
+              <section className="section" key={group.key}>
+                <div className="section-head">
+                  <h2>{group.label}</h2>
+                  <span className="muted small">{plural(group.items.length, 'treino', 'treinos')}</span>
+                </div>
+                <div className="list">
+                  {group.items.map((session) => <SessionItem key={session.id} session={session} />)}
+                </div>
+              </section>
+            ))
+          )}
+        </>
+      )}
+    </>
+  )
 }

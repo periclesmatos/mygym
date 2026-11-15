@@ -131,6 +131,46 @@ public class SessionService {
         return SessionResponse.of(session);
     }
 
+    @Transactional
+    public void delete(Long id) {
+        sessions.delete(load(id));
+    }
+
+    @Transactional
+    public SessionResponse removeExercise(Long id, Long exerciseId) {
+        Session session = open(id);
+        SessionExercise exercise = findExercise(session, exerciseId);
+        session.getExercises().remove(exercise);
+        int position = 1;
+        for (SessionExercise current : session.getExercises().stream()
+                .sorted(Comparator.comparingInt(SessionExercise::getPosition)).toList()) {
+            current.setPosition(position++);
+        }
+        sessions.saveAndFlush(session);
+        return SessionResponse.of(session);
+    }
+
+    @Transactional
+    public SessionResponse removeSet(Long id, Long setId) {
+        Session session = open(id);
+        for (SessionExercise exercise : session.getExercises()) {
+            WorkoutSet found = exercise.getSets().stream()
+                    .filter(set -> set.getId().equals(setId))
+                    .findFirst()
+                    .orElse(null);
+            if (found == null) continue;
+            exercise.getSets().remove(found);
+            int position = 1;
+            for (WorkoutSet set : exercise.getSets().stream()
+                    .sorted(Comparator.comparingInt(WorkoutSet::getPosition)).toList()) {
+                set.setPosition(position++);
+            }
+            sessions.saveAndFlush(session);
+            return SessionResponse.of(session);
+        }
+        throw new ApiException(404, "Série não encontrada.");
+    }
+
     private void addExercise(Session session, String name, int plannedSets, String reps, BigDecimal load, int restSeconds, Integer rir) {
         SessionExercise exercise = new SessionExercise();
         exercise.setSession(session);

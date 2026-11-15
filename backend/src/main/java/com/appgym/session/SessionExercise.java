@@ -50,6 +50,7 @@ public class SessionExercise {
     private List<WorkoutSet> sets = new ArrayList<>();
 
     public Long getId() { return id; }
+    public Session getSession() { return session; }
     public void setSession(Session session) { this.session = session; }
     public int getPosition() { return position; }
     public void setPosition(int position) { this.position = position; }

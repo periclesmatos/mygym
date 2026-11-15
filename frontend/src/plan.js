@@ -4,29 +4,17 @@ export function orderedDays(templates) {
   return [...templates].sort((a, b) => a.position - b.position || a.id - b.id)
 }
 
-export function todayWorkout(templates, finished, now = new Date()) {
+/** Qual dia da rotina é o da vez, a partir do último treino concluído da rotina. */
+export function nextInRoutine(templates, finished, now = new Date()) {
   const days = orderedDays(templates)
   if (days.length === 0) return null
   const ids = new Set(days.map((day) => day.id))
   const last = finished.find((session) => session.templateId && ids.has(session.templateId))
-  if (!last) {
-    return { day: days[0], index: 0, total: days.length, doneToday: false, next: days[1] || null }
-  }
+  if (!last) return { day: days[0], index: 0, total: days.length, doneToday: null }
   const lastIndex = days.findIndex((day) => day.id === last.templateId)
-  const doneToday = dateKey(last.finishedAt || last.startedAt) === dateKey(now)
-  if (doneToday && lastIndex >= 0) {
-    const nextIndex = (lastIndex + 1) % days.length
-    return {
-      day: days[lastIndex],
-      index: lastIndex,
-      total: days.length,
-      doneToday: true,
-      sessionId: last.id,
-      next: days.length > 1 ? days[nextIndex] : null
-    }
-  }
-  const index = lastIndex < 0 ? 0 : (lastIndex + 1) % days.length
-  return { day: days[index], index, total: days.length, doneToday: false, next: null }
+  const index = (lastIndex + 1) % days.length
+  const doneToday = dateKey(last.finishedAt) === dateKey(now) ? last : null
+  return { day: days[index], index, total: days.length, doneToday }
 }
 
 export function streak(sessions, now = new Date()) {
@@ -43,18 +31,17 @@ export function streak(sessions, now = new Date()) {
 
 export function monthStats(sessions, now = new Date()) {
   const prefix = dateKey(now).slice(0, 7)
-  const inMonth = sessions.filter((session) => dateKey(session.finishedAt || session.startedAt).startsWith(prefix))
+  const inMonth = sessions.filter((session) => dateKey(session.finishedAt).startsWith(prefix))
   return {
     count: inMonth.length,
     sets: inMonth.reduce((sum, session) => sum + (session.completedSets || 0), 0),
-    volume: inMonth.reduce((sum, session) => sum + Number(session.volume || 0), 0)
+    volume: inMonth.reduce((sum, session) => sum + Number(session.volume || 0), 0),
+    minutes: Math.round(inMonth.reduce((sum, session) => sum + Number(session.durationSeconds || 0), 0) / 60)
   }
 }
 
-export function trainedPath(dayKey, sessions) {
-  if (!sessions?.length) return null
-  if (sessions.length === 1) return `/history/${sessions[0].id}`
-  return `/history/dia/${dayKey}`
+export function weekStart(now = new Date()) {
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7))
 }
 
 export function sessionsByDay(sessions) {
@@ -66,4 +53,14 @@ export function sessionsByDay(sessions) {
     map.set(key, list)
   }
   return map
+}
+
+export function dayPath(key, sessions) {
+  if (!sessions?.length) return null
+  if (sessions.length === 1) return `/historico/${sessions[0].id}`
+  return `/historico/dia/${key}`
+}
+
+export function dayLetter(index) {
+  return String.fromCharCode(65 + (index % 26))
 }

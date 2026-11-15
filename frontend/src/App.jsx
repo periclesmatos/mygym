@@ -1,14 +1,14 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { getToken } from './api'
 import { Layout } from './components/Layout'
-import { DayHistory } from './pages/DayHistory'
 import { History } from './pages/History'
+import { HistoryDay } from './pages/HistoryDay'
 import { HistoryDetail } from './pages/HistoryDetail'
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
-import { NewWorkout } from './pages/NewWorkout'
-import { TemplateForm } from './pages/TemplateForm'
-import { Templates } from './pages/Templates'
+import { ProgressDetail, ProgressList } from './pages/Progress'
+import { Routine } from './pages/Routine'
+import { RoutineEditor } from './pages/RoutineEditor'
 import { Workout } from './pages/Workout'
 
 function RequireAuth() {
@@ -23,14 +23,15 @@ export function App() {
       <Route element={<RequireAuth />}>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/templates" element={<Templates />} />
-          <Route path="/templates/new" element={<TemplateForm />} />
-          <Route path="/templates/:id" element={<TemplateForm />} />
-          <Route path="/workout/new" element={<NewWorkout />} />
-          <Route path="/workout/:id" element={<Workout />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/history/dia/:date" element={<DayHistory />} />
-          <Route path="/history/:id" element={<HistoryDetail />} />
+          <Route path="/rotina" element={<Routine />} />
+          <Route path="/rotina/novo" element={<RoutineEditor />} />
+          <Route path="/rotina/:id" element={<RoutineEditor />} />
+          <Route path="/treino/:id" element={<Workout />} />
+          <Route path="/historico" element={<History />} />
+          <Route path="/historico/dia/:date" element={<HistoryDay />} />
+          <Route path="/historico/:id" element={<HistoryDetail />} />
+          <Route path="/evolucao" element={<ProgressList />} />
+          <Route path="/evolucao/exercicio" element={<ProgressDetail />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
