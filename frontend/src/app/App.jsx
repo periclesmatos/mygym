@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { Layout } from '@/app/Layout'
 import { LoginPage } from '@/features/auth'
+import { HistoryDayPage, HistoryDetailPage, HistoryPage } from '@/features/history'
 import { ProfilePage } from '@/features/profile'
 import { RoutineEditorPage, RoutinePage } from '@/features/routine'
 import { WorkoutPage } from '@/features/workout'
@@ -35,6 +36,9 @@ export function App() {
           <Route path="/rotina/novo" element={<RoutineEditorPage />} />
           <Route path="/rotina/:id" element={<RoutineEditorPage />} />
           <Route path="/treino/:id" element={<WorkoutPage />} />
+          <Route path="/historico" element={<HistoryPage />} />
+          <Route path="/historico/dia/:date" element={<HistoryDayPage />} />
+          <Route path="/historico/:id" element={<HistoryDetailPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
         </Route>
       </Route>
