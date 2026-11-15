@@ -29,7 +29,7 @@ public class WorkoutSet {
 
     private Integer reps;
 
-    @Column(name = "carga", precision = 6, scale = 2)
+    @Column(name = "load_kg", precision = 6, scale = 2)
     private BigDecimal load;
 
     private Integer rir;

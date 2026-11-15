@@ -1,6 +1,5 @@
 package com.appgym.template.service;
 
-import com.appgym.session.domain.SessionRepository;
 import com.appgym.shared.error.BadRequestException;
 import com.appgym.shared.error.NotFoundException;
 import com.appgym.shared.util.Values;
@@ -29,12 +28,10 @@ public class TemplateService {
             .thenComparing(Template::getId);
 
     private final TemplateRepository templates;
-    private final SessionRepository sessions;
     private final UserRepository users;
 
-    public TemplateService(TemplateRepository templates, SessionRepository sessions, UserRepository users) {
+    public TemplateService(TemplateRepository templates, UserRepository users) {
         this.templates = templates;
-        this.sessions = sessions;
         this.users = users;
     }
 
@@ -89,9 +86,8 @@ public class TemplateService {
 
     @Transactional
     public void delete(Long userId, Long id) {
-        load(userId, id);
-        sessions.unlinkTemplate(id);
-        templates.deleteById(id);
+        // O banco desfaz o vínculo das sessões (ON DELETE SET NULL); o histórico continua.
+        templates.delete(load(userId, id));
     }
 
     private Template load(Long userId, Long id) {
