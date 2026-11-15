@@ -1,0 +1,23 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/appgym
+    username: appgym
+    password: appgym
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate.jdbc.time_zone: UTC
+      hibernate.default_batch_fetch_size: 32
+
+app:
+  user:
+    email: ${APP_USER_EMAIL:you@appgym.local}
+    password: ${APP_USER_PASSWORD:appgym}
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-me-in-production-32}
+    expiration-hours: ${JWT_EXPIRATION_HOURS:720}

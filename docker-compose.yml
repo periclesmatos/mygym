@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: appgym
+      POSTGRES_USER: appgym
+      POSTGRES_PASSWORD: appgym
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appgym -d appgym"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    profiles: ["app"]
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/appgym
+      DATABASE_USER: appgym
+      DATABASE_PASSWORD: appgym
+      APP_USER_EMAIL: you@appgym.local
+      APP_USER_PASSWORD: appgym
+      JWT_SECRET: dev-secret-change-me-in-production-32
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
