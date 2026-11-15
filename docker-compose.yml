@@ -72,10 +72,11 @@ services:
   api-test:
     profiles: ["test"]
     image: maven:3.9-eclipse-temurin-21
-    working_dir: /app/backend
-    command: ["mvn", "-B", "verify"]
+    # Compila numa cópia (/tmp/build) para não mexer no backend/target do api-dev,
+    # que reiniciaria a API de desenvolvimento no meio da compilação.
+    command: ["sh", "-c", "mkdir -p /tmp/build && cp -r /src/pom.xml /src/src /tmp/build/ && cd /tmp/build && mvn -B verify"]
     volumes:
-      - ./backend:/app/backend
+      - ./backend:/src:ro
       - m2:/root/.m2
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
