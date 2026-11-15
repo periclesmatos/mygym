@@ -1,34 +1,31 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { NextCard } from '@/features/home/components/NextCard'
+import { OpenCard } from '@/features/home/components/OpenCard'
 import { WeekStrip } from '@/features/home/components/WeekStrip'
+import { greeting } from '@/features/home/lib/greeting'
 import { profileApi } from '@/features/profile/api'
 import { dayLetter, nextInRoutine, orderedDays } from '@/features/routine/lib/schedule'
 import { sessionsApi } from '@/shared/api/sessions'
 import { templatesApi } from '@/shared/api/templates'
+import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
-import { useNow } from '@/shared/hooks/useNow'
 import { monthStats, sessionsByDay, streak, weekStart } from '@/shared/lib/activity'
-import { dateKey, formatClock, formatDay, formatDuration, relativeDay } from '@/shared/lib/date'
+import { dateKey, formatDay, formatDuration, relativeDay } from '@/shared/lib/date'
 import { plural } from '@/shared/lib/text'
-import { estimateMinutes, formatVolume } from '@/shared/lib/training'
+import { formatVolume } from '@/shared/lib/training'
 import { Avatar } from '@/shared/ui/Avatar'
 import { Icon } from '@/shared/ui/Icon'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Action, ActionList, Sheet } from '@/shared/ui/Sheet'
+import { StatCard } from '@/shared/ui/StatCard'
 import { ErrorState, Skeleton } from '@/shared/ui/States'
 import { useFeedback } from '@/shared/ui/feedbackContext'
-
-function greeting(date = new Date()) {
-  const hour = date.getHours()
-  if (hour < 5) return 'Boa noite'
-  if (hour < 12) return 'Bom dia'
-  if (hour < 18) return 'Boa tarde'
-  return 'Boa noite'
-}
 
 export function HomePage() {
   const navigate = useNavigate()
   const { toast, confirm } = useFeedback()
+  const runAction = useAction()
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState(false)
   const [quickName, setQuickName] = useState('')
@@ -43,13 +40,15 @@ export function HomePage() {
 
   async function start(body) {
     setBusy(true)
-    try {
-      const session = await sessionsApi.create(body)
-      navigate(`/treino/${session.id}`)
-    } catch (caught) {
-      toast(caught.message, 'error')
-      setBusy(false)
-    }
+    await runAction(
+      async () => {
+        const session = await sessionsApi.create(body)
+        navigate(`/treino/${session.id}`)
+      },
+      () => {
+        setBusy(false)
+      }
+    )
   }
 
   async function discard(session) {
@@ -60,13 +59,11 @@ export function HomePage() {
       danger: true
     })
     if (!ok) return
-    try {
+    await runAction(async () => {
       await sessionsApi.remove(session.id)
       toast('Treino descartado.')
       reload()
-    } catch (caught) {
-      toast(caught.message, 'error')
-    }
+    })
   }
 
   const firstName = profile?.name?.trim().split(/\s+/)[0] || ''
@@ -150,21 +147,9 @@ export function HomePage() {
       </section>
 
       <section className="stats">
-        <div className="stat">
-          <Icon name="flame" size={20} />
-          <strong>{currentStreak}</strong>
-          <span>{currentStreak === 1 ? 'dia seguido' : 'dias seguidos'}</span>
-        </div>
-        <div className="stat">
-          <Icon name="calendar" size={20} />
-          <strong>{month.count}</strong>
-          <span>{month.count === 1 ? 'treino no mês' : 'treinos no mês'}</span>
-        </div>
-        <div className="stat">
-          <Icon name="dumbbell" size={20} />
-          <strong>{formatVolume(month.volume) || '0 kg'}</strong>
-          <span>volume no mês</span>
-        </div>
+        <StatCard icon="flame" value={currentStreak} label={currentStreak === 1 ? 'dia seguido' : 'dias seguidos'} />
+        <StatCard icon="calendar" value={month.count} label={month.count === 1 ? 'treino no mês' : 'treinos no mês'} />
+        <StatCard icon="dumbbell" value={formatVolume(month.volume) || '0 kg'} label="volume no mês" />
       </section>
 
       {recent.length > 0 && (
@@ -234,89 +219,5 @@ export function HomePage() {
         </div>
       </Sheet>
     </>
-  )
-}
-
-function OpenCard({ session, onDiscard }) {
-  const now = useNow(1000)
-  const elapsed = (now - new Date(session.startedAt).getTime()) / 1000
-  const ratio = session.totalSets ? session.completedSets / session.totalSets : 0
-  return (
-    <section className="card hero live">
-      <div className="hero-top">
-        <span className="badge live-badge">
-          <span className="pulse" />
-          Em andamento
-        </span>
-        <span className="hero-clock">{formatClock(elapsed)}</span>
-      </div>
-      <h2 className="hero-title">{session.name}</h2>
-      <p className="muted">
-        {session.completedSets} de {session.totalSets} séries feitas
-      </p>
-      <div className="progress" aria-hidden="true">
-        <span style={{ width: `${ratio * 100}%` }} />
-      </div>
-      <Link className="btn btn-primary btn-lg btn-block" to={`/treino/${session.id}`}>
-        <Icon name="play" size={18} filled />
-        Continuar treino
-      </Link>
-      <button type="button" className="btn btn-quiet btn-block danger-text" onClick={onDiscard}>
-        Descartar
-      </button>
-    </section>
-  )
-}
-
-function NextCard({ next, busy, onStart, onSwap }) {
-  const { day, index, total, doneToday } = next
-  const preview = day.exercises.slice(0, 5)
-  const hidden = day.exercises.length - preview.length
-  return (
-    <section className="card hero">
-      {doneToday && (
-        <Link to={`/historico/${doneToday.id}`} className="done-banner">
-          <Icon name="check" size={18} strokeWidth={3} />
-          <span>
-            <strong>{doneToday.name}</strong> concluído hoje
-            {doneToday.durationSeconds ? ` em ${formatDuration(doneToday.durationSeconds)}` : ''}
-          </span>
-          <Icon name="forward" size={16} />
-        </Link>
-      )}
-      <div className="hero-top">
-        <span className="badge">{doneToday ? 'Próximo treino' : 'Treino de hoje'}</span>
-        <span className="muted small">
-          Treino {dayLetter(index)} · {index + 1} de {total}
-        </span>
-      </div>
-      <h2 className="hero-title">{day.name}</h2>
-      <p className="muted">
-        {plural(day.exercises.length, 'exercício', 'exercícios')} · cerca de {estimateMinutes(day.exercises)} min
-      </p>
-      <ul className="hero-list">
-        {preview.map((exercise) => (
-          <li key={exercise.id}>
-            <span>{exercise.name}</span>
-            <span className="muted">
-              {exercise.plannedSets} × {exercise.reps}
-            </span>
-          </li>
-        ))}
-        {hidden > 0 && <li className="muted">+ {plural(hidden, 'exercício', 'exercícios')}</li>}
-      </ul>
-      <button
-        type="button"
-        className={doneToday ? 'btn btn-secondary btn-lg btn-block' : 'btn btn-primary btn-lg btn-block'}
-        disabled={busy}
-        onClick={onStart}
-      >
-        <Icon name="play" size={18} filled />
-        {busy ? 'Começando…' : 'Começar treino'}
-      </button>
-      <button type="button" className="btn btn-quiet btn-block" onClick={onSwap}>
-        Escolher outro treino
-      </button>
-    </section>
   )
 }

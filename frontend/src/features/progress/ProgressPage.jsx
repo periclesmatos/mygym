@@ -10,6 +10,7 @@ import { formatSet, formatVolume } from '@/shared/lib/training'
 import { Segmented } from '@/shared/ui/Fields'
 import { Icon } from '@/shared/ui/Icon'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { StatCard } from '@/shared/ui/StatCard'
 import { Empty, ErrorState, Skeleton } from '@/shared/ui/States'
 
 export function ProgressListPage() {
@@ -129,23 +130,11 @@ export function ProgressDetailPage() {
       {data?.length > 0 && (
         <>
           <section className="stats">
-            <div className="stat">
-              <Icon name="trophy" size={20} />
-              <strong>{formatSet(best.top.topLoad, best.top.topReps)}</strong>
-              <span>melhor série</span>
-            </div>
+            <StatCard icon="trophy" value={formatSet(best.top.topLoad, best.top.topReps)} label="melhor série" />
             {best.maxEstimate > 0 && (
-              <div className="stat">
-                <Icon name="flame" size={20} />
-                <strong>{formatNumber(best.maxEstimate, 1)} kg</strong>
-                <span>1RM estimado</span>
-              </div>
+              <StatCard icon="flame" value={`${formatNumber(best.maxEstimate, 1)} kg`} label="1RM estimado" />
             )}
-            <div className="stat">
-              <Icon name="calendar" size={20} />
-              <strong>{relativeDay(data[data.length - 1].date)}</strong>
-              <span>último treino</span>
-            </div>
+            <StatCard icon="calendar" value={relativeDay(data[data.length - 1].date)} label="último treino" />
           </section>
 
           <section className="card">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '@/features/auth/api'
+import { MIN_PASSWORD_LENGTH, passwordError } from '@/features/auth/lib/password'
 import { renderGoogleButton, signInWithApple } from '@/features/auth/lib/social'
 import { getToken, setToken } from '@/shared/api/token'
 import { Segmented } from '@/shared/ui/Fields'
@@ -71,8 +72,8 @@ export function LoginPage() {
       setError('Preencha e-mail e senha.')
       return
     }
-    if (registering && password.length < 6) {
-      setError('A senha precisa ter pelo menos 6 caracteres.')
+    if (registering && passwordError(password)) {
+      setError(passwordError(password))
       return
     }
     run(() =>
@@ -157,7 +158,9 @@ export function LoginPage() {
             </button>
           </div>
           {registering && (
-            <span className="muted small">Mínimo de 6 caracteres. O cadastro é só para e-mails convidados.</span>
+            <span className="muted small">
+              Mínimo de {MIN_PASSWORD_LENGTH} caracteres. O cadastro é só para e-mails convidados.
+            </span>
           )}
         </label>
         {error && (

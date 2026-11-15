@@ -1,3 +1,4 @@
+import { useAction } from '@/shared/hooks/useAction'
 import { templatesApi } from '@/shared/api/templates'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -21,6 +22,7 @@ export function RoutineEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast, confirm } = useFeedback()
+  const runAction = useAction()
   const [loaded, setLoaded] = useState(!id)
   const [loadError, setLoadError] = useState('')
   const [name, setName] = useState('')
@@ -132,14 +134,12 @@ export function RoutineEditorPage() {
       danger: true
     })
     if (!ok) return
-    try {
+    await runAction(async () => {
       await templatesApi.remove(id)
       setDirty(false)
       toast('Treino removido.')
       navigate('/rotina', { replace: true })
-    } catch (caught) {
-      toast(caught.message, 'error')
-    }
+    })
   }
 
   async function leave() {

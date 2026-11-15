@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { dayLetter, nextInRoutine, orderedDays } from '@/features/routine/lib/schedule'
 import { sessionsApi } from '@/shared/api/sessions'
 import { templatesApi } from '@/shared/api/templates'
+import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
 import { plural } from '@/shared/lib/text'
 import { estimateMinutes } from '@/shared/lib/training'
@@ -15,6 +16,7 @@ import { useFeedback } from '@/shared/ui/feedbackContext'
 export function RoutinePage() {
   const navigate = useNavigate()
   const { toast, confirm } = useFeedback()
+  const runAction = useAction()
   const [organizing, setOrganizing] = useState(false)
   const [menu, setMenu] = useState(null)
   const { data, error, loading, reload, setData } = useAsync(
@@ -32,28 +34,28 @@ export function RoutinePage() {
     ;[list[index], list[target]] = [list[target], list[index]]
     const previous = data.templates
     setData((current) => ({ ...current, templates: list }))
-    try {
-      const saved = await templatesApi.reorder(list.map((item) => item.id))
-      setData((current) => ({ ...current, templates: orderedDays(saved) }))
-    } catch (caught) {
-      setData((current) => ({ ...current, templates: previous }))
-      toast(caught.message, 'error')
-    }
+    await runAction(
+      async () => {
+        const saved = await templatesApi.reorder(list.map((item) => item.id))
+        setData((current) => ({ ...current, templates: orderedDays(saved) }))
+      },
+      () => {
+        setData((current) => ({ ...current, templates: previous }))
+      }
+    )
   }
 
   async function start(template) {
     setMenu(null)
-    try {
+    await runAction(async () => {
       const session = await sessionsApi.create({ templateId: template.id })
       navigate(`/treino/${session.id}`)
-    } catch (caught) {
-      toast(caught.message, 'error')
-    }
+    })
   }
 
   async function duplicate(template) {
     setMenu(null)
-    try {
+    await runAction(async () => {
       await templatesApi.create({
         name: `${template.name} (cópia)`.slice(0, 80),
         notes: template.notes || '',
@@ -68,9 +70,7 @@ export function RoutinePage() {
       })
       toast('Treino duplicado no fim da rotina.', 'success')
       reload()
-    } catch (caught) {
-      toast(caught.message, 'error')
-    }
+    })
   }
 
   async function remove(template) {
@@ -82,13 +82,11 @@ export function RoutinePage() {
       danger: true
     })
     if (!ok) return
-    try {
+    await runAction(async () => {
       await templatesApi.remove(template.id)
       setData((current) => ({ ...current, templates: current.templates.filter((item) => item.id !== template.id) }))
       toast('Treino removido.')
-    } catch (caught) {
-      toast(caught.message, 'error')
-    }
+    })
   }
 
   const templates = data?.templates || []

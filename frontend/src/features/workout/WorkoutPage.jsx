@@ -10,6 +10,7 @@ import { useWorkoutSession } from '@/features/workout/hooks/useWorkoutSession'
 import { writeRest } from '@/features/workout/lib/restStorage'
 import { findSet, highlights, nextOpenSet, previousSet } from '@/features/workout/lib/session'
 import { sessionsApi } from '@/shared/api/sessions'
+import { useAction } from '@/shared/hooks/useAction'
 import { useNow } from '@/shared/hooks/useNow'
 import { useWakeLock } from '@/shared/hooks/useWakeLock'
 import { formatClock } from '@/shared/lib/date'
@@ -27,6 +28,7 @@ export function WorkoutPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { toast, confirm } = useFeedback()
+  const runAction = useAction()
   const workout = useWorkoutSession(id, {
     onError: (message) => toast(message, 'error'),
     onAlreadyFinished: (data) => navigate(`/historico/${data.id}`, { replace: true })
@@ -47,15 +49,11 @@ export function WorkoutPage() {
   useWakeLock(Boolean(session))
 
   /** Roda uma ação que devolve a sessão atualizada. */
-  async function run(action, success) {
-    try {
+  function run(action, success) {
+    return runAction(async () => {
       workout.applySession(await action())
       if (success) toast(success)
-      return true
-    } catch (caught) {
-      toast(caught.message, 'error')
-      return false
-    }
+    })
   }
 
   function startRest(exercise, setId) {
@@ -157,14 +155,12 @@ export function WorkoutPage() {
 
   async function discardNow() {
     workout.cancelAllPending()
-    try {
+    await runAction(async () => {
       await sessionsApi.remove(sessionId)
       writeRest(null)
       toast('Treino descartado.')
       navigate('/', { replace: true })
-    } catch (caught) {
-      toast(caught.message, 'error')
-    }
+    })
   }
 
   async function finish() {
@@ -193,17 +189,19 @@ export function WorkoutPage() {
       if (!ok) return
     }
     setFinishing(true)
-    try {
-      const updated = await sessionsApi.finish(sessionId)
-      writeRest(null)
-      navigate(`/historico/${updated.id}`, {
-        replace: true,
-        state: { justFinished: true, highlights: highlights(updated, last) }
-      })
-    } catch (caught) {
-      toast(caught.message, 'error')
-      setFinishing(false)
-    }
+    await runAction(
+      async () => {
+        const updated = await sessionsApi.finish(sessionId)
+        writeRest(null)
+        navigate(`/historico/${updated.id}`, {
+          replace: true,
+          state: { justFinished: true, highlights: highlights(updated, last) }
+        })
+      },
+      () => {
+        setFinishing(false)
+      }
+    )
   }
 
   if (workout.loadError) return <ErrorState message={workout.loadError} onRetry={() => window.location.reload()} />

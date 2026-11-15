@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { profileApi } from '@/features/profile/api'
+import { EmailSheet } from '@/features/profile/components/EmailSheet'
+import { PasswordSheet } from '@/features/profile/components/PasswordSheet'
 import { SettingsSheet } from '@/features/profile/components/SettingsSheet'
+import { ageFrom, bmiFrom } from '@/features/profile/lib/body'
 import { squarePhoto } from '@/features/profile/lib/photo'
 import { sessionsApi } from '@/shared/api/sessions'
-import { setToken } from '@/shared/api/token'
+import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
 import { monthStats, streak } from '@/shared/lib/activity'
 import { dateKey, formatDay } from '@/shared/lib/date'
@@ -14,23 +17,9 @@ import { Stepper } from '@/shared/ui/Fields'
 import { Icon } from '@/shared/ui/Icon'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Action, ActionList, Sheet } from '@/shared/ui/Sheet'
+import { StatCard } from '@/shared/ui/StatCard'
 import { ErrorState, Skeleton } from '@/shared/ui/States'
 import { useFeedback } from '@/shared/ui/feedbackContext'
-
-function ageFrom(birthDate, now = new Date()) {
-  if (!birthDate) return null
-  const [year, month, day] = birthDate.split('-').map(Number)
-  let age = now.getFullYear() - year
-  if (now.getMonth() + 1 < month || (now.getMonth() + 1 === month && now.getDate() < day)) age -= 1
-  return age >= 0 ? age : null
-}
-
-function bmiFrom(weight, height) {
-  const kg = numberOrNull(weight)
-  const cm = numberOrNull(height)
-  if (!kg || !cm) return null
-  return kg / (cm / 100) ** 2
-}
 
 function toForm(profile) {
   return {
@@ -43,6 +32,7 @@ function toForm(profile) {
 
 export function ProfilePage() {
   const { toast, confirm } = useFeedback()
+  const runAction = useAction()
   const fileRef = useRef(null)
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -105,7 +95,7 @@ export function ProfilePage() {
       return
     }
     setSaving(true)
-    try {
+    await runAction(async () => {
       const next = await profileApi.update({
         name: form.name.trim() || null,
         weightKg,
@@ -115,11 +105,8 @@ export function ProfilePage() {
       setProfile(next)
       setForm(toForm(next))
       toast('Perfil salvo.', 'success')
-    } catch (caught) {
-      toast(caught.message, 'error')
-    } finally {
-      setSaving(false)
-    }
+    })
+    setSaving(false)
   }
 
   async function pickPhoto(event) {
@@ -127,28 +114,23 @@ export function ProfilePage() {
     event.target.value = ''
     if (!file) return
     setPhotoBusy(true)
-    try {
+    await runAction(async () => {
       const dataUrl = await squarePhoto(file)
       setProfile(await profileApi.updatePhoto(dataUrl))
       toast('Foto atualizada.', 'success')
-    } catch (caught) {
-      toast(caught.message, 'error')
-    } finally {
-      setPhotoBusy(false)
-    }
+    })
+    setPhotoBusy(false)
   }
 
   async function removePhoto() {
     setPhotoMenu(false)
     const ok = await confirm({ title: 'Remover foto?', confirmLabel: 'Remover', danger: true })
     if (!ok) return
-    try {
+    await runAction(async () => {
       await profileApi.deletePhoto()
       setProfile({ ...profile, photo: null })
       toast('Foto removida.')
-    } catch (caught) {
-      toast(caught.message, 'error')
-    }
+    })
   }
 
   function changePhoto() {
@@ -194,21 +176,17 @@ export function ProfilePage() {
           )}
         </div>
         <div className="stats">
-          <div className="stat">
-            <Icon name="trophy" size={20} />
-            <strong>{finished.length}</strong>
-            <span>{finished.length === 1 ? 'treino no total' : 'treinos no total'}</span>
-          </div>
-          <div className="stat">
-            <Icon name="flame" size={20} />
-            <strong>{currentStreak}</strong>
-            <span>{currentStreak === 1 ? 'dia seguido' : 'dias seguidos'}</span>
-          </div>
-          <div className="stat">
-            <Icon name="calendar" size={20} />
-            <strong>{month.count}</strong>
-            <span>{month.count === 1 ? 'treino no mês' : 'treinos no mês'}</span>
-          </div>
+          <StatCard
+            icon="trophy"
+            value={finished.length}
+            label={finished.length === 1 ? 'treino no total' : 'treinos no total'}
+          />
+          <StatCard icon="flame" value={currentStreak} label={currentStreak === 1 ? 'dia seguido' : 'dias seguidos'} />
+          <StatCard
+            icon="calendar"
+            value={month.count}
+            label={month.count === 1 ? 'treino no mês' : 'treinos no mês'}
+          />
         </div>
         <div className="stat stat-wide">
           <Icon name="dumbbell" size={20} />
@@ -342,174 +320,5 @@ export function ProfilePage() {
       />
       <SettingsSheet open={sheet === 'settings'} onClose={() => setSheet(null)} />
     </>
-  )
-}
-
-function EmailSheet({ open, profile, onClose, onDone }) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  useEffect(() => {
-    if (open) {
-      setEmail(profile.email)
-      setPassword('')
-      setError('')
-      setBusy(false)
-    }
-  }, [open, profile.email])
-
-  async function submit(event) {
-    event.preventDefault()
-    if (!email.trim() || !password) {
-      setError('Preencha o e-mail e a senha atual.')
-      return
-    }
-    setBusy(true)
-    setError('')
-    try {
-      const response = await profileApi.changeEmail(email.trim(), password)
-      setToken(response.token)
-      onDone(response.email)
-    } catch (caught) {
-      setError(caught.message)
-      setBusy(false)
-    }
-  }
-
-  return (
-    <Sheet open={open} onClose={onClose} title="Trocar e-mail" subtitle="Você passa a entrar com o novo e-mail.">
-      {!profile.hasPassword ? (
-        <p className="sheet-text">
-          Sua conta entra só pelo Google ou pela Apple. Defina uma senha primeiro para poder trocar o e-mail.
-        </p>
-      ) : (
-        <form className="stack" onSubmit={submit} noValidate>
-          <label className="field">
-            <span className="field-label">Novo e-mail</span>
-            <input
-              className="input"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              data-autofocus
-            />
-          </label>
-          <label className="field">
-            <span className="field-label">Senha atual</span>
-            <input
-              className="input"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </label>
-          {error && (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          )}
-          <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
-            {busy ? 'Salvando…' : 'Salvar e-mail'}
-          </button>
-        </form>
-      )}
-    </Sheet>
-  )
-}
-
-function PasswordSheet({ open, hasPassword, onClose, onDone }) {
-  const [current, setCurrent] = useState('')
-  const [next, setNext] = useState('')
-  const [repeat, setRepeat] = useState('')
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  useEffect(() => {
-    if (open) {
-      setCurrent('')
-      setNext('')
-      setRepeat('')
-      setError('')
-      setBusy(false)
-    }
-  }, [open])
-
-  async function submit(event) {
-    event.preventDefault()
-    if (hasPassword && !current) {
-      setError('Informe a senha atual.')
-      return
-    }
-    if (next.length < 6) {
-      setError('A nova senha precisa ter pelo menos 6 caracteres.')
-      return
-    }
-    if (next !== repeat) {
-      setError('As senhas não conferem.')
-      return
-    }
-    setBusy(true)
-    setError('')
-    try {
-      await profileApi.changePassword(hasPassword ? current : null, next)
-      onDone()
-    } catch (caught) {
-      setError(caught.message)
-      setBusy(false)
-    }
-  }
-
-  return (
-    <Sheet open={open} onClose={onClose} title={hasPassword ? 'Trocar senha' : 'Definir senha'}>
-      <form className="stack" onSubmit={submit} noValidate>
-        {hasPassword && (
-          <label className="field">
-            <span className="field-label">Senha atual</span>
-            <input
-              className="input"
-              type="password"
-              autoComplete="current-password"
-              value={current}
-              onChange={(event) => setCurrent(event.target.value)}
-              data-autofocus
-            />
-          </label>
-        )}
-        <label className="field">
-          <span className="field-label">Nova senha</span>
-          <input
-            className="input"
-            type="password"
-            autoComplete="new-password"
-            value={next}
-            onChange={(event) => setNext(event.target.value)}
-            data-autofocus={hasPassword ? undefined : true}
-          />
-        </label>
-        <label className="field">
-          <span className="field-label">Repita a nova senha</span>
-          <input
-            className="input"
-            type="password"
-            autoComplete="new-password"
-            value={repeat}
-            onChange={(event) => setRepeat(event.target.value)}
-          />
-        </label>
-        {error && (
-          <p className="form-error" role="alert">
-            {error}
-          </p>
-        )}
-        <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
-          {busy ? 'Salvando…' : 'Salvar senha'}
-        </button>
-      </form>
-    </Sheet>
   )
 }
