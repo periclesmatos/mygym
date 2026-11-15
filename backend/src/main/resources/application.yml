@@ -18,6 +18,14 @@ app:
   user:
     email: ${APP_USER_EMAIL:you@appgym.local}
     password: ${APP_USER_PASSWORD:appgym}
+  signup:
+    # E-mails que podem criar conta (separados por vírgula). Vazio = cadastro fechado.
+    allowed-emails: ${APP_ALLOWED_EMAILS:}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+  apple:
+    client-id: ${APPLE_CLIENT_ID:}
+    redirect-uri: ${APPLE_REDIRECT_URI:}
   jwt:
     secret: ${JWT_SECRET:dev-secret-change-me-in-production-32}
     expiration-hours: ${JWT_EXPIRATION_HOURS:720}

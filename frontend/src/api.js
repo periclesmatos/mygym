@@ -33,7 +33,8 @@ async function request(path, options = {}) {
     try { data = JSON.parse(text) } catch { data = null }
   }
 
-  if (response.status === 401 && path !== '/api/login') {
+  const publicAuth = path === '/api/login' || path.startsWith('/api/auth/')
+  if (response.status === 401 && !publicAuth) {
     clearToken()
     if (window.location.pathname !== '/login') window.location.assign('/login')
   }
@@ -50,6 +51,10 @@ const json = (body) => JSON.stringify(body)
 
 export const api = {
   login: (email, password) => request('/api/login', { method: 'POST', body: json({ email, password }) }),
+  register: (body) => request('/api/auth/register', { method: 'POST', body: json(body) }),
+  loginGoogle: (credential) => request('/api/auth/google', { method: 'POST', body: json({ credential }) }),
+  loginApple: (idToken, name) => request('/api/auth/apple', { method: 'POST', body: json({ idToken, name }) }),
+  authConfig: () => request('/api/auth/config'),
 
   templates: () => request('/api/templates'),
   template: (id) => request(`/api/templates/${id}`),

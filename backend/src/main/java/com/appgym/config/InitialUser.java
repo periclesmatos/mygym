@@ -26,8 +26,9 @@ public class InitialUser implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        // Só no banco vazio: depois disso o e-mail pode ser trocado pelo perfil.
+        if (users.count() > 0) return;
         String normalized = email.trim().toLowerCase();
-        if (users.findByEmail(normalized).isPresent()) return;
         User user = new User();
         user.setEmail(normalized);
         user.setPasswordHash(encoder.encode(password));

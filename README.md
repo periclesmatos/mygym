@@ -23,3 +23,16 @@ The first login is `you@appgym.local` / `appgym` unless you change `APP_USER_EMA
 `docker compose --profile app up --build` builds the React app into the API and serves both on http://localhost:8080.
 
 For a hosted database, set `DATABASE_URL` to the provider URL (`postgresql://...` or a JDBC URL), plus `APP_USER_EMAIL`, `APP_USER_PASSWORD`, and a `JWT_SECRET` of at least 32 characters. `render.yaml` describes that setup on Render.
+
+## Accounts and sign-in
+
+The first boot on an empty database creates the user from `APP_USER_EMAIL` / `APP_USER_PASSWORD`. Later boots don't touch users.
+
+Sign-up is invite-only. `APP_ALLOWED_EMAILS` holds the e-mails (comma separated) that may create an account with a password, Google or Apple. If it is empty, nobody new can sign up. Each account only sees its own workouts.
+
+Google and Apple buttons appear only when their variables are set:
+
+- **Google**: in Google Cloud Console, create an OAuth client ID of type *Web application*. Add every origin the app runs on (for example `http://localhost:5173` and the Render URL) to *Authorized JavaScript origins*, then set `GOOGLE_CLIENT_ID`.
+- **Apple**: this needs a paid Apple Developer account. Create a *Services ID* with Sign in with Apple enabled, register your domain and return URL, then set `APPLE_CLIENT_ID` (the Services ID) and `APPLE_REDIRECT_URI` (that same return URL). Apple only works over HTTPS, so it can't be tested on localhost.
+
+A Google or Apple sign-in whose verified e-mail matches an existing account is linked to that account.
