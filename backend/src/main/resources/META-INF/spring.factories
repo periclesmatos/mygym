@@ -1,1 +1,1 @@
-org.springframework.boot.env.EnvironmentPostProcessor=com.appgym.config.DatabaseUrlNormalizer
+org.springframework.boot.env.EnvironmentPostProcessor=com.appgym.shared.config.DatabaseUrlNormalizer
