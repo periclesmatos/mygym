@@ -1,8 +1,7 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { FeedbackContext } from './feedbackContext'
 import { Icon } from './Icon'
 import { Sheet } from './Sheet'
-
-const FeedbackContext = createContext(null)
 
 export function FeedbackProvider({ children }) {
   const [toasts, setToasts] = useState([])
@@ -53,8 +52,4 @@ export function FeedbackProvider({ children }) {
       </Sheet>
     </FeedbackContext.Provider>
   )
-}
-
-export function useFeedback() {
-  return useContext(FeedbackContext)
 }

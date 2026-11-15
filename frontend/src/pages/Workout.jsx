@@ -7,7 +7,7 @@ import {
   bestSet, emptyExercise, estimatedMax, exercisePayload, firstReps, formatClock, formatLoad, formatNumber,
   formatRest, formatSet, numberOrNull, plural, relativeDay, sessionTotals
 } from '../format'
-import { useFeedback } from '../ui/Feedback'
+import { useFeedback } from '../ui/feedbackContext'
 import { Stepper } from '../ui/Fields'
 import { useNow } from '../ui/hooks'
 import { Icon, IconButton } from '../ui/Icon'

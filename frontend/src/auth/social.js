@@ -53,6 +53,6 @@ export async function signInWithApple({ clientId, redirectUri }) {
     return { idToken: data.authorization.id_token, name: `${first} ${last}`.trim() || null }
   } catch (error) {
     if (error?.error === 'popup_closed_by_user' || error?.error === 'user_cancelled_authorize') return null
-    throw new Error('Não foi possível entrar com a Apple. Tente de novo.')
+    throw new Error('Não foi possível entrar com a Apple. Tente de novo.', { cause: error })
   }
 }
