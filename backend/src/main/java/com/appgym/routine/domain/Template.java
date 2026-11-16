@@ -20,9 +20,9 @@ public class Template {
 
     /** Ordem da rotina; treinos ainda sem posição vão para o fim, pela data de criação. */
     public static final Comparator<Template> ROUTINE_ORDER = Comparator.comparing(
-                    Template::getPosition, Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(Template::getCreatedAt)
-            .thenComparing(Template::getId);
+                    (Template template) -> template.getPosition(), Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(template -> template.getCreatedAt())
+            .thenComparing(template -> template.getId());
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

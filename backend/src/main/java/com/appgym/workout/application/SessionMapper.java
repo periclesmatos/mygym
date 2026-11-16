@@ -24,7 +24,7 @@ final class SessionMapper {
                 session.getStartedAt(),
                 session.getFinishedAt(),
                 session.getExercises().stream()
-                        .sorted(Comparator.comparingInt(SessionExercise::getPosition))
+                        .sorted(Comparator.comparingInt(exercise -> exercise.getPosition()))
                         .map(SessionMapper::toView)
                         .toList());
     }
@@ -73,7 +73,7 @@ final class SessionMapper {
 
     private static List<WorkoutSet> sortedSets(SessionExercise exercise) {
         return exercise.getSets().stream()
-                .sorted(Comparator.comparingInt(WorkoutSet::getPosition))
+                .sorted(Comparator.comparingInt(set -> set.getPosition()))
                 .toList();
     }
 }

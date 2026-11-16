@@ -57,7 +57,7 @@ public class Session {
         exercises.remove(exercise);
         int position = 1;
         for (SessionExercise current : exercises.stream()
-                .sorted(Comparator.comparingInt(SessionExercise::getPosition))
+                .sorted(Comparator.comparingInt(current -> current.getPosition()))
                 .toList()) {
             current.setPosition(position++);
         }
@@ -96,12 +96,12 @@ public class Session {
     }
 
     public int completedSets() {
-        return (int) allSets().filter(WorkoutSet::isCompleted).count();
+        return (int) allSets().filter(set -> set.isCompleted()).count();
     }
 
     /** Soma de carga x reps das séries concluídas. */
     public BigDecimal volume() {
-        return allSets().map(WorkoutSet::volume).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return allSets().map(set -> set.volume()).reduce(BigDecimal.ZERO, (total, volume) -> total.add(volume));
     }
 
     /** Duração em segundos, só para treino concluído. */

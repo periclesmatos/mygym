@@ -11,7 +11,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeSet;
 import org.springframework.stereotype.Service;
 
@@ -63,8 +62,8 @@ public class ProgressService {
         if (key.isEmpty()) throw new BadRequestException("Informe o exercício.");
         return workouts.finishedExercises(userId, List.of(key)).stream()
                 .map(ExerciseStats::performance)
-                .flatMap(Optional::stream)
-                .sorted(Comparator.comparing(Performance::date))
+                .flatMap(part -> part.stream())
+                .sorted(Comparator.comparing(performance -> performance.date()))
                 .toList();
     }
 }
