@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { ExerciseSheet } from '@/features/routine/components/ExerciseForm'
+import { ExercisePicker } from '@/features/routine/components/ExercisePicker'
 import {
-  emptyExercise,
   exerciseFromTemplate,
   exercisePayload,
   exerciseSummary,
   validateExercise
 } from '@/features/routine/lib/exerciseModel'
+import { exerciseGroup } from '@/shared/lib/muscles'
 import { plural } from '@/shared/lib/text'
 import { estimateMinutes } from '@/shared/lib/training'
 import { useFeedback } from '@/shared/ui/feedbackContext'
@@ -30,6 +31,7 @@ export function RoutineEditorPage() {
   const [showNotes, setShowNotes] = useState(false)
   const [exercises, setExercises] = useState([])
   const [editing, setEditing] = useState(null)
+  const [picking, setPicking] = useState(false)
   const [busy, setBusy] = useState(false)
   const [dirty, setDirty] = useState(false)
   const [error, setError] = useState('')
@@ -84,12 +86,19 @@ export function RoutineEditorPage() {
   }
 
   function saveExercise(draft) {
-    change(() =>
-      setExercises((current) =>
-        editing.isNew ? [...current, draft] : current.map((item) => (item.key === draft.key ? draft : item))
-      )
-    )
+    change(() => setExercises((current) => current.map((item) => (item.key === draft.key ? draft : item))))
     setEditing(null)
+  }
+
+  function addExercises(drafts) {
+    change(() => setExercises((current) => [...current, ...drafts]))
+    setPicking(false)
+    toast(
+      drafts.length === 1
+        ? `${drafts[0].name} adicionado. Toque nele para ajustar.`
+        : `${plural(drafts.length, 'exercício adicionado', 'exercícios adicionados')}. Toque para ajustar.`,
+      'success'
+    )
   }
 
   function removeExercise() {
@@ -232,7 +241,11 @@ export function RoutineEditorPage() {
         </div>
 
         {exercises.length === 0 ? (
-          <Empty icon="dumbbell" title="Nenhum exercício ainda" text="Adicione na ordem em que você vai fazer." />
+          <Empty
+            icon="dumbbell"
+            title="Nenhum exercício ainda"
+            text="Busque na lista e marque vários de uma vez. Séries, reps e descanso já vêm preenchidos."
+          />
         ) : (
           <ol className="ex-list">
             {exercises.map((exercise, index) => (
@@ -241,7 +254,9 @@ export function RoutineEditorPage() {
                   <span className="ex-num">{index + 1}</span>
                   <span className="ex-text">
                     <strong>{exercise.name}</strong>
-                    <span className="muted small">{exerciseSummary(exercise)}</span>
+                    <span className="muted small">
+                      {[exerciseGroup(exercise), exerciseSummary(exercise)].filter(Boolean).join(' · ')}
+                    </span>
                   </span>
                 </button>
                 <div className="move-btns">
@@ -265,13 +280,9 @@ export function RoutineEditorPage() {
           </ol>
         )}
 
-        <button
-          type="button"
-          className="btn btn-secondary btn-block"
-          onClick={() => setEditing({ exercise: emptyExercise(), isNew: true })}
-        >
+        <button type="button" className="btn btn-secondary btn-block" onClick={() => setPicking(true)}>
           <Icon name="plus" size={20} />
-          Adicionar exercício
+          Adicionar exercícios
         </button>
       </section>
 
@@ -288,10 +299,17 @@ export function RoutineEditorPage() {
 
       <ExerciseSheet
         exercise={editing?.exercise || null}
-        isNew={editing?.isNew}
+        isNew={false}
         onClose={() => setEditing(null)}
         onSave={saveExercise}
         onRemove={removeExercise}
+      />
+
+      <ExercisePicker
+        open={picking}
+        onClose={() => setPicking(false)}
+        onAdd={addExercises}
+        excluded={exercises.map((exercise) => exercise.name)}
       />
     </div>
   )

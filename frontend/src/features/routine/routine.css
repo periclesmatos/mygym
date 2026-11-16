@@ -33,11 +33,8 @@
   font-size: 1.05rem;
   overflow-wrap: anywhere;
 }
-.routine-exercises {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.routine-main .tags {
+  margin: 4px 0 2px;
 }
 .move-btns {
   display: flex;
@@ -111,4 +108,203 @@
   flex-direction: column;
   gap: 8px;
   z-index: 20;
+}
+
+/* ---------- Seletor de exercícios ---------- */
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.picker-head {
+  position: sticky;
+  top: -2px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 2px 0 8px;
+  background: var(--surface);
+}
+.filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -2px;
+  padding: 0 2px;
+}
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+.filter-chip {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.filter-chip.on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.picker-selected {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.picker-selected strong {
+  color: var(--accent-text);
+}
+.picker-empty {
+  padding: 16px 4px;
+}
+.pick-list {
+  display: flex;
+  flex-direction: column;
+}
+.pick-item {
+  display: flex;
+  align-items: center;
+}
+.pick-item + .pick-item {
+  border-top: 1px solid var(--line);
+}
+.pick-row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 4px;
+  text-align: left;
+  border-radius: var(--radius-sm);
+}
+.pick-row.create {
+  border: 1px dashed var(--line);
+  padding: 11px 12px;
+}
+.pick-check {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--line);
+  color: var(--accent-ink);
+}
+.pick-row.create .pick-check {
+  border-style: dashed;
+  color: var(--accent-text);
+}
+.pick-row.on .pick-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.pick-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pick-text strong {
+  overflow-wrap: anywhere;
+}
+.picker-create {
+  gap: 12px;
+}
+
+/* ---------- Rotinas prontas ---------- */
+.pack-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+}
+.pack.on {
+  border-color: var(--accent-text);
+}
+.pack-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pack-days {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.pack-day {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+.pack-day .day-num {
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+}
+.pack-day-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ---------- Sugestões de nome ---------- */
+.suggest {
+  position: relative;
+}
+.suggest-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  max-height: 300px;
+  overflow-y: auto;
+}
+.suggest-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+}
+.suggest-item:hover,
+.suggest-item:focus-visible {
+  background: var(--surface-2);
+}
+.exercise-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

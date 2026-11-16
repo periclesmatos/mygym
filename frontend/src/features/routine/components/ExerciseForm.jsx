@@ -1,7 +1,9 @@
-import { useEffect, useId, useState } from 'react'
-import { useExerciseNames } from '@/features/routine/hooks/useExerciseNames'
+import { useEffect, useMemo, useState } from 'react'
+import { useCatalog } from '@/features/routine/hooks/useCatalog'
+import { findInCatalog, searchCatalog } from '@/features/routine/lib/catalog'
 import { emptyExercise, validateExercise } from '@/features/routine/lib/exerciseModel'
 import { formatRest } from '@/shared/lib/date'
+import { muscleGroup } from '@/shared/lib/muscles'
 import { Chips, Stepper } from '@/shared/ui/Fields'
 import { Icon } from '@/shared/ui/Icon'
 import { Sheet } from '@/shared/ui/Sheet'
@@ -14,8 +16,8 @@ const RESTS = [30, 45, 60, 90, 120, 180, 240].map((value) => ({ value, label: fo
  * `exercise` nulo fecha a folha; `isNew` troca os textos.
  */
 export function ExerciseSheet({ exercise, isNew, onSave, onRemove, onClose, saveLabel }) {
-  const listId = useId()
-  const names = useExerciseNames()
+  const catalog = useCatalog()
+  const [suggesting, setSuggesting] = useState(false)
   const [draft, setDraft] = useState(exercise || emptyExercise())
   const [error, setError] = useState('')
   const [showRir, setShowRir] = useState(false)
@@ -34,6 +36,22 @@ export function ExerciseSheet({ exercise, isNew, onSave, onRemove, onClose, save
     setError('')
   }
 
+  // O grupo vem do exercício cadastrado; sem cadastro, o salvo antes ou o deduzido pelo nome.
+  const match = findInCatalog(catalog.items, draft.name)
+  const group =
+    match?.muscleGroup || (draft.name === exercise?.name && draft.muscleGroup) || muscleGroup(draft.name) || ''
+  const suggestions = useMemo(
+    () => (draft.name.trim() ? searchCatalog(catalog.items, draft.name, { used: catalog.used }).slice(0, 6) : []),
+    [catalog.items, catalog.used, draft.name]
+  )
+  const showSuggestions =
+    suggesting && suggestions.length > 0 && !(match && suggestions[0].id === match.id && suggestions.length === 1)
+
+  function pick(item) {
+    set('name', item.name)
+    setSuggesting(false)
+  }
+
   async function submit(event) {
     event.preventDefault()
     const message = validateExercise(draft)
@@ -43,7 +61,7 @@ export function ExerciseSheet({ exercise, isNew, onSave, onRemove, onClose, save
     }
     setBusy(true)
     try {
-      await onSave(draft)
+      await onSave({ ...draft, muscleGroup: group })
     } finally {
       setBusy(false)
     }
@@ -52,24 +70,58 @@ export function ExerciseSheet({ exercise, isNew, onSave, onRemove, onClose, save
   return (
     <Sheet open={!!exercise} onClose={onClose} title={isNew ? 'Novo exercício' : 'Editar exercício'}>
       <form className="stack" onSubmit={submit} noValidate>
-        <label className="field">
-          <span className="field-label">Nome</span>
-          <input
-            data-autofocus={isNew ? true : undefined}
-            className="input"
-            list={listId}
-            placeholder="Ex.: Supino reto"
-            autoComplete="off"
-            enterKeyHint="next"
-            value={draft.name}
-            onChange={(event) => set('name', event.target.value)}
-          />
-          <datalist id={listId}>
-            {names.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
-        </label>
+        <div className="field">
+          <label className="field-label" htmlFor="exercise-name">
+            Nome
+          </label>
+          <div className="suggest">
+            <input
+              id="exercise-name"
+              data-autofocus={isNew ? true : undefined}
+              className="input"
+              placeholder="Ex.: Supino reto"
+              autoComplete="off"
+              enterKeyHint="next"
+              role="combobox"
+              aria-expanded={showSuggestions}
+              aria-controls="exercise-suggestions"
+              value={draft.name}
+              onChange={(event) => {
+                set('name', event.target.value)
+                setSuggesting(true)
+              }}
+              onFocus={() => setSuggesting(true)}
+              onBlur={() => setSuggesting(false)}
+            />
+            {showSuggestions && (
+              <ul className="suggest-list" id="exercise-suggestions" role="listbox">
+                {suggestions.map((item) => (
+                  <li key={item.id} role="option" aria-selected={match?.id === item.id}>
+                    <button
+                      type="button"
+                      className="suggest-item"
+                      // mousedown antes do blur do campo, para o clique não se perder
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => pick(item)}
+                    >
+                      <strong>{item.name}</strong>
+                      <span className="muted small">
+                        {[item.muscleGroup, item.equipment].filter(Boolean).join(' · ')}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {group && (
+            <span className="muted small exercise-group">
+              <span className="tag main">{group}</span>
+              {match?.equipment && <span>{match.equipment}</span>}
+              {!match && <span>deduzido pelo nome</span>}
+            </span>
+          )}
+        </div>
 
         <div className="grid-2">
           <Stepper

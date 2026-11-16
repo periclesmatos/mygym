@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { PackSheet } from '@/features/routine/components/PackSheet'
 import { dayLetter, nextInRoutine, orderedDays } from '@/features/routine/lib/schedule'
 import { sessionsApi } from '@/shared/api/sessions'
 import { templatesApi } from '@/shared/api/templates'
 import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
+import { muscleGroups } from '@/shared/lib/muscles'
 import { plural } from '@/shared/lib/text'
 import { estimateMinutes } from '@/shared/lib/training'
 import { Icon, IconButton } from '@/shared/ui/Icon'
+import { MuscleChips } from '@/shared/ui/MuscleChips'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { Action, ActionList, Sheet } from '@/shared/ui/Sheet'
 import { Empty, ErrorState, Skeleton } from '@/shared/ui/States'
@@ -19,6 +22,7 @@ export function RoutinePage() {
   const runAction = useAction()
   const [organizing, setOrganizing] = useState(false)
   const [menu, setMenu] = useState(null)
+  const [packs, setPacks] = useState(false)
   const { data, error, loading, reload, setData } = useAsync(
     () =>
       Promise.all([templatesApi.list(), sessionsApi.list('finished'), sessionsApi.list('open')]).then(
@@ -59,13 +63,14 @@ export function RoutinePage() {
       await templatesApi.create({
         name: `${template.name} (cópia)`.slice(0, 80),
         notes: template.notes || '',
-        exercises: template.exercises.map(({ name, plannedSets, reps, load, restSeconds, rir }) => ({
+        exercises: template.exercises.map(({ name, plannedSets, reps, load, restSeconds, rir, muscleGroup }) => ({
           name,
           plannedSets,
           reps,
           load,
           restSeconds,
-          rir
+          rir,
+          muscleGroup
         }))
       })
       toast('Treino duplicado no fim da rotina.', 'success')
@@ -123,11 +128,15 @@ export function RoutinePage() {
         <Empty
           icon="routine"
           title="Nenhum treino na rotina"
-          text="Crie um treino para cada dia, como A, B e C. Eles se alternam sozinhos."
+          text="Crie um treino para cada dia, como A, B e C, ou comece por uma rotina pronta. Eles se alternam sozinhos."
         >
-          <Link className="btn btn-primary" to="/rotina/novo">
+          <button type="button" className="btn btn-primary" onClick={() => setPacks(true)}>
+            <Icon name="routine" size={20} />
+            Usar rotina pronta
+          </button>
+          <Link className="btn btn-quiet" to="/rotina/novo">
             <Icon name="plus" size={20} />
-            Criar treino
+            Criar do zero
           </Link>
         </Empty>
       )}
@@ -143,14 +152,11 @@ export function RoutinePage() {
                   <strong>{template.name}</strong>
                   {isNext && <span className="badge sm">Próximo</span>}
                 </span>
-                <span className="muted small routine-exercises">
-                  {template.exercises.length
-                    ? template.exercises.map((exercise) => exercise.name).join(' · ')
-                    : 'Sem exercícios'}
-                </span>
+                <MuscleChips groups={muscleGroups(template.exercises)} max={3} />
                 <span className="muted small">
-                  {plural(template.exercises.length, 'exercício', 'exercícios')} · ~
-                  {estimateMinutes(template.exercises)} min
+                  {template.exercises.length
+                    ? `${plural(template.exercises.length, 'exercício', 'exercícios')} · ~${estimateMinutes(template.exercises)} min`
+                    : 'Sem exercícios'}
                 </span>
               </Link>
               {organizing ? (
@@ -179,11 +185,27 @@ export function RoutinePage() {
       </ol>
 
       {templates.length > 0 && (
-        <Link className="btn btn-secondary btn-block" to="/rotina/novo">
-          <Icon name="plus" size={20} />
-          Novo treino
-        </Link>
+        <div className="stack-sm">
+          <Link className="btn btn-secondary btn-block" to="/rotina/novo">
+            <Icon name="plus" size={20} />
+            Novo treino
+          </Link>
+          <button type="button" className="btn btn-quiet btn-block" onClick={() => setPacks(true)}>
+            Usar uma rotina pronta
+          </button>
+        </div>
       )}
+
+      <PackSheet
+        open={packs}
+        hasTemplates={templates.length > 0}
+        onClose={() => setPacks(false)}
+        onCreated={(pack) => {
+          setPacks(false)
+          toast(`Rotina ${pack.name} criada. Toque num treino para ajustar.`, 'success')
+          reload()
+        }}
+      />
 
       <Sheet open={!!menu} onClose={() => setMenu(null)} title={menu?.name}>
         {menu && (

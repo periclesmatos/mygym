@@ -10,5 +10,9 @@ export const exercisesApi = {
     const query = unique.map((name) => `names=${encodeURIComponent(name)}`).join('&')
     return request(`/api/exercises/last?${query}`)
   },
-  progress: (name) => request(`/api/exercises/progress?name=${encodeURIComponent(name)}`)
+  progress: (name) => request(`/api/exercises/progress?name=${encodeURIComponent(name)}`),
+  /** Exercícios do app e os criados pelo usuário, com grupo e sugestões. */
+  catalog: () => request('/api/exercises/catalog'),
+  createCustom: (body) => request('/api/exercises/catalog', { method: 'POST', body }),
+  removeCustom: (id) => request(`/api/exercises/catalog/${id}`, { method: 'DELETE' })
 }

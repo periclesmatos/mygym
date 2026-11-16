@@ -10,7 +10,16 @@ export function localKey() {
 }
 
 export function emptyExercise() {
-  return { key: localKey(), name: '', plannedSets: '3', reps: '8-12', load: '', restSeconds: '90', rir: '' }
+  return {
+    key: localKey(),
+    name: '',
+    plannedSets: '3',
+    reps: '8-12',
+    load: '',
+    restSeconds: '90',
+    rir: '',
+    muscleGroup: ''
+  }
 }
 
 export function exerciseFromTemplate(exercise) {
@@ -21,7 +30,8 @@ export function exerciseFromTemplate(exercise) {
     reps: exercise.reps,
     load: exercise.load == null ? '' : String(exercise.load),
     restSeconds: String(exercise.restSeconds),
-    rir: exercise.rir == null ? '' : String(exercise.rir)
+    rir: exercise.rir == null ? '' : String(exercise.rir),
+    muscleGroup: exercise.muscleGroup || ''
   }
 }
 
@@ -32,7 +42,8 @@ export function exercisePayload(exercise) {
     reps: String(exercise.reps).trim(),
     load: numberOrNull(exercise.load),
     restSeconds: Number(exercise.restSeconds),
-    rir: numberOrNull(exercise.rir)
+    rir: numberOrNull(exercise.rir),
+    muscleGroup: exercise.muscleGroup || null
   }
 }
 

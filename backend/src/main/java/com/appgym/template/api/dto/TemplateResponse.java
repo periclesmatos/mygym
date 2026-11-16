@@ -13,5 +13,6 @@ public record TemplateResponse(Long id, String name, String notes, int position,
             String reps,
             BigDecimal load,
             int restSeconds,
-            Integer rir) {}
+            Integer rir,
+            String muscleGroup) {}
 }

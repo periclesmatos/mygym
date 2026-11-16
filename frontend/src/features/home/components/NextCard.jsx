@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom'
 import { dayLetter } from '@/features/routine/lib/schedule'
-import { formatDuration } from '@/shared/lib/date'
+import { formatDuration, relativeDay } from '@/shared/lib/date'
+import { muscleGroups, totalSets } from '@/shared/lib/muscles'
 import { plural } from '@/shared/lib/text'
 import { estimateMinutes } from '@/shared/lib/training'
 import { Icon } from '@/shared/ui/Icon'
+import { MuscleChips } from '@/shared/ui/MuscleChips'
 
-/** Próximo treino da rotina, com prévia dos exercícios. */
-export function NextCard({ next, busy, onStart, onSwap }) {
+/** Próximo treino da rotina: grupos musculares e um resumo curto. */
+export function NextCard({ next, lastDone, busy, onStart, onSwap }) {
   const { day, index, total, doneToday } = next
-  const preview = day.exercises.slice(0, 5)
-  const hidden = day.exercises.length - preview.length
+  const groups = muscleGroups(day.exercises)
+  const sets = totalSets(day.exercises)
   return (
     <section className="card hero">
       {doneToday && (
@@ -29,20 +31,21 @@ export function NextCard({ next, busy, onStart, onSwap }) {
         </span>
       </div>
       <h2 className="hero-title">{day.name}</h2>
-      <p className="muted">
-        {plural(day.exercises.length, 'exercício', 'exercícios')} · cerca de {estimateMinutes(day.exercises)} min
-      </p>
-      <ul className="hero-list">
-        {preview.map((exercise) => (
-          <li key={exercise.id}>
-            <span>{exercise.name}</span>
-            <span className="muted">
-              {exercise.plannedSets} × {exercise.reps}
-            </span>
-          </li>
-        ))}
-        {hidden > 0 && <li className="muted">+ {plural(hidden, 'exercício', 'exercícios')}</li>}
-      </ul>
+      <MuscleChips groups={groups} size="lg" />
+      <div className="facts">
+        <span>
+          <Icon name="dumbbell" size={16} />
+          {plural(day.exercises.length, 'exercício', 'exercícios')}
+          {sets > 0 && ` · ${plural(sets, 'série', 'séries')}`}
+        </span>
+        <span>
+          <Icon name="timer" size={16} />~{estimateMinutes(day.exercises)} min
+        </span>
+        <span>
+          <Icon name="calendar" size={16} />
+          {lastDone ? `Último: ${relativeDay(lastDone.finishedAt).toLowerCase()}` : 'Primeira vez'}
+        </span>
+      </div>
       <button
         type="button"
         className={doneToday ? 'btn btn-secondary btn-lg btn-block' : 'btn btn-primary btn-lg btn-block'}

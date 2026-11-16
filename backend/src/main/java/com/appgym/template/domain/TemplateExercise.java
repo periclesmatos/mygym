@@ -43,6 +43,9 @@ public class TemplateExercise {
 
     private Integer rir;
 
+    @Column(length = 20)
+    private String muscleGroup;
+
     public Long getId() {
         return id;
     }
@@ -105,5 +108,13 @@ public class TemplateExercise {
 
     public void setRir(Integer rir) {
         this.rir = rir;
+    }
+
+    public String getMuscleGroup() {
+        return muscleGroup;
+    }
+
+    public void setMuscleGroup(String muscleGroup) {
+        this.muscleGroup = muscleGroup;
     }
 }

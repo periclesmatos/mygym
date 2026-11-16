@@ -33,4 +33,7 @@ public record ExerciseInput(
 
         @Min(value = 0, message = "RIR deve ficar entre 0 e 10.")
         @Max(value = 10, message = "RIR deve ficar entre 0 e 10.")
-        Integer rir) {}
+        Integer rir,
+
+        /** Opcional; nulo deixa o app deduzir pelo nome. */
+        String muscleGroup) {}

@@ -175,28 +175,13 @@
   background: var(--accent-soft);
   color: var(--accent-text);
 }
-.hero-list {
-  display: flex;
-  flex-direction: column;
-  margin: 4px 0 6px;
-  border-top: 1px solid var(--line);
-}
-.hero-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 0.95rem;
-}
-.hero-list li span:last-child {
-  flex: none;
-  font-variant-numeric: tabular-nums;
-}
 .hero-clock {
   font-size: 1.1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+.hero .facts {
+  margin-bottom: 6px;
 }
 .hero .btn-quiet {
   margin-top: -4px;
@@ -227,6 +212,53 @@
 .badge.sm {
   padding: 2px 8px;
   font-size: 0.68rem;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.tag.main {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.tag.more {
+  color: var(--muted);
+}
+.tags.lg .tag {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 0.86rem;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.facts svg {
+  color: var(--accent-text);
 }
 .live-badge {
   background: color-mix(in srgb, var(--live) 16%, transparent);

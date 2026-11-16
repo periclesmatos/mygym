@@ -4,6 +4,7 @@ import { NextCard } from '@/features/home/components/NextCard'
 import { OpenCard } from '@/features/home/components/OpenCard'
 import { WeekStrip } from '@/features/home/components/WeekStrip'
 import { greeting } from '@/features/home/lib/greeting'
+import { PackSheet } from '@/features/routine/components/PackSheet'
 import { profileApi } from '@/features/profile/api'
 import { dayLetter, nextInRoutine, orderedDays } from '@/features/routine/lib/schedule'
 import { sessionsApi } from '@/shared/api/sessions'
@@ -28,6 +29,7 @@ export function HomePage() {
   const runAction = useAction()
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState(false)
+  const [packs, setPacks] = useState(false)
   const [quickName, setQuickName] = useState('')
   const { data: profile } = useAsync(() => profileApi.get(), [])
   const { data, error, loading, reload } = useAsync(
@@ -109,34 +111,7 @@ export function HomePage() {
     <>
       {header}
 
-      {open ? (
-        <OpenCard session={open} onDiscard={() => discard(open)} />
-      ) : next ? (
-        <NextCard
-          next={next}
-          busy={busy}
-          onStart={() => start({ templateId: next.day.id })}
-          onSwap={() => setPicker(true)}
-        />
-      ) : (
-        <section className="card hero onboarding">
-          <span className="hero-icon">
-            <Icon name="routine" size={26} />
-          </span>
-          <h2>Monte sua rotina</h2>
-          <p className="muted">
-            Crie os treinos da semana, como "Peito e tríceps" e "Costas e bíceps". O app alterna entre eles sozinho: ao
-            concluir um, o próximo fica pronto.
-          </p>
-          <Link className="btn btn-primary btn-lg btn-block" to="/rotina/novo">
-            <Icon name="plus" size={20} />
-            Criar primeiro treino
-          </Link>
-          <button type="button" className="btn btn-quiet btn-block" onClick={() => setPicker(true)}>
-            Fazer um treino avulso
-          </button>
-        </section>
-      )}
+      {open && <OpenCard session={open} onDiscard={() => discard(open)} />}
 
       <section className="section">
         <div className="section-head">
@@ -151,6 +126,40 @@ export function HomePage() {
         <StatCard icon="calendar" value={month.count} label={month.count === 1 ? 'treino no mês' : 'treinos no mês'} />
         <StatCard icon="dumbbell" value={formatVolume(month.volume) || '0 kg'} label="volume no mês" />
       </section>
+
+      {!open && next && (
+        <NextCard
+          next={next}
+          lastDone={finished.find((session) => session.templateId === next.day.id)}
+          busy={busy}
+          onStart={() => start({ templateId: next.day.id })}
+          onSwap={() => setPicker(true)}
+        />
+      )}
+
+      {!open && !next && (
+        <section className="card hero onboarding">
+          <span className="hero-icon">
+            <Icon name="routine" size={26} />
+          </span>
+          <h2>Monte sua rotina</h2>
+          <p className="muted">
+            Crie os treinos da semana, como "Peito e tríceps" e "Costas e bíceps". O app alterna entre eles sozinho: ao
+            concluir um, o próximo fica pronto.
+          </p>
+          <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => setPacks(true)}>
+            <Icon name="routine" size={20} />
+            Usar uma rotina pronta
+          </button>
+          <Link className="btn btn-secondary btn-block" to="/rotina/novo">
+            <Icon name="plus" size={20} />
+            Criar do zero
+          </Link>
+          <button type="button" className="btn btn-quiet btn-block" onClick={() => setPicker(true)}>
+            Fazer um treino avulso
+          </button>
+        </section>
+      )}
 
       {recent.length > 0 && (
         <section className="section">
@@ -177,6 +186,17 @@ export function HomePage() {
           </div>
         </section>
       )}
+
+      <PackSheet
+        open={packs}
+        hasTemplates={false}
+        onClose={() => setPacks(false)}
+        onCreated={(pack) => {
+          setPacks(false)
+          toast(`Rotina ${pack.name} criada.`, 'success')
+          reload()
+        }}
+      />
 
       <Sheet open={picker} onClose={() => setPicker(false)} title="Escolher treino">
         <div className="stack">

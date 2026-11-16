@@ -1,5 +1,7 @@
 package com.appgym.template.service;
 
+import com.appgym.exercise.domain.MuscleGroups;
+import com.appgym.shared.error.BadRequestException;
 import com.appgym.shared.util.Values;
 import com.appgym.template.api.dto.ExerciseInput;
 import com.appgym.template.api.dto.TemplateResponse;
@@ -31,6 +33,7 @@ final class TemplateMapper {
         exercise.setLoad(Values.scale2(input.load()));
         exercise.setRestSeconds(input.restSeconds());
         exercise.setRir(input.rir());
+        exercise.setMuscleGroup(muscleGroup(input.muscleGroup()));
         return exercise;
     }
 
@@ -43,6 +46,12 @@ final class TemplateMapper {
                 exercise.getReps(),
                 exercise.getLoad(),
                 exercise.getRestSeconds(),
-                exercise.getRir());
+                exercise.getRir(),
+                exercise.getMuscleGroup());
+    }
+
+    private static String muscleGroup(String value) {
+        if (Values.blankToNull(value) == null) return null;
+        return MuscleGroups.group(value).orElseThrow(() -> new BadRequestException("Grupo muscular inválido."));
     }
 }

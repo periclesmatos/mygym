@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ExerciseSheet } from '@/features/routine/components/ExerciseForm'
-import { emptyExercise, exercisePayload } from '@/features/routine/lib/exerciseModel'
+import { ExercisePicker } from '@/features/routine/components/ExercisePicker'
+import { exercisePayload } from '@/features/routine/lib/exerciseModel'
 import { ExerciseCard } from '@/features/workout/components/ExerciseCard'
 import { RestBar } from '@/features/workout/components/RestBar'
 import { useBeep } from '@/features/workout/hooks/useBeep'
@@ -36,7 +36,7 @@ export function WorkoutPage() {
   const { sessionId, session, sessionRef, drafts, draftsRef, last } = workout
   const [exerciseMenu, setExerciseMenu] = useState(null)
   const [setSheet, setSetSheet] = useState(null)
-  const [adding, setAdding] = useState(null)
+  const [adding, setAdding] = useState(false)
   const [menu, setMenu] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const now = useNow(1000, Boolean(session))
@@ -131,14 +131,21 @@ export function WorkoutPage() {
     run(() => sessionsApi.removeExercise(sessionId, exercise.id), 'Exercício removido.')
   }
 
-  async function addExercise(draft) {
-    const ok = await run(
-      () => sessionsApi.addExercise(sessionId, exercisePayload(draft)),
-      `${draft.name.trim()} adicionado.`
-    )
+  /** Adiciona em sequência; se um falhar, os anteriores ficam e a folha continua aberta. */
+  async function addExercises(drafts) {
+    const ok = await runAction(async () => {
+      for (const draft of drafts) {
+        workout.applySession(await sessionsApi.addExercise(sessionId, exercisePayload(draft)))
+      }
+    })
     if (!ok) return
-    setAdding(null)
-    workout.loadLast([draft.name])
+    toast(
+      drafts.length === 1
+        ? `${drafts[0].name} adicionado.`
+        : `${plural(drafts.length, 'exercício adicionado', 'exercícios adicionados')}.`
+    )
+    setAdding(false)
+    workout.loadLast(drafts.map((draft) => draft.name))
     requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }))
   }
 
@@ -257,7 +264,7 @@ export function WorkoutPage() {
         />
       ))}
 
-      <button type="button" className="btn btn-secondary btn-block" onClick={() => setAdding(emptyExercise())}>
+      <button type="button" className="btn btn-secondary btn-block" onClick={() => setAdding(true)}>
         <Icon name="plus" size={20} />
         Adicionar exercício
       </button>
@@ -347,12 +354,12 @@ export function WorkoutPage() {
         )}
       </Sheet>
 
-      <ExerciseSheet
-        exercise={adding}
-        isNew
-        saveLabel="Adicionar ao treino"
-        onClose={() => setAdding(null)}
-        onSave={addExercise}
+      <ExercisePicker
+        open={adding}
+        title="Adicionar ao treino"
+        onClose={() => setAdding(false)}
+        onAdd={addExercises}
+        excluded={session.exercises.map((exercise) => exercise.name)}
       />
     </div>
   )

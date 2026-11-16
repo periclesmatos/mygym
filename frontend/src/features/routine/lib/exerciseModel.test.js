@@ -15,17 +15,20 @@ describe('modelo do formulário de exercício', () => {
       reps: '8-12',
       load: 40,
       restSeconds: 90,
-      rir: null
+      rir: null,
+      muscleGroup: 'Peito'
     })
-    expect(form).toMatchObject({ plannedSets: '3', load: '40', rir: '' })
+    expect(form).toMatchObject({ plannedSets: '3', load: '40', rir: '', muscleGroup: 'Peito' })
     expect(exercisePayload({ ...form, name: ' Supino ', load: '42,5' })).toEqual({
       name: 'Supino',
       plannedSets: 3,
       reps: '8-12',
       load: 42.5,
       restSeconds: 90,
-      rir: null
+      rir: null,
+      muscleGroup: 'Peito'
     })
+    expect(exercisePayload({ ...form, muscleGroup: '' }).muscleGroup).toBeNull()
   })
   it('valida os campos', () => {
     const base = { ...emptyExercise(), name: 'Supino' }
