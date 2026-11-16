@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -73,7 +74,7 @@ public class ApiExceptionHandler {
         return error(HttpStatus.INTERNAL_SERVER_ERROR, "Algo deu errado.");
     }
 
-    private static ResponseEntity<ErrorResponse> error(HttpStatus status, String message) {
+    private static ResponseEntity<ErrorResponse> error(@NonNull HttpStatus status, String message) {
         return ResponseEntity.status(status).body(new ErrorResponse(message));
     }
 }

@@ -8,12 +8,14 @@ import com.appgym.identity.domain.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -59,10 +61,12 @@ public abstract class IntegrationTest {
         return new Account(email, response.get("token").asText());
     }
 
-    protected ResultActions perform(MockHttpServletRequestBuilder request, Account account, Object body)
+    protected ResultActions perform(@NonNull MockHttpServletRequestBuilder request, Account account, Object body)
             throws Exception {
         if (account != null) request.header("Authorization", "Bearer " + account.token());
-        if (body != null) request.contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsBytes(body));
+        if (body != null)
+            request.contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                    .content(Objects.requireNonNull(json.writeValueAsBytes(body)));
         return mvc.perform(request);
     }
 
