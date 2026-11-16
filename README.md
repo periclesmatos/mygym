@@ -12,9 +12,11 @@ Personal workout log. React talks to a Spring Boot API, and the API stores templ
 
 ## Run it locally
 
+Needs JDK 25, Maven 3.9 and Node 22 (the same versions the Docker images use), plus Docker for Postgres and the backend tests.
+
 1. Start Postgres: `docker compose --profile db up -d`
 2. Start the API from `backend`: `mvn spring-boot:run`
-3. Start the UI from `frontend`: `npm install` then `npm run dev`
+3. Start the UI from `frontend`: `npm ci` then `npm run dev`
 4. Open http://localhost:5173
 
 The first login is `you@appgym.local` / `appgym` unless you change `APP_USER_EMAIL` and `APP_USER_PASSWORD`.
