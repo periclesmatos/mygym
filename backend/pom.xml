@@ -21,7 +21,7 @@
         <jjwt.version>0.12.6</jjwt.version>
         <spotless.version>3.11.0</spotless.version>
         <palantir-java-format.version>2.103.0</palantir-java-format.version>
-        <spring-modulith.version>1.4.14</spring-modulith.version>
+        <spring-modulith.version>2.1.2</spring-modulith.version>
     </properties>
 
     <dependencyManagement>
