@@ -69,7 +69,7 @@ public class CatalogService {
     private static List<String> split(String value, String separator) {
         if (value == null || value.isBlank()) return List.of();
         return Arrays.stream(value.split(separator))
-                .map(String::trim)
+                .map(part -> part.trim())
                 .filter(part -> !part.isEmpty())
                 .toList();
     }

@@ -1,7 +1,6 @@
 package com.appgym.progress.domain;
 
 import com.appgym.workout.CompletedExercise;
-import com.appgym.workout.CompletedExercise.SetRecord;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
@@ -30,13 +29,13 @@ public final class ExerciseStats {
     public static Optional<Performance> performance(CompletedExercise exercise) {
         List<SetDone> sets = exercise.sets().stream()
                 .filter(set -> set.completed() && set.reps() != null && set.reps() > 0)
-                .sorted(Comparator.comparingInt(SetRecord::position))
+                .sorted(Comparator.comparingInt(set -> set.position()))
                 .map(set -> new SetDone(set.position(), set.reps(), set.load()))
                 .toList();
         if (sets.isEmpty()) return Optional.empty();
 
         BigDecimal topLoad = null;
-        Integer topReps = null;
+        int topReps = 0;
         BigDecimal volume = BigDecimal.ZERO;
         BigDecimal estimatedMax = null;
         for (SetDone set : sets) {

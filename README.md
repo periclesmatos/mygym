@@ -12,9 +12,11 @@ Personal workout log. React talks to a Spring Boot API, and the API stores templ
 
 ## Run it locally
 
+Needs JDK 25, Maven 3.9 and Node 22 (the same versions the Docker images use), plus Docker for Postgres and the backend tests.
+
 1. Start Postgres: `docker compose --profile db up -d`
 2. Start the API from `backend`: `mvn spring-boot:run`
-3. Start the UI from `frontend`: `npm install` then `npm run dev`
+3. Start the UI from `frontend`: `npm ci` then `npm run dev`
 4. Open http://localhost:5173
 
 The first login is `you@appgym.local` / `appgym` unless you change `APP_USER_EMAIL` and `APP_USER_PASSWORD`.
@@ -33,7 +35,11 @@ The first login is `you@appgym.local` / `appgym` unless you change `APP_USER_EMA
 
 `docker compose --profile app up --build` builds the React app into the API and serves both on http://localhost:8080.
 
-For a hosted database, set `DATABASE_URL` to the provider URL (`postgresql://...` or a JDBC URL), plus `APP_USER_EMAIL`, `APP_USER_PASSWORD`, and a `JWT_SECRET` of at least 32 characters. `render.yaml` describes that setup on Render.
+For a hosted database, set `DATABASE_URL` to the provider URL (`postgresql://...` or a JDBC URL), plus `APP_USER_EMAIL`, `APP_USER_PASSWORD`, and a `JWT_SECRET` of at least 32 characters.
+
+## Branches, CI and deploy
+
+Work goes to `develop` through pull requests; a release PR from `develop` to `production` deploys the app to a Google Cloud VM. GitHub Actions runs the backend and frontend checks on every PR. See [docs/deploy.md](docs/deploy.md) for the flow, the pipelines, the VM setup and rollback.
 
 ## Tests and checks
 
@@ -44,7 +50,7 @@ For a hosted database, set `DATABASE_URL` to the provider URL (`postgresql://...
 | Frontend lint / format | `docker compose exec web-dev npm run lint` · `npm run format` |
 | Backend format | `docker compose exec api-dev mvn spotless:apply` |
 
-The Docker image build runs the frontend lint, format check and tests, so a broken build never ships. The backend tests need Docker (Testcontainers), so they run through the `test` profile instead.
+The Docker image build runs the frontend lint, format check and tests. The backend tests need Docker (Testcontainers), so locally they run through the `test` profile. CI runs all of these on every pull request.
 
 ## Database migrations
 
@@ -70,7 +76,7 @@ Sign-up is invite-only. `APP_ALLOWED_EMAILS` holds the e-mails (comma separated)
 
 Google and Apple buttons appear only when their variables are set:
 
-- **Google**: in Google Cloud Console, create an OAuth client ID of type *Web application*. Add every origin the app runs on (for example `http://localhost:5173` and the Render URL) to *Authorized JavaScript origins*, then set `GOOGLE_CLIENT_ID`.
+- **Google**: in Google Cloud Console, create an OAuth client ID of type *Web application*. Add every origin the app runs on (for example `http://localhost:5173` and the production URL) to *Authorized JavaScript origins*, then set `GOOGLE_CLIENT_ID`.
 - **Apple**: this needs a paid Apple Developer account. Create a *Services ID* with Sign in with Apple enabled, register your domain and return URL, then set `APPLE_CLIENT_ID` (the Services ID) and `APPLE_REDIRECT_URI` (that same return URL). Apple only works over HTTPS, so it can't be tested on localhost.
 
 A Google or Apple sign-in whose verified e-mail matches an existing account is linked to that account.

@@ -37,7 +37,7 @@ services:
   # Usa o Postgres que já estiver na porta 5432 da máquina.
   api-dev:
     profiles: ["dev"]
-    image: maven:3.9-eclipse-temurin-21
+    image: maven:3.9-eclipse-temurin-25
     working_dir: /app/backend
     command: ["sh", "dev.sh"]
     volumes:
@@ -71,10 +71,10 @@ services:
   # O Testcontainers sobe um Postgres próprio pelo Docker da máquina (socket montado).
   api-test:
     profiles: ["test"]
-    image: maven:3.9-eclipse-temurin-21
+    image: maven:3.9-eclipse-temurin-25
     # Compila numa cópia (/tmp/build) para não mexer no backend/target do api-dev,
     # que reiniciaria a API de desenvolvimento no meio da compilação.
-    command: ["sh", "-c", "mkdir -p /tmp/build && cp -r /src/pom.xml /src/src /tmp/build/ && cd /tmp/build && mvn -B verify"]
+    command: ["sh", "-c", "mkdir -p /tmp/build && cp -r /src/pom.xml /src/.mvn /src/src /tmp/build/ && cd /tmp/build && mvn -B verify"]
     volumes:
       - ./backend:/src:ro
       - m2:/root/.m2

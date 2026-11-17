@@ -1,0 +1,48 @@
+# Produção na VM. Fica em /opt/appgym junto com o .env (não versionado).
+# O deploy.yml copia este arquivo a cada deploy e roda o deploy.sh.
+name: appgym
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: appgym
+      POSTGRES_USER: appgym
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appgym -d appgym"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging: *logging
+    # Sem "ports": o banco só é acessível pela rede interna do compose.
+
+  app:
+    image: ghcr.io/periclesmatos/mygym:${IMAGE_TAG:-production}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/appgym
+      DATABASE_USER: appgym
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      PORT: "8080"
+      # Java e Postgres dividem a VM: o heap fica com metade da memória.
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=50 -XX:+UseSerialGC}
+    ports:
+      - "80:8080"
+    logging: *logging
+
+volumes:
+  pgdata:

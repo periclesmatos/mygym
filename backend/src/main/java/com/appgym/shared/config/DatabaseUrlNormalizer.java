@@ -10,6 +10,7 @@ import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.lang.NonNull;
 
 /**
  * Accepts a JDBC URL and the postgres URL most hosts provide
@@ -66,7 +67,10 @@ public class DatabaseUrlNormalizer implements EnvironmentPostProcessor, Ordered 
     }
 
     private void copy(
-            ConfigurableEnvironment environment, String sourceKey, String target, Map<String, Object> properties) {
+            ConfigurableEnvironment environment,
+            @NonNull String sourceKey,
+            String target,
+            Map<String, Object> properties) {
         String value = environment.getProperty(sourceKey);
         if (value != null && !value.isBlank()) {
             properties.put(target, value);

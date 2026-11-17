@@ -1,0 +1,126 @@
+name: Deploy
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Tag de uma imagem já publicada (ex. sha-<commit>) para rollback. Vazio = gera a imagem do commit atual.
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  ci:
+    if: ${{ !inputs.image_tag }}
+    # O workflow chamado não pode ter mais permissão do que recebe daqui.
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      full: true
+
+  image:
+    name: image
+    needs: ci
+    if: ${{ !inputs.image_tag }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:sha-${{ github.sha }}
+            ${{ env.IMAGE }}:production
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: deploy
+    needs: image
+    if: ${{ !cancelled() && (needs.image.result == 'success' || inputs.image_tag) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: http://${{ vars.VM_PUBLIC_HOST }}
+    permissions:
+      contents: write
+      packages: read
+    env:
+      TAG: ${{ inputs.image_tag || format('sha-{0}', github.sha) }}
+      VM: ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configura SSH
+        env:
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+          VM_KNOWN_HOSTS: ${{ secrets.VM_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VM_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Copia compose e scripts
+        run: scp deploy/compose.prod.yml deploy/deploy.sh deploy/backup.sh "$VM:/opt/appgym/"
+
+      - name: Login no GHCR na VM
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$TOKEN" | ssh "$VM" docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Publica ${{ env.TAG }}
+        run: |
+          # shellcheck disable=SC2029 # a tag é expandida aqui de propósito
+          ssh "$VM" "bash /opt/appgym/deploy.sh '$TAG'"
+
+      - name: Logout do GHCR na VM
+        if: always()
+        run: ssh "$VM" docker logout ghcr.io || true
+
+      - name: Tag git do deploy
+        if: ${{ !inputs.image_tag }}
+        run: |
+          name="deploy-$(date -u +%Y%m%d-%H%M)"
+          git tag "$name" "$GITHUB_SHA"
+          git push origin "$name"
+          echo "GIT_TAG=$name" >> "$GITHUB_ENV"
+
+      - name: Resumo
+        if: always()
+        run: |
+          {
+            echo "### Deploy em production"
+            echo "- Imagem: \`$IMAGE:$TAG\`"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Tag git: \`${GIT_TAG:-nenhuma (rollback)}\`"
+            echo "- Resultado: **${{ job.status }}**"
+          } >> "$GITHUB_STEP_SUMMARY"

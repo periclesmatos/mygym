@@ -103,14 +103,14 @@ public class SessionExercise {
         sets.remove(set);
         int position = 1;
         for (WorkoutSet current : sets.stream()
-                .sorted(Comparator.comparingInt(WorkoutSet::getPosition))
+                .sorted(Comparator.comparingInt(current -> current.getPosition()))
                 .toList()) {
             current.setPosition(position++);
         }
     }
 
     public Optional<WorkoutSet> lastSet() {
-        return sets.stream().max(Comparator.comparingInt(WorkoutSet::getPosition));
+        return sets.stream().max(Comparator.comparingInt(set -> set.getPosition()));
     }
 
     public Long getId() {

@@ -40,7 +40,7 @@ public class TemplateService {
     @Transactional
     public TemplateView create(Long userId, SaveTemplateCommand command) {
         int next = ordered(userId).stream()
-                        .map(Template::getPosition)
+                        .map(template -> template.getPosition())
                         .filter(Objects::nonNull)
                         .max(Comparator.naturalOrder())
                         .orElse(0)
@@ -58,11 +58,12 @@ public class TemplateService {
         List<Template> found = ordered(userId);
         boolean sameTemplates = ids.size() == found.size()
                 && found.stream()
-                        .map(Template::getId)
+                        .map(template -> template.getId())
                         .collect(Collectors.toSet())
                         .equals(new HashSet<>(ids));
         if (!sameTemplates) throw new BadRequestException("A ordem não corresponde aos treinos.");
-        Map<Long, Template> byId = found.stream().collect(Collectors.toMap(Template::getId, Function.identity()));
+        Map<Long, Template> byId =
+                found.stream().collect(Collectors.toMap(template -> template.getId(), Function.identity()));
         int position = 1;
         for (Long id : ids) byId.get(id).setPosition(position++);
         return ids.stream().map(byId::get).map(TemplateMapper::toView).toList();

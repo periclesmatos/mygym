@@ -1,0 +1,145 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, production]
+  push:
+    branches: [develop]
+  workflow_call:
+    inputs:
+      full:
+        description: Roda backend e frontend sem olhar o que mudou.
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.full }}
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      docker: ${{ steps.filter.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            workflows: &workflows
+              - '.github/workflows/**'
+            backend:
+              - *workflows
+              - 'backend/**'
+            frontend:
+              - *workflows
+              - 'frontend/**'
+            docker:
+              - *workflows
+              - 'Dockerfile'
+              - '.dockerignore'
+              - 'deploy/**'
+
+  backend:
+    name: backend
+    needs: changes
+    if: ${{ !cancelled() && (inputs.full || needs.changes.outputs.backend == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      # Testes unitários, de arquitetura (Modulith/ArchUnit), de integração
+      # (Testcontainers usa o Docker do runner) e o Spotless, ligado ao verify.
+      - name: mvn verify
+        run: mvn -B -ntp verify
+      - name: Relatórios de teste
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports/
+          retention-days: 7
+
+  frontend:
+    name: frontend
+    needs: changes
+    if: ${{ !cancelled() && (inputs.full || needs.changes.outputs.frontend == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
+
+  # Confere se a imagem continua montando. No deploy a imagem é gerada
+  # pelo próprio deploy.yml, então aqui só roda em PR para production ou
+  # quando o Dockerfile/deploy muda.
+  docker:
+    name: docker
+    needs: changes
+    if: >-
+      ${{ !cancelled() && !inputs.full && (
+        github.base_ref == 'production' || needs.changes.outputs.docker == 'true'
+      ) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Único check exigido na proteção de branch. Job pulado conta como ok;
+  # falha ou cancelamento em qualquer job reprova.
+  ci:
+    name: ci
+    if: ${{ always() }}
+    needs: [changes, backend, frontend, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resultado
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Resultados: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "::error::Um job do CI terminou como '$r'."; exit 1 ;;
+            esac
+          done

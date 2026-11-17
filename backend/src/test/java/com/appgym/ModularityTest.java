@@ -1,6 +1,7 @@
 package com.appgym;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.lang.NonNull;
 import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.docs.Documenter;
 
@@ -10,6 +11,7 @@ import org.springframework.modulith.docs.Documenter;
  * diagramas dos módulos em target/spring-modulith-docs.
  */
 class ModularityTest {
+    @NonNull
     static final ApplicationModules MODULES = ApplicationModules.of(AppGymApplication.class);
 
     @Test

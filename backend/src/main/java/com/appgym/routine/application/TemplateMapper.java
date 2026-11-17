@@ -55,7 +55,7 @@ final class TemplateMapper {
 
     private static List<TemplateExercise> sorted(Template template) {
         return template.getExercises().stream()
-                .sorted(Comparator.comparingInt(TemplateExercise::getPosition))
+                .sorted(Comparator.comparingInt(exercise -> exercise.getPosition()))
                 .toList();
     }
 
