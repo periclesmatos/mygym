@@ -7,7 +7,7 @@ COPY frontend/ ./
 RUN npm run lint && npm run format:check && npm test
 RUN npm run build
 
-FROM maven:3.9-eclipse-temurin-25 AS backend
+FROM maven:3.9-eclipse-temurin-26 AS backend
 WORKDIR /app
 COPY backend/pom.xml .
 COPY backend/.mvn ./.mvn
