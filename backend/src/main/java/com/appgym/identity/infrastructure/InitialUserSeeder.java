@@ -26,7 +26,7 @@ class InitialUserSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        // Só no banco vazio: depois disso o e-mail pode ser trocado pelo perfil.
+        // Só no banco vazio: depois disso a conta é de quem usa, e mudar a variável não mexe nela.
         if (users.count() > 0) return;
         User user = new User();
         user.setEmail(Emails.normalize(email));

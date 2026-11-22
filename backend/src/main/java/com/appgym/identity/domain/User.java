@@ -46,6 +46,9 @@ public class User {
     @Column(unique = true)
     private String appleSub;
 
+    /** Quando a pessoa provou ser dona do e-mail; nulo se nunca provou. */
+    private Instant emailVerifiedAt;
+
     @PrePersist
     void prePersist() {
         if (createdAt == null) createdAt = Instant.now();
@@ -113,6 +116,15 @@ public class User {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerifiedAt != null;
+    }
+
+    /** Guarda o momento da primeira confirmação. */
+    public void markEmailVerified(Instant now) {
+        if (emailVerifiedAt == null) emailVerifiedAt = now;
     }
 
     public String getGoogleSub() {

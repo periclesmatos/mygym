@@ -11,8 +11,16 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 class AuthApiTest extends IntegrationTest {
+
+    private static RequestPostProcessor from(String ip) {
+        return request -> {
+            request.setRemoteAddr(ip);
+            return request;
+        };
+    }
 
     @Autowired
     JdbcTemplate jdbc;
@@ -30,6 +38,28 @@ class AuthApiTest extends IntegrationTest {
         perform(post("/api/auth/login"), null, Map.of("email", "inicial@teste.local", "password", "errada"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("E-mail ou senha inválidos."));
+    }
+
+    @Test
+    void tooManyWrongPasswordsBlockOnlyThatOrigin() throws Exception {
+        Account account = newAccount();
+        Map<String, String> wrong = Map.of("email", account.email(), "password", "errada");
+        for (int i = 0; i < 10; i++) {
+            perform(post("/api/auth/login").with(from("198.51.100.7")), null, wrong)
+                    .andExpect(status().isUnauthorized());
+        }
+        Map<String, String> right = Map.of("email", account.email(), "password", "senha123");
+        perform(post("/api/auth/login").with(from("198.51.100.7")), null, right)
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.message").value("Muitas tentativas. Espere alguns minutos e tente de novo."));
+        perform(post("/api/auth/login").with(from("203.0.113.9")), null, right).andExpect(status().isOk());
+    }
+
+    @Test
+    void passwordSignupDoesNotVerifyEmail() throws Exception {
+        Account account = newAccount();
+        assertThat(users.findByEmail(account.email()).orElseThrow().isEmailVerified())
+                .isFalse();
     }
 
     @Test
@@ -81,6 +111,6 @@ class AuthApiTest extends IntegrationTest {
     @Test
     void migrationsAreApplied() {
         assertThat(jdbc.queryForList("select version from flyway_schema_history where success", String.class))
-                .contains("1", "2", "3", "4");
+                .contains("1", "2", "3", "4", "5", "6");
     }
 }

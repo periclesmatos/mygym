@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +15,7 @@ import com.appgym.identity.domain.User;
 import com.appgym.identity.domain.UserRepository;
 import com.appgym.shared.error.ForbiddenException;
 import com.appgym.shared.security.JwtService;
+import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,7 @@ class SocialLoginServiceTest {
     @Test
     void linksExistingAccountWithSameVerifiedEmail() {
         User existing = user("ana@x.com");
+        existing.markEmailVerified(Instant.now());
         when(verifier.verify(Provider.APPLE, "tk")).thenReturn(new Identity("a-1", "ana@x.com"));
         when(users.findByAppleSub("a-1")).thenReturn(Optional.empty());
         when(users.findByEmail("ana@x.com")).thenReturn(Optional.of(existing));
@@ -68,6 +71,7 @@ class SocialLoginServiceTest {
         verify(users).save(saved.capture());
         assertThat(saved.getValue().getGoogleSub()).isEqualTo("g-2");
         assertThat(saved.getValue().hasPassword()).isFalse();
+        assertThat(saved.getValue().isEmailVerified()).isTrue();
     }
 
     @Test
@@ -77,6 +81,66 @@ class SocialLoginServiceTest {
         when(users.findByEmail("estranho@x.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.login(Provider.GOOGLE, "tk", null)).isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    void doesNotHandVictimsLoginToAccountThatClaimedTheirEmail() {
+        User attacker = user("vitima@x.com");
+        when(verifier.verify(Provider.GOOGLE, "tk")).thenReturn(new Identity("g-vitima", "vitima@x.com"));
+        when(users.findByGoogleSub("g-vitima")).thenReturn(Optional.empty());
+        when(users.findByEmail("vitima@x.com")).thenReturn(Optional.of(attacker));
+
+        assertThatThrownBy(() -> service.login(Provider.GOOGLE, "tk", null)).isInstanceOf(ForbiddenException.class);
+        assertThat(attacker.getGoogleSub()).isNull();
+        assertThat(attacker.isEmailVerified()).isFalse();
+        verify(users, never()).save(any());
+    }
+
+    @Test
+    void attackerLinkedToOneProviderDoesNotReceiveVictimsOtherProvider() {
+        User attacker = user("vitima@x.com");
+        attacker.setGoogleSub("g-atacante");
+        when(verifier.verify(Provider.APPLE, "tk")).thenReturn(new Identity("a-vitima", "vitima@x.com"));
+        when(users.findByAppleSub("a-vitima")).thenReturn(Optional.empty());
+        when(users.findByEmail("vitima@x.com")).thenReturn(Optional.of(attacker));
+
+        assertThatThrownBy(() -> service.login(Provider.APPLE, "tk", null)).isInstanceOf(ForbiddenException.class);
+        assertThat(attacker.getAppleSub()).isNull();
+    }
+
+    @Test
+    void doesNotReplaceExistingLinkWithSameProvider() {
+        User existing = user("ana@x.com");
+        existing.markEmailVerified(Instant.now());
+        existing.setGoogleSub("g-antigo");
+        when(verifier.verify(Provider.GOOGLE, "tk")).thenReturn(new Identity("g-novo", "ana@x.com"));
+        when(users.findByGoogleSub("g-novo")).thenReturn(Optional.empty());
+        when(users.findByEmail("ana@x.com")).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> service.login(Provider.GOOGLE, "tk", null)).isInstanceOf(ForbiddenException.class);
+        assertThat(existing.getGoogleSub()).isEqualTo("g-antigo");
+    }
+
+    @Test
+    void olderLinkedAccountBecomesVerifiedWhenProviderEmailMatches() {
+        User linked = user("ana@x.com");
+        linked.setGoogleSub("g-1");
+        when(verifier.verify(Provider.GOOGLE, "tk")).thenReturn(new Identity("g-1", "ana@x.com"));
+        when(users.findByGoogleSub("g-1")).thenReturn(Optional.of(linked));
+
+        service.login(Provider.GOOGLE, "tk", null);
+        assertThat(linked.isEmailVerified()).isTrue();
+    }
+
+    @Test
+    void providerDoesNotVerifyADifferentAccountEmail() {
+        User linked = user("trocado@x.com");
+        linked.setGoogleSub("g-1");
+        when(verifier.verify(Provider.GOOGLE, "tk")).thenReturn(new Identity("g-1", "ana@x.com"));
+        when(users.findByGoogleSub("g-1")).thenReturn(Optional.of(linked));
+
+        service.login(Provider.GOOGLE, "tk", null);
+        assertThat(linked.isEmailVerified()).isFalse();
     }
 
     private static User user(String email) {

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { EmailSheet } from '@/features/profile/components/EmailSheet'
 import { PasswordSheet } from '@/features/profile/components/PasswordSheet'
 import { SettingsSheet } from '@/features/profile/components/SettingsSheet'
 import { ageFrom, bmiFrom } from '@/features/profile/domain/body'
@@ -264,12 +263,6 @@ export function ProfilePage() {
         </div>
         <ActionList>
           <Action
-            icon={<Icon name="mail" />}
-            label="Trocar e-mail"
-            hint={profile.email}
-            onClick={() => setSheet('email')}
-          />
-          <Action
             icon={<Icon name="lock" />}
             label={profile.hasPassword ? 'Trocar senha' : 'Definir senha'}
             hint={profile.hasPassword ? undefined : 'Para entrar também com e-mail e senha'}
@@ -298,16 +291,6 @@ export function ProfilePage() {
         </ActionList>
       </Sheet>
 
-      <EmailSheet
-        open={sheet === 'email'}
-        profile={profile}
-        onClose={() => setSheet(null)}
-        onDone={(email) => {
-          setProfile({ ...profile, email })
-          setSheet(null)
-          toast('E-mail atualizado.', 'success')
-        }}
-      />
       <PasswordSheet
         open={sheet === 'password'}
         hasPassword={profile.hasPassword}
