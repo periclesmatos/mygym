@@ -1,5 +1,6 @@
 package com.appgym.ranking;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -78,6 +79,20 @@ class RankingApiTest extends IntegrationTest {
             perform(get("/api/ranking/impact/" + moved), account, null)
                     .andExpect(jsonPath("$.status").value("LATE"));
         }
+    }
+
+    @Test
+    void deletingTheWorkoutTakesTheTrophyBack() throws Exception {
+        Account account = newAccount();
+        long id = strength(account, 5);
+        perform(get("/api/ranking/impact/" + id), account, null)
+                .andExpect(jsonPath("$.trophies[0].name").value("Primeiro Passo"));
+        perform(get("/api/ranking/trophies"), account, null)
+                .andExpect(jsonPath("$.length()").value(36))
+                .andExpect(jsonPath("$[0].achievedOn").isNotEmpty());
+        perform(delete("/api/sessions/" + id), account, null).andExpect(status().isNoContent());
+        perform(get("/api/ranking/trophies"), account, null)
+                .andExpect(jsonPath("$[0].achievedOn").doesNotExist());
     }
 
     @Test

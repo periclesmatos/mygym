@@ -18,6 +18,20 @@ export function SessionImpact({ sessionId, finishedAt, celebrate }) {
           <strong className="rank-name">{data.promotion.label}</strong>
         </section>
       )}
+      {celebrate && data.trophies.length > 0 && (
+        <section className="card trophy-new" aria-live="polite">
+          <span className="muted small">{data.trophies.length === 1 ? 'Troféu novo' : 'Troféus novos'}</span>
+          {data.trophies.map((trophy) => (
+            <div key={trophy.key} className={`trophy-line tier-${trophy.tier}`}>
+              <Icon name="trophy" size={24} filled />
+              <span>
+                <strong>{trophy.name}</strong>
+                <small className="muted">{trophy.description}</small>
+              </span>
+            </div>
+          ))}
+        </section>
+      )}
       <p className={data.status === 'SCORED' ? 'impact scored' : 'impact'}>
         <Icon name="rank" size={18} />
         <span>
