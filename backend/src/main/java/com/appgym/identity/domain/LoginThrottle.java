@@ -12,6 +12,8 @@ import java.util.Map;
  * Limita senhas erradas em janelas de 15 minutos. O limite baixo é por e-mail e origem juntos, para
  * ninguém trancar a conta alheia errando a senha dela de propósito. Os limites altos seguram quem
  * varre muitas contas de uma origem ou uma conta de muitas origens.
+ * O limite por conta não vale para origem onde essa conta já entrou, senão bastaria errar 100
+ * vezes a senha de alguém para deixar o dono de fora.
  *
  * <p>Fica na memória: vale para uma instância e zera quando a API reinicia.
  */
@@ -24,6 +26,12 @@ public final class LoginThrottle {
     private static final int MAX_EMAIL_LENGTH = 255;
 
     private final Clock clock;
+    private final Map<Key, Boolean> knownOrigins = new LinkedHashMap<>() {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Key, Boolean> eldest) {
+            return size() > MAX_KEYS;
+        }
+    };
     private final Map<Key, Window> windows = new LinkedHashMap<>() {
         @Override
         protected boolean removeEldestEntry(Map.Entry<Key, Window> eldest) {
@@ -55,17 +63,19 @@ public final class LoginThrottle {
     /** Senha certa: zera e-mail com origem e devolve a tentativa aos limites largos. */
     public synchronized void succeeded(String email, String origin) {
         String account = shorten(email);
+        knownOrigins.put(new Key(account, origin), true);
         windows.remove(new Key(account, origin));
         windows.computeIfPresent(new Key(null, origin), (key, window) -> window.minusOne());
         windows.computeIfPresent(new Key(account, null), (key, window) -> window.minusOne());
     }
 
-    private static List<Limit> limits(String email, String origin) {
+    private List<Limit> limits(String email, String origin) {
         String account = shorten(email);
-        return List.of(
-                new Limit(new Key(account, origin), PER_ACCOUNT_AND_ORIGIN),
-                new Limit(new Key(null, origin), PER_ORIGIN),
-                new Limit(new Key(account, null), PER_ACCOUNT));
+        Key here = new Key(account, origin);
+        Limit byAccountHere = new Limit(here, PER_ACCOUNT_AND_ORIGIN);
+        Limit byOrigin = new Limit(new Key(null, origin), PER_ORIGIN);
+        if (knownOrigins.containsKey(here)) return List.of(byAccountHere, byOrigin);
+        return List.of(byAccountHere, byOrigin, new Limit(new Key(account, null), PER_ACCOUNT));
     }
 
     private static String shorten(String email) {

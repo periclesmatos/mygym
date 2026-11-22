@@ -43,7 +43,7 @@ export function impactText({ status, points: gained }) {
     case 'SCORED':
       return { title: `+${points(gained)}`, text: 'é o que este treino vale no seu rank' }
     case 'LATE':
-      return { title: 'Não pontua', text: 'só vale treino registrado até 7 dias depois' }
+      return { title: 'Não pontua', text: 'vale registrar até 7 dias depois e adiar o fim em até 1 dia' }
     case 'SHORT':
       return { title: 'Ainda não pontua', text: 'o dia precisa de 5 séries ou 10 min de cardio' }
     case 'EXPIRED':

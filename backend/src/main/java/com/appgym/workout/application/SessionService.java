@@ -120,10 +120,18 @@ public class SessionService {
             if (seconds == null && minutes != null && minutes > 0 && minutes <= MAX_LEGACY_MINUTES) {
                 seconds = minutes * 60;
             }
+            Integer meters = command.distanceMeters();
+            String intensity = command.intensity();
+            // O front novo sempre manda intensidade. Sem ela é aba antiga: não apaga o que não conhece.
+            if (intensity == null) {
+                if (seconds == null) seconds = set.getDurationSeconds();
+                if (meters == null) meters = set.getDistanceMeters();
+                intensity = set.getIntensity();
+            }
             if (command.completed() && seconds == null) {
                 throw new BadRequestException("Informe quantos minutos durou.");
             }
-            set.measureCardio(seconds, command.distanceMeters(), command.intensity());
+            set.measureCardio(seconds, meters, intensity);
         }
         set.setReps(command.reps());
         set.setLoad(Values.scale2(command.load()));

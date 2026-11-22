@@ -86,4 +86,4 @@ Google and Apple buttons appear only when their variables are set:
 
 A Google or Apple sign-in is linked to an existing account with the same e-mail only if that account has already proved it owns the e-mail (`app_user.email_verified_at`) and has no other link to that provider. Signing up with a password doesn't prove it. A social sign-in with the account's own e-mail does.
 
-Wrong passwords are limited per 15 minutes: 10 per e-mail and IP, 50 per IP and 100 per e-mail (`LoginThrottle`). The counters live in memory, so they assume a single API instance and reset on restart.
+Wrong passwords are limited per 15 minutes: 10 per e-mail and IP, 50 per IP and 100 per e-mail (`LoginThrottle`). The per-e-mail limit skips IPs where that account already signed in, so nobody can lock the owner out of their usual place. The counters live in memory, so they assume a single API instance and reset on restart.

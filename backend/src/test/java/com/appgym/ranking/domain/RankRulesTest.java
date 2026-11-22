@@ -86,7 +86,11 @@ class RankRulesTest {
         assertThat(TrainingLog.onTime(activity(end, limit, 5, 0, 0, 0))).isTrue();
         assertThat(TrainingLog.onTime(activity(end, limit.plusSeconds(1), 5, 0, 0, 0)))
                 .isFalse();
-        assertThat(TrainingLog.onTime(activity(end, end.minusSeconds(61), 5, 0, 0, 0)))
+        Instant corrected = end.minus(ScoringRules.FORWARD_LIMIT);
+        assertThat(TrainingLog.onTime(activity(end, end.minusSeconds(600), 5, 0, 0, 0)))
+                .isTrue();
+        assertThat(TrainingLog.onTime(activity(end, corrected, 5, 0, 0, 0))).isTrue();
+        assertThat(TrainingLog.onTime(activity(end, corrected.minusSeconds(1), 5, 0, 0, 0)))
                 .isFalse();
         assertThat(TrainingLog.onTime(activity(end, null, 5, 0, 0, 0))).isTrue();
     }

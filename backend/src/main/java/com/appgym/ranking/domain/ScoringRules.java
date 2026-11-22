@@ -28,7 +28,8 @@ public final class ScoringRules {
     /** Treino retroativo pontua se registrado até este prazo. */
     public static final Duration LATE_LIMIT = Duration.ofDays(7);
 
-    public static final Duration CLOCK_SKEW = Duration.ofMinutes(1);
+    /** Quanto o fim pode ser corrigido para depois de registrado, sem deixar mover treino velho para hoje. */
+    public static final Duration FORWARD_LIMIT = Duration.ofHours(24);
 
     /** Para estimar "cerca de N treinos" de quem ainda não tem média. */
     public static final int TYPICAL_DAY = 80;

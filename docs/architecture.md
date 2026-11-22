@@ -46,7 +46,7 @@ Enforced by `ModularityTest` (Spring Modulith `verify()`), which also writes Pla
 
 The numbers live in `ranking/domain/ScoringRules` and `RankLadder`. Nothing is stored: points, rank, record and trophies come from the history on each read, so deleting a workout undoes everything it gave. Two properties are tested and must hold after any change: **an extra workout never lowers the points** and **points never rise without training**. They depend on evaluating each week only with the days inside the 90-day window.
 
-A day follows `finished_at` in `app.timezone` (default `America/Sao_Paulo`). A workout counts if it was recorded (`recorded_at`) up to 7 days after it ended and wasn't moved to after that.
+A day follows `finished_at` in `app.timezone` (default `America/Sao_Paulo`). A workout counts if it was recorded (`recorded_at`) up to 7 days after it ended and wasn't moved more than 24 hours past that.
 
 ## Layers inside a backend module
 

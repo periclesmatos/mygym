@@ -171,7 +171,9 @@ public class SocialService {
     @Transactional
     public void unblock(Long userId, UUID publicId) {
         PublicUser other = person(userId, publicId);
-        blocks.findByBlockerIdAndBlockedId(userId, other.id()).ifPresent(blocks::delete);
+        Optional<UserBlock> mine = blocks.findByBlockerIdAndBlockedId(userId, other.id());
+        if (mine.isPresent()) blocks.delete(mine.get());
+        else if (blocks.existsBetween(userId, other.id())) throw notFound();
     }
 
     @Transactional(readOnly = true)

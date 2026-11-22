@@ -45,6 +45,17 @@ class LoginThrottleTest {
     }
 
     @Test
+    void attackFromManyOriginsDoesNotLockWhereTheOwnerAlreadySignedIn() {
+        throttle.attempt("ana@x.com", "casa");
+        throttle.succeeded("ana@x.com", "casa");
+        for (int i = 0; i < LoginThrottle.PER_ACCOUNT; i++) throttle.attempt("ana@x.com", "origem-" + i);
+        assertBlocked("ana@x.com", "nova");
+        assertThatCode(() -> throttle.attempt("ana@x.com", "casa")).doesNotThrowAnyException();
+        fail(LoginThrottle.PER_ACCOUNT_AND_ORIGIN - 1, "ana@x.com", "casa");
+        assertBlocked("ana@x.com", "casa");
+    }
+
+    @Test
     void windowExpires() {
         fail(LoginThrottle.PER_ACCOUNT_AND_ORIGIN, "ana@x.com", "ip");
         when(clock.instant()).thenReturn(START.plus(LoginThrottle.WINDOW).minusMillis(1));

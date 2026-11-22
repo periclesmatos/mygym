@@ -83,6 +83,24 @@ class CardioApiTest extends IntegrationTest {
     }
 
     @Test
+    void oldTabDoesNotEraseMeasurements() throws Exception {
+        Account account = newAccount();
+        Map<String, Object> run = Map.of(
+                "name", "Corrida", "plannedSets", 1, "reps", "30 min", "restSeconds", 0, "muscleGroup", "Cardio");
+        JsonNode session =
+                body(perform(post("/api/sessions"), account, Map.of("name", "C", "exercises", List.of(run))));
+        String set = "/api/sessions/" + session.get("id").asLong() + "/sets/"
+                + session.get("exercises").get(0).get("sets").get(0).get("id").asLong();
+        Map<String, Object> measured =
+                Map.of("durationSeconds", 1800, "distanceMeters", 5000, "intensity", "intense", "completed", true);
+        perform(put(set), account, measured).andExpect(status().isOk());
+        perform(put(set), account, Map.of("completed", false))
+                .andExpect(jsonPath("$.exercises[0].sets[0].durationSeconds").value(1800))
+                .andExpect(jsonPath("$.exercises[0].sets[0].distanceMeters").value(5000))
+                .andExpect(jsonPath("$.exercises[0].sets[0].intensity").value("intense"));
+    }
+
+    @Test
     void newActivitiesAreInTheCatalog() throws Exception {
         assertThat(body(perform(get("/api/exercises/catalog"), newAccount(), null))
                         .toString())
