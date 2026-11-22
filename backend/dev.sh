@@ -9,6 +9,17 @@ fix_owner() { chown -R "$OWNER" target 2>/dev/null || true; }
 
 mvn -q -B compile
 touch target/.dev-stamp
+
+# O segredo padrão do application.yml é público (está no repositório): o dev gera o próprio.
+# Fica em target/ (fora do git e da imagem); um mvn clean só obriga a entrar de novo.
+if [ -z "${JWT_SECRET:-}" ]; then
+  SECRET_FILE=target/.dev-jwt-secret
+  if [ ! -s "$SECRET_FILE" ]; then
+    (umask 077; od -An -tx1 -N48 /dev/urandom | tr -d ' \n' > "$SECRET_FILE")
+  fi
+  JWT_SECRET="$(cat "$SECRET_FILE")"
+  export JWT_SECRET
+fi
 fix_owner
 
 (
