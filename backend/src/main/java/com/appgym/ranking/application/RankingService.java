@@ -13,6 +13,7 @@ import com.appgym.ranking.application.dto.OverviewView.Fall;
 import com.appgym.ranking.application.dto.OverviewView.NextBonus;
 import com.appgym.ranking.application.dto.OverviewView.Peak;
 import com.appgym.ranking.application.dto.OverviewView.Protection;
+import com.appgym.ranking.domain.Achievements;
 import com.appgym.ranking.domain.DayScore;
 import com.appgym.ranking.domain.RankLadder;
 import com.appgym.ranking.domain.RankWindow;
@@ -20,7 +21,9 @@ import com.appgym.ranking.domain.RankWindow.Week;
 import com.appgym.ranking.domain.ScoringRules;
 import com.appgym.ranking.domain.Standing;
 import com.appgym.ranking.domain.TrainingLog;
+import com.appgym.ranking.domain.Trophy;
 import com.appgym.shared.error.NotFoundException;
+import com.appgym.workout.LiftSet;
 import com.appgym.workout.SessionActivity;
 import com.appgym.workout.WorkoutApi;
 import java.time.Clock;
@@ -30,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 /** Casos de uso do rank. Nada é gravado: tudo sai do histórico. */
@@ -103,7 +107,22 @@ public class RankingService {
         Standing previous = without.standing();
         int gained = now.points() - previous.points();
         Rank promotion = now.rank().index() > previous.rank().index() ? now.rank() : null;
-        return new ImpactView(status(with, session, gained), gained, promotion);
+        return new ImpactView(status(with, session, gained), gained, promotion, unlocked(userId, with, without));
+    }
+
+    public List<Trophy> trophies(Long userId) {
+        return Achievements.of(log(workouts.activities(List.of(userId))), workouts.lifts(userId));
+    }
+
+    private List<Trophy> unlocked(Long userId, TrainingLog with, TrainingLog without) {
+        List<LiftSet> lifts = workouts.lifts(userId);
+        Set<String> already = Achievements.of(without, lifts).stream()
+                .filter(trophy -> trophy.achieved())
+                .map(trophy -> trophy.key())
+                .collect(Collectors.toSet());
+        return Achievements.of(with, lifts).stream()
+                .filter(trophy -> trophy.achieved() && !already.contains(trophy.key()))
+                .toList();
     }
 
     private static Status status(TrainingLog log, SessionActivity session, int gained) {
