@@ -31,12 +31,14 @@ The first login is `you@appgym.local` / `appgym` unless you change `APP_USER_EMA
 - UI: Vite updates the page as soon as a file is saved.
 - API: `backend/dev.sh` recompiles when something in `backend/src` changes, and Spring DevTools restarts the API in a few seconds.
 - It uses the Postgres already listening on port 5432 (override with `DEV_DATABASE_URL`). If none is running, start one with `docker compose --profile db up -d` first.
+- Ports answer only on this machine (`127.0.0.1`), so other devices can't open it. Don't publish them on every network: the development passwords are public in this repository. On Linux without Docker Desktop, containers can't reach a host port bound to `127.0.0.1`, so point `DEV_DATABASE_URL` to a reachable database.
+- `backend/dev.sh` creates its own `JWT_SECRET` in `backend/target/`, unless one is set.
 - The first start downloads Maven dependencies and runs `npm ci`, which takes a few minutes. Later starts use the cached volumes.
 - After changing `pom.xml` or `package.json`, restart that service: `docker compose restart api-dev` or `docker compose restart web-dev`.
 
 ## One URL for the gym
 
-`docker compose --profile app up --build` builds the React app into the API and serves both on http://localhost:8080.
+`docker compose --profile app up --build` builds the React app into the API and serves both on http://localhost:8080, only on this machine. To use it from a phone, use the deployed app over HTTPS.
 
 For a hosted database, set `DATABASE_URL` to the provider URL (`postgresql://...` or a JDBC URL), plus `APP_USER_EMAIL`, `APP_USER_PASSWORD`, and a `JWT_SECRET` of at least 32 characters.
 
