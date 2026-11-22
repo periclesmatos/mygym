@@ -9,6 +9,7 @@ import com.appgym.identity.application.dto.LoginCommand;
 import com.appgym.identity.application.dto.RegisterCommand;
 import com.appgym.identity.web.dto.AppleLoginRequest;
 import com.appgym.identity.web.dto.GoogleLoginRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,8 +29,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthToken login(@Valid @RequestBody LoginCommand command) {
-        return auth.login(command);
+    public AuthToken login(@Valid @RequestBody LoginCommand command, HttpServletRequest request) {
+        return auth.login(command, request.getRemoteAddr());
     }
 
     @PostMapping("/register")

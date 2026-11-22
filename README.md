@@ -7,7 +7,7 @@ Personal workout log. React talks to a Spring Boot API, and the API stores templ
 - **Rotina**: workouts (A, B, C…) that rotate in order. Finishing one makes the next one current.
 - **Treino**: log each set (kg, reps, optional RIR) with last time's numbers alongside, a rest timer that survives a reload, vibration and a beep when rest ends, and the screen kept awake. Sets and exercises can be added or removed, and the whole workout can be discarded.
 - **Histórico**: list and calendar, with duration, sets and volume. A workout can be repeated or deleted.
-- **Perfil**: name, photo, weight, height, birth date (age and BMI), a summary of all workouts, and changing e-mail or password. Opened from the avatar on Início.
+- **Perfil**: name, photo, weight, height, birth date (age and BMI), a summary of all workouts, and changing the password. Opened from the avatar on Início.
 - **Evolução**: per-exercise chart (estimated 1RM, top load, reps, volume) with every record.
 
 ## Run it locally
@@ -70,7 +70,7 @@ A **modular monolith** with **Clean Architecture** inside each module, ready to 
 
 ## Accounts and sign-in
 
-The first boot on an empty database creates the user from `APP_USER_EMAIL` / `APP_USER_PASSWORD`. Later boots don't touch users, so that e-mail can be changed from Perfil.
+The first boot on an empty database creates the user from `APP_USER_EMAIL` / `APP_USER_PASSWORD`. Later boots don't touch users. Changing an e-mail is turned off until the app can confirm the new address by code.
 
 Sign-up is invite-only. `APP_ALLOWED_EMAILS` holds the e-mails (comma separated) that may create an account with a password, Google or Apple. If it is empty, nobody new can sign up. Each account only sees its own workouts.
 
@@ -79,4 +79,6 @@ Google and Apple buttons appear only when their variables are set:
 - **Google**: in Google Cloud Console, create an OAuth client ID of type *Web application*. Add every origin the app runs on (for example `http://localhost:5173` and the production URL) to *Authorized JavaScript origins*, then set `GOOGLE_CLIENT_ID`.
 - **Apple**: this needs a paid Apple Developer account. Create a *Services ID* with Sign in with Apple enabled, register your domain and return URL, then set `APPLE_CLIENT_ID` (the Services ID) and `APPLE_REDIRECT_URI` (that same return URL). Apple only works over HTTPS, so it can't be tested on localhost.
 
-A Google or Apple sign-in whose verified e-mail matches an existing account is linked to that account.
+A Google or Apple sign-in is linked to an existing account with the same e-mail only if that account has already proved it owns the e-mail (`app_user.email_verified_at`) and has no other link to that provider. Signing up with a password doesn't prove it. A social sign-in with the account's own e-mail does.
+
+Wrong passwords are limited per 15 minutes: 10 per e-mail and IP, 50 per IP and 100 per e-mail (`LoginThrottle`). The counters live in memory, so they assume a single API instance and reset on restart.

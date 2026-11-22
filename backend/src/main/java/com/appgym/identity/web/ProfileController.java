@@ -1,8 +1,6 @@
 package com.appgym.identity.web;
 
 import com.appgym.identity.application.ProfileService;
-import com.appgym.identity.application.dto.AuthToken;
-import com.appgym.identity.application.dto.ChangeEmailCommand;
 import com.appgym.identity.application.dto.ChangePasswordCommand;
 import com.appgym.identity.application.dto.PhotoCommand;
 import com.appgym.identity.application.dto.ProfileView;
@@ -46,11 +44,6 @@ public class ProfileController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePhoto(@AuthenticationPrincipal Long userId) {
         profile.deletePhoto(userId);
-    }
-
-    @PutMapping("/email")
-    public AuthToken email(@AuthenticationPrincipal Long userId, @Valid @RequestBody ChangeEmailCommand command) {
-        return profile.changeEmail(userId, command);
     }
 
     @PutMapping("/password")
