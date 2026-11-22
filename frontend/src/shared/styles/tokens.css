@@ -21,6 +21,15 @@
   --bar: rgba(14, 15, 18, 0.86);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   --focus: 0 0 0 3px rgba(198, 244, 50, 0.45);
+  --rank-frango: #f2c94c;
+  --rank-projeto: #d9905f;
+  --rank-focado: #4cc9c0;
+  --rank-maromba: #7fd858;
+  --rank-casca: #8fa8c8;
+  --rank-brabo: #ff7a3d;
+  --rank-monstro: #b57cff;
+  --rank-mutante: #ff5fb0;
+  --rank-lenda: #ffd84d;
 }
 
 [data-theme='light'] {
@@ -44,6 +53,15 @@
   --bar: rgba(255, 255, 255, 0.9);
   --shadow: 0 8px 24px rgba(20, 22, 26, 0.08);
   --focus: 0 0 0 3px rgba(91, 127, 0, 0.35);
+  --rank-frango: #9a6c00;
+  --rank-projeto: #a4531f;
+  --rank-focado: #0d756e;
+  --rank-maromba: #39781b;
+  --rank-casca: #43607f;
+  --rank-brabo: #c2410c;
+  --rank-monstro: #6d35c4;
+  --rank-mutante: #b5186b;
+  --rank-lenda: #8a6200;
 }
 
 :root {

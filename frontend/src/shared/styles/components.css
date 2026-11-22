@@ -880,3 +880,53 @@ textarea.input {
   box-shadow: var(--focus);
   outline: none;
 }
+
+/* ---------- Brasão ---------- */
+.rank-badge {
+  flex: none;
+}
+.rank-frame {
+  fill: color-mix(in srgb, var(--rank) 20%, var(--surface));
+  stroke: var(--rank);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+.rank-body {
+  fill: var(--rank);
+}
+.rank-cut {
+  fill: var(--surface);
+}
+.rank-mark {
+  fill: var(--surface-3);
+}
+.rank-mark.on {
+  fill: var(--rank);
+}
+.rank-frango {
+  --rank: var(--rank-frango);
+}
+.rank-projeto {
+  --rank: var(--rank-projeto);
+}
+.rank-focado {
+  --rank: var(--rank-focado);
+}
+.rank-maromba {
+  --rank: var(--rank-maromba);
+}
+.rank-casca {
+  --rank: var(--rank-casca);
+}
+.rank-brabo {
+  --rank: var(--rank-brabo);
+}
+.rank-monstro {
+  --rank: var(--rank-monstro);
+}
+.rank-mutante {
+  --rank: var(--rank-mutante);
+}
+.rank-lenda {
+  --rank: var(--rank-lenda);
+}

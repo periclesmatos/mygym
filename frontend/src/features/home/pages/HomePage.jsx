@@ -4,6 +4,7 @@ import { NextCard } from '@/features/home/components/NextCard'
 import { OpenCard } from '@/features/home/components/OpenCard'
 import { WeekStrip } from '@/features/home/components/WeekStrip'
 import { greeting } from '@/features/home/domain/greeting'
+import { RankCard } from '@/features/ranking'
 import { PackSheet, dayLetter, nextInRoutine, orderedDays } from '@/features/routine'
 import { CardioSheet } from '@/features/workout'
 import { useAction } from '@/shared/hooks/useAction'
@@ -113,6 +114,8 @@ export function HomePage() {
       {header}
 
       {open && <OpenCard session={open} onDiscard={() => discard(open)} />}
+
+      <RankCard />
 
       <section className="section">
         <div className="section-head">

@@ -1,0 +1,161 @@
+/* ---------- Rank ---------- */
+.rank-card {
+  display: block;
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--rank) 50%, var(--line));
+  background: linear-gradient(150deg, color-mix(in srgb, var(--rank) 16%, var(--surface)), var(--surface) 62%);
+}
+.rank-summary {
+  display: grid;
+  gap: 8px;
+}
+.rank-summary p {
+  margin: 0;
+}
+.rank-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.rank-title {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.rank-name {
+  color: var(--rank);
+  font-size: 1.5rem;
+  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.rank-points {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.rank-bar {
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.rank-bar span {
+  display: block;
+  height: 100%;
+  background: var(--rank);
+}
+.rank-next {
+  font-weight: 650;
+}
+.rank-alert {
+  color: var(--live);
+  font-weight: 650;
+}
+.rank-peak {
+  margin: 12px 0 0;
+}
+.ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.ladder li {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.ladder li.current {
+  border: 2px solid var(--rank);
+}
+.ladder li.ahead .rank-badge {
+  opacity: 0.6;
+}
+.ladder-name {
+  display: grid;
+  min-width: 0;
+}
+.ladder-name .small {
+  color: var(--rank);
+}
+.ladder-floors {
+  display: grid;
+  justify-items: end;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+.ladder-floors i {
+  display: inline-block;
+  width: 22px;
+  font-style: normal;
+}
+.ladder-floors .on {
+  color: var(--text);
+  font-weight: 700;
+}
+.points-list {
+  list-style: none;
+  margin: 0;
+}
+ul.points-list:not(.card) {
+  padding: 0;
+}
+.points-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+}
+.points-list li + li {
+  border-top: 1px solid var(--line);
+}
+.points-list small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.how summary {
+  cursor: pointer;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+}
+.how > ul:not(.points-list) {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.promotion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  border: 2px solid var(--rank);
+}
+.impact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.impact.scored strong,
+.impact.scored svg {
+  color: var(--accent-text);
+}
