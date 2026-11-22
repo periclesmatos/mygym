@@ -21,6 +21,8 @@ import java.util.Optional;
 @Entity
 @Table(name = "session_exercise")
 public class SessionExercise {
+    private static final String STRENGTH = "strength";
+    private static final String CARDIO = "cardio";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,6 +49,9 @@ public class SessionExercise {
 
     private Integer targetRir;
 
+    @Column(nullable = false, length = 10)
+    private String kind = STRENGTH;
+
     @OneToMany(mappedBy = "exercise", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<WorkoutSet> sets = new ArrayList<>();
@@ -58,8 +63,10 @@ public class SessionExercise {
             String targetReps,
             BigDecimal targetLoad,
             int restSeconds,
-            Integer targetRir) {
+            Integer targetRir,
+            boolean cardio) {
         SessionExercise exercise = new SessionExercise();
+        if (cardio) exercise.kind = CARDIO;
         exercise.name = name;
         exercise.targetReps = targetReps;
         exercise.targetLoad = targetLoad;
@@ -72,6 +79,10 @@ public class SessionExercise {
             exercise.addSet(set);
         }
         return exercise;
+    }
+
+    public boolean isCardio() {
+        return CARDIO.equals(kind);
     }
 
     /** Série nova no fim, repetindo carga e RIR da anterior (ou o alvo, se for a primeira). */

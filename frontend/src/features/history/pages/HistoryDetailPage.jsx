@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
+import { CARDIO_GROUP, formatCardio, intensityLabel } from '@/shared/lib/cardio'
 import { formatDay, formatDuration, formatTime } from '@/shared/lib/date'
 import { plural } from '@/shared/lib/text'
-import { bestSet, formatLoad, formatSet, formatVolume, sessionTotals } from '@/shared/lib/training'
+import { bestSet, formatEntry, formatLoad, formatVolume, sessionTotals } from '@/shared/lib/training'
 import { Icon, IconButton } from '@/shared/ui/Icon'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { PeriodSheet } from '@/shared/ui/PeriodSheet'
@@ -44,7 +45,7 @@ export function HistoryDetailPage() {
     )
   if (!session.finishedAt) return <Navigate to={`/treino/${session.id}`} replace />
 
-  const { done, volume, duration } = sessionTotals(session)
+  const { done, volume, duration, cardio } = sessionTotals(session)
 
   async function repeat() {
     setMenu(false)
@@ -57,7 +58,8 @@ export function HistoryDetailPage() {
             name: exercise.name,
             plannedSets: Math.min(20, exercise.sets.length),
             reps: exercise.targetReps,
-            load: bestSet(exercise)?.load || exercise.targetLoad,
+            load: exercise.cardio ? null : bestSet(exercise)?.load || exercise.targetLoad,
+            muscleGroup: exercise.cardio ? CARDIO_GROUP : null,
             restSeconds: exercise.restSeconds,
             rir: exercise.targetRir
           }))
@@ -111,7 +113,7 @@ export function HistoryDetailPage() {
           <span className="hero-icon">
             <Icon name="trophy" size={26} />
           </span>
-          <h2>Treino concluído!</h2>
+          <h2>{session.backdated ? 'Treino registrado!' : 'Treino concluído!'}</h2>
           {celebration.highlights?.length > 0 ? (
             <>
               <p className="muted">
@@ -137,7 +139,11 @@ export function HistoryDetailPage() {
       <section className="stats">
         <StatCard icon="timer" value={duration ? formatDuration(duration) : '—'} label="duração" />
         <StatCard icon="check" value={done} label={done === 1 ? 'série feita' : 'séries feitas'} />
-        <StatCard icon="dumbbell" value={formatVolume(volume) || '—'} label="volume" />
+        {cardio > 0 && !volume ? (
+          <StatCard icon="run" value={formatCardio(cardio)} label="de cardio" />
+        ) : (
+          <StatCard icon="dumbbell" value={formatVolume(volume) || '—'} label="volume" />
+        )}
       </section>
 
       {session.exercises.map((exercise) => {
@@ -148,7 +154,8 @@ export function HistoryDetailPage() {
               <div>
                 <h2>{exercise.name}</h2>
                 <p className="muted small">
-                  Meta {exercise.targetReps} reps
+                  Meta {exercise.targetReps}
+                  {exercise.cardio ? '' : ' reps'}
                   {formatLoad(exercise.targetLoad) ? ` · ${formatLoad(exercise.targetLoad)}` : ''}
                   {exercise.targetRir != null ? ` · RIR ${exercise.targetRir}` : ''}
                 </p>
@@ -169,7 +176,10 @@ export function HistoryDetailPage() {
                 {exercise.sets.map((set) => (
                   <li key={set.id} className={set.completedAt ? '' : 'skipped'}>
                     <span className="set-num static">{set.position}</span>
-                    <span className="tabular">{set.completedAt ? formatSet(set.load, set.reps) : 'não feita'}</span>
+                    <span className="tabular">{set.completedAt ? formatEntry(set) : 'não feita'}</span>
+                    {set.completedAt && exercise.cardio && (
+                      <span className="muted small">{intensityLabel(set.intensity)}</span>
+                    )}
                     {set.completedAt && set.rir != null && <span className="muted small">RIR {set.rir}</span>}
                   </li>
                 ))}

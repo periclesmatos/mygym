@@ -27,10 +27,11 @@ public final class ExerciseStats {
 
     /** Desempenho das séries concluídas com reps; vazio se não houver nenhuma. */
     public static Optional<Performance> performance(CompletedExercise exercise) {
+        if (exercise.cardio()) return cardio(exercise);
         List<SetDone> sets = exercise.sets().stream()
                 .filter(set -> set.completed() && set.reps() != null && set.reps() > 0)
                 .sorted(Comparator.comparingInt(set -> set.position()))
-                .map(set -> new SetDone(set.position(), set.reps(), set.load()))
+                .map(set -> new SetDone(set.position(), set.reps(), set.load(), null, null))
                 .toList();
         if (sets.isEmpty()) return Optional.empty();
 
@@ -60,6 +61,35 @@ public final class ExerciseStats {
                 topLoad,
                 topReps,
                 volume.setScale(2, RoundingMode.HALF_UP),
-                estimatedMax == null ? null : estimatedMax.setScale(1, RoundingMode.HALF_UP)));
+                estimatedMax == null ? null : estimatedMax.setScale(1, RoundingMode.HALF_UP),
+                false,
+                0,
+                0));
+    }
+
+    /** Cardio não tem carga, volume nem 1RM: soma tempo e distância. */
+    private static Optional<Performance> cardio(CompletedExercise exercise) {
+        List<SetDone> sets = exercise.sets().stream()
+                .filter(set -> set.completed() && set.durationSeconds() != null)
+                .sorted(Comparator.comparingInt(set -> set.position()))
+                .map(set -> new SetDone(set.position(), null, null, set.durationSeconds(), set.distanceMeters()))
+                .toList();
+        if (sets.isEmpty()) return Optional.empty();
+        long seconds = sets.stream().mapToLong(set -> set.durationSeconds()).sum();
+        long meters = sets.stream()
+                .mapToLong(set -> set.distanceMeters() == null ? 0 : set.distanceMeters())
+                .sum();
+        return Optional.of(new Performance(
+                exercise.sessionId(),
+                exercise.sessionName(),
+                exercise.finishedAt(),
+                sets,
+                null,
+                null,
+                BigDecimal.ZERO,
+                null,
+                true,
+                seconds,
+                meters));
     }
 }

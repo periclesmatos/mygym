@@ -18,6 +18,9 @@ public interface SessionRepository {
     /** Treino do usuário com os exercícios. */
     Optional<Session> findDetailed(Long id, Long userId);
 
+    /** Treino criado por um envio já recebido. */
+    Optional<Session> findByUserIdAndClientKey(Long userId, String clientKey);
+
     /** Exercícios de treinos concluídos com estes nomes (chaves), do mais recente para o mais antigo. */
     List<SessionExercise> findFinishedExercises(Long userId, Collection<String> nameKeys);
 

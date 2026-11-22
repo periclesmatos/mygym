@@ -36,6 +36,33 @@ public class WorkoutSet {
 
     private Instant completedAt;
 
+    private Integer durationSeconds;
+
+    private Integer distanceMeters;
+
+    /** light, moderate ou intense; nulo conta como leve. */
+    @Column(length = 10)
+    private String intensity;
+
+    /** Medidas de um trecho de cardio. */
+    public void measureCardio(Integer durationSeconds, Integer distanceMeters, String intensity) {
+        this.durationSeconds = durationSeconds;
+        this.distanceMeters = distanceMeters;
+        this.intensity = intensity;
+    }
+
+    public Integer getDurationSeconds() {
+        return durationSeconds;
+    }
+
+    public Integer getDistanceMeters() {
+        return distanceMeters;
+    }
+
+    public String getIntensity() {
+        return intensity;
+    }
+
     public boolean isCompleted() {
         return completedAt != null;
     }
@@ -54,6 +81,10 @@ public class WorkoutSet {
 
     public Long getId() {
         return id;
+    }
+
+    public SessionExercise getExercise() {
+        return exercise;
     }
 
     public void setExercise(SessionExercise exercise) {

@@ -7,5 +7,5 @@ import java.util.List;
 public record TemplatePlan(Long id, String name, List<PlannedExercise> exercises) {
 
     public record PlannedExercise(
-            String name, int plannedSets, String reps, BigDecimal load, int restSeconds, Integer rir) {}
+            String name, int plannedSets, String reps, BigDecimal load, int restSeconds, Integer rir, boolean cardio) {}
 }

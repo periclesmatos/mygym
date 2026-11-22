@@ -12,6 +12,7 @@ import { useAction } from '@/shared/hooks/useAction'
 import { useNow } from '@/shared/hooks/useNow'
 import { useWakeLock } from '@/shared/hooks/useWakeLock'
 import { isLive } from '@/shared/lib/activity'
+import { targetMinutes } from '@/shared/lib/cardio'
 import { formatClock, formatDay, formatTime } from '@/shared/lib/date'
 import { vibrate } from '@/shared/lib/device'
 import { numberOrNull } from '@/shared/lib/number'
@@ -78,17 +79,24 @@ export function WorkoutPage() {
       const beforeDraft = before ? draftsRef.current[before.id] : null
       const previous = previousSet(last, exercise, set)
       const fill = {}
-      if (draft.reps === '') {
+      if (exercise.cardio) {
+        if (!draft.minutes) {
+          const seconds = previous?.durationSeconds
+          const minutes = seconds ? Math.round(seconds / 60) : targetMinutes(exercise.targetReps)
+          fill.minutes = beforeDraft?.minutes || (minutes ? String(minutes) : '')
+        }
+      } else if (draft.reps === '') {
         fill.reps =
           beforeDraft?.reps || (previous?.reps != null ? String(previous.reps) : firstReps(exercise.targetReps))
       }
-      if (draft.load === '') {
+      if (!exercise.cardio && draft.load === '') {
         const load = beforeDraft?.load || (previous?.load != null ? String(Number(previous.load)) : '')
         if (load) fill.load = load
       }
       if (Object.keys(fill).length) workout.setDraft(set.id, fill)
-      if (numberOrNull(draftsRef.current[set.id].reps) == null) {
-        toast('Informe quantas repetições você fez.', 'error')
+      const value = draftsRef.current[set.id][exercise.cardio ? 'minutes' : 'reps']
+      if (numberOrNull(value) == null) {
+        toast(exercise.cardio ? 'Informe quantos minutos durou.' : 'Informe quantas repetições você fez.', 'error')
         return
       }
       if (live) prime()
@@ -221,9 +229,10 @@ export function WorkoutPage() {
         const sameStart = !chosen || new Date(chosen.startedAt).getTime() === new Date(before.startedAt).getTime()
         navigate(`/historico/${updated.id}`, {
           replace: true,
-          state: before.backdated
-            ? null
-            : { justFinished: true, highlights: sameStart ? highlights(updated, last) : [] }
+          state: {
+            justFinished: true,
+            highlights: !before.backdated && sameStart ? highlights(updated, last) : []
+          }
         })
       },
       () => {
@@ -349,7 +358,11 @@ export function WorkoutPage() {
       <Sheet open={!!exerciseMenu} onClose={() => setExerciseMenu(null)} title={exerciseMenu?.name}>
         {exerciseMenu && (
           <ActionList>
-            <Action icon={<Icon name="plus" />} label="Adicionar série" onClick={() => addSet(exerciseMenu)} />
+            <Action
+              icon={<Icon name="plus" />}
+              label={exerciseMenu.cardio ? 'Adicionar trecho' : 'Adicionar série'}
+              onClick={() => addSet(exerciseMenu)}
+            />
             <Action
               icon={<Icon name="chart" />}
               label="Ver evolução"
@@ -368,22 +381,28 @@ export function WorkoutPage() {
       <Sheet
         open={!!menuSet}
         onClose={() => setSetSheet(null)}
-        title={menuSet ? `${setSheet.exercise.name} · série ${menuSet.position}` : ''}
+        title={
+          menuSet
+            ? `${setSheet.exercise.name} · ${setSheet.exercise.cardio ? 'trecho' : 'série'} ${menuSet.position}`
+            : ''
+        }
       >
         {menuSet && (
           <div className="stack">
-            <Stepper
-              label="RIR (repetições que ainda sobravam)"
-              value={drafts[menuSet.id]?.rir ?? ''}
-              onChange={(value) => workout.changeDraft(menuSet.id, 'rir', value)}
-              min={0}
-              max={10}
-              inputMode="numeric"
-              placeholder="—"
-              allowEmpty
-            />
+            {!setSheet.exercise.cardio && (
+              <Stepper
+                label="RIR (repetições que ainda sobravam)"
+                value={drafts[menuSet.id]?.rir ?? ''}
+                onChange={(value) => workout.changeDraft(menuSet.id, 'rir', value)}
+                min={0}
+                max={10}
+                inputMode="numeric"
+                placeholder="—"
+                allowEmpty
+              />
+            )}
             <ActionList>
-              <Action icon={<Icon name="trash" />} label="Remover série" danger onClick={() => removeSet(menuSet)} />
+              <Action icon={<Icon name="trash" />} label="Remover" danger onClick={() => removeSet(menuSet)} />
             </ActionList>
           </div>
         )}

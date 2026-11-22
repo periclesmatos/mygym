@@ -15,4 +15,5 @@ public record SessionSummaryView(
         int completedSets,
         int totalSets,
         BigDecimal volume,
-        Long durationSeconds) {}
+        Long durationSeconds,
+        long cardioSeconds) {}

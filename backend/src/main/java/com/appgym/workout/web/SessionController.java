@@ -4,6 +4,7 @@ import com.appgym.workout.application.SessionService;
 import com.appgym.workout.application.dto.ChangePeriodCommand;
 import com.appgym.workout.application.dto.ExerciseInput;
 import com.appgym.workout.application.dto.FinishSessionCommand;
+import com.appgym.workout.application.dto.LogCardioCommand;
 import com.appgym.workout.application.dto.SessionSummaryView;
 import com.appgym.workout.application.dto.SessionView;
 import com.appgym.workout.application.dto.StartSessionCommand;
@@ -41,6 +42,12 @@ public class SessionController {
     @ResponseStatus(HttpStatus.CREATED)
     public SessionView start(@AuthenticationPrincipal Long userId, @Valid @RequestBody StartSessionCommand command) {
         return sessions.start(userId, command);
+    }
+
+    @PostMapping("/cardio")
+    @ResponseStatus(HttpStatus.CREATED)
+    public SessionView logCardio(@AuthenticationPrincipal Long userId, @Valid @RequestBody LogCardioCommand command) {
+        return sessions.logCardio(userId, command);
     }
 
     @GetMapping("/{id}")

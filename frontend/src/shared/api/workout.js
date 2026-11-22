@@ -7,6 +7,7 @@ export const sessionsApi = {
   list: (status) => request(`/api/sessions?status=${status}`),
   get: (id) => request(`/api/sessions/${id}`),
   create: (body) => request('/api/sessions', { method: 'POST', body }),
+  logCardio: (body) => request('/api/sessions/cardio', { method: 'POST', body }),
   remove: (id) => request(`/api/sessions/${id}`, { method: 'DELETE' }),
   /** Sem `period` encerra agora. */
   finish: (id, period) => request(`/api/sessions/${id}/finish`, { method: 'POST', body: period }),

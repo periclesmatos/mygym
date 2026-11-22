@@ -1,3 +1,4 @@
+import { CARDIO_GROUP, isCardio, targetMinutes } from '@/shared/lib/cardio'
 import { formatRest } from '@/shared/lib/date'
 import { numberOrNull } from '@/shared/lib/number'
 import { formatLoad } from '@/shared/lib/training'
@@ -52,6 +53,8 @@ export function validateExercise(exercise) {
   const sets = Number(exercise.plannedSets)
   if (!Number.isInteger(sets) || sets < 1 || sets > 20) return 'Use de 1 a 20 séries.'
   if (!String(exercise.reps).trim()) return 'Informe as repetições, como 8-12.'
+  if (exercise.muscleGroup === CARDIO_GROUP && /min/i.test(exercise.reps) && !targetMinutes(exercise.reps))
+    return 'Informe a duração, como 20 min.'
   if (String(exercise.reps).trim().length > 20) return 'Repetições deve ser curto, como 8-12.'
   const load = numberOrNull(exercise.load)
   if (exercise.load !== '' && (load == null || load < 0 || load > 9999)) return 'Carga inválida.'
@@ -64,6 +67,9 @@ export function validateExercise(exercise) {
 }
 
 export function exerciseSummary(exercise) {
+  if (isCardio(exercise)) {
+    return Number(exercise.plannedSets) > 1 ? `${exercise.plannedSets} × ${exercise.reps}` : exercise.reps
+  }
   const load = formatLoad(numberOrNull(exercise.load))
   const parts = [`${exercise.plannedSets} × ${exercise.reps}`]
   if (load) parts.push(load)

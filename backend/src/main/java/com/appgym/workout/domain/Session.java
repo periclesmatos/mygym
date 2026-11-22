@@ -50,6 +50,10 @@ public class Session {
     @Column(nullable = false)
     private boolean backdated;
 
+    /** Chave do envio no cardio rápido, para repetir o envio não duplicar o treino. */
+    @Column(length = 40)
+    private String clientKey;
+
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<SessionExercise> exercises = new ArrayList<>();
@@ -138,7 +142,28 @@ public class Session {
 
     /** Soma de carga x reps das séries concluídas. */
     public BigDecimal volume() {
-        return allSets().map(set -> set.volume()).reduce(BigDecimal.ZERO, (total, volume) -> total.add(volume));
+        return exercises.stream()
+                .filter(exercise -> !exercise.isCardio())
+                .flatMap(exercise -> exercise.getSets().stream())
+                .map(set -> set.volume())
+                .reduce(BigDecimal.ZERO, (total, volume) -> total.add(volume));
+    }
+
+    /** Segundos de cardio concluídos. */
+    public long cardioSeconds() {
+        return exercises.stream()
+                .filter(exercise -> exercise.isCardio())
+                .flatMap(exercise -> exercise.getSets().stream())
+                .filter(set -> set.isCompleted() && set.getDurationSeconds() != null)
+                .mapToLong(set -> set.getDurationSeconds())
+                .sum();
+    }
+
+    /** Registra de uma vez uma atividade que já terminou. */
+    public void recordFinished(Instant end, int durationSeconds, String clientKey, Instant now) {
+        changePeriod(end.minusSeconds(durationSeconds), end, now);
+        backdated = true;
+        this.clientKey = clientKey;
     }
 
     /** Duração em segundos, só para treino concluído. */
