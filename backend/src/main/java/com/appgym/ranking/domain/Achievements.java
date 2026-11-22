@@ -204,10 +204,10 @@ public final class Achievements {
     private void ranks() {
         List<TrainingLog.Reached> climb = log.climb();
         int points = climb.isEmpty() ? 0 : RankWindow.points(log.days(), log.today());
-        rank(1, "projeto", "Saiu do Galinheiro", climb, points);
-        rank(2, "casca", "Casca Formada", climb, points);
+        rank(1, "beta", "Saiu do Galinheiro", climb, points);
+        rank(2, "sigma", "Mentalidade Sigma", climb, points);
         rank(3, "monstro", "Virou Monstro", climb, points);
-        rank(4, "lenda", "Virou Lenda", climb, points);
+        rank(4, "goat", "Virou GOAT", climb, points);
     }
 
     private void rank(int tier, String key, String name, List<TrainingLog.Reached> climb, int points) {

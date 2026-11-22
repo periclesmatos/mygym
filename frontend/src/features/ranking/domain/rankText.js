@@ -7,14 +7,21 @@ export function points(value) {
 
 export function nextLine(overview) {
   if (!overview.next) return 'Topo da escada. Agora é manter.'
-  const gap = `Faltam ${formatNumber(overview.pointsToNext, 0)} para ${overview.next.label}`
-  return `${gap}, cerca de ${plural(overview.workoutsToNext, 'treino', 'treinos')}`
+  // Espaço não separável: "Brabo I" não deixa o I sozinho na linha.
+  return `Faltam ${formatNumber(overview.pointsToNext, 0)} para ${overview.next.label.replace(/ /g, '\u00a0')}`
 }
 
-export function todayLine({ today, nextBonus }) {
-  const now = `Hoje +${today.total}`
-  if (!nextBonus) return now
-  return `${now} · mais ${plural(nextBonus.days, 'dia', 'dias')} nesta semana = +${nextBonus.points} de bônus`
+export function effortLine(overview) {
+  return overview.next ? `Cerca de ${plural(overview.workoutsToNext, 'treino', 'treinos')}` : ''
+}
+
+export function todayLine({ today }) {
+  return `Hoje +${today.total}`
+}
+
+export function bonusLine({ nextBonus }) {
+  if (!nextBonus) return ''
+  return `Mais ${plural(nextBonus.days, 'dia', 'dias')} na semana: +${nextBonus.points} de bônus`
 }
 
 /** O aviso mais urgente: proteção, queda próxima ou o que sai amanhã. */

@@ -58,7 +58,7 @@ class RankRulesTest {
                 assertThat(RankLadder.of(step.floor() - 1).index()).isEqualTo(step.index() - 1);
             }
         }
-        assertThat(RankLadder.of(3310).label()).isEqualTo("Casca Grossa II");
+        assertThat(RankLadder.of(3310).label()).isEqualTo("Sigma II");
     }
 
     @Test
@@ -118,13 +118,13 @@ class RankRulesTest {
 
     @Test
     void rhythmsHoldTheirRanks() {
-        assertThat(sustained(Set.of(1), 84)).containsExactly("Projeto III");
-        assertThat(sustained(Set.of(1, 5), 84)).containsExactly("Maromba I");
-        assertThat(sustained(Set.of(1, 3, 5), 84)).containsExactly("Casca Grossa III");
+        assertThat(sustained(Set.of(1), 84)).containsExactly("Beta III");
+        assertThat(sustained(Set.of(1, 5), 84)).containsExactly("Shapeado I");
+        assertThat(sustained(Set.of(1, 3, 5), 84)).containsExactly("Sigma III");
         assertThat(sustained(Set.of(1, 2, 3, 5), 84)).containsExactly("Monstro I");
-        assertThat(sustained(Set.of(1, 2, 3, 5, 6), 84)).containsExactly("Mutante");
-        assertThat(sustained(Set.of(1, 2, 3, 5, 6), 100)).containsExactly("Lenda");
-        assertThat(sustained(Set.of(1, 2, 3, 4, 5, 6), 90)).containsExactly("Lenda");
+        assertThat(sustained(Set.of(1, 2, 3, 5, 6), 84)).containsExactly("Fora da Jaula");
+        assertThat(sustained(Set.of(1, 2, 3, 5, 6), 100)).containsExactly("GOAT");
+        assertThat(sustained(Set.of(1, 2, 3, 4, 5, 6), 90)).containsExactly("GOAT");
     }
 
     @Test

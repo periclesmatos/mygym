@@ -15,14 +15,14 @@ public final class RankLadder {
     private static List<Rank> build() {
         List<Rank> steps = new ArrayList<>();
         add(steps, "frango", "Frango", 0, 150, 300);
-        add(steps, "projeto", "Projeto", 450, 670, 880);
-        add(steps, "focado", "Focado", 1100, 1370, 1630);
-        add(steps, "maromba", "Maromba", 1900, 2200, 2500);
-        add(steps, "casca", "Casca Grossa", 2800, 3130, 3470);
+        add(steps, "beta", "Beta", 450, 670, 880);
+        add(steps, "cria", "Cria", 1100, 1370, 1630);
+        add(steps, "shapeado", "Shapeado", 1900, 2200, 2500);
+        add(steps, "sigma", "Sigma", 2800, 3130, 3470);
         add(steps, "brabo", "Brabo", 3800, 4170, 4530);
         add(steps, "monstro", "Monstro", 4900, 5330, 5770);
-        add(steps, "mutante", "Mutante", 6200);
-        add(steps, "lenda", "Lenda", 7300);
+        add(steps, "jaula", "Fora da Jaula", 6200);
+        add(steps, "goat", "GOAT", 7300);
         return List.copyOf(steps);
     }
 

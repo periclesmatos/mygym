@@ -1,8 +1,8 @@
-import { nextLine, points, todayLine, warning } from '@/features/ranking/domain/rankText'
+import { bonusLine, effortLine, nextLine, points, todayLine, warning } from '@/features/ranking/domain/rankText'
 import { RankBadge } from '@/shared/ui/RankBadge'
 
 /** Brasão, pontos, barra e o que falta para o próximo. */
-export function RankSummary({ overview, size = 72 }) {
+export function RankSummary({ overview, size = 64 }) {
   const { rank } = overview
   const alert = warning(overview)
   return (
@@ -18,8 +18,11 @@ export function RankSummary({ overview, size = 72 }) {
       <div className="rank-bar" aria-hidden="true">
         <span style={{ width: `${Math.min(1, overview.progress) * 100}%` }} />
       </div>
-      <p className="rank-next">{nextLine(overview)}</p>
-      <p className="muted small">{todayLine(overview)}</p>
+      <div className="rank-lines">
+        <p className="rank-next">{nextLine(overview)}</p>
+        <p className="muted small">{[effortLine(overview), todayLine(overview)].filter(Boolean).join(' · ')}</p>
+        {bonusLine(overview) && <p className="muted small">{bonusLine(overview)}</p>}
+      </div>
       {alert && <p className={alert.urgent ? 'rank-alert small' : 'muted small'}>{alert.text}</p>}
     </div>
   )

@@ -56,7 +56,7 @@ class AchievementsTest {
         assertThat(result.get("records-1").achievedOn()).isEqualTo(MONDAY.plusDays(7));
         assertThat(result.get("cardio-1").achievedOn()).isEqualTo(MONDAY.plusDays(7));
         assertThat(result.get("distance-1").achieved()).isTrue();
-        assertThat(result.get("rank-projeto").achieved()).isTrue();
+        assertThat(result.get("rank-beta").achieved()).isTrue();
     }
 
     @Test

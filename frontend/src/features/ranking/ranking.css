@@ -1,13 +1,14 @@
 /* ---------- Rank ---------- */
 .rank-card {
   display: block;
+  padding: 20px;
   color: var(--text);
   border-color: color-mix(in srgb, var(--rank) 50%, var(--line));
   background: linear-gradient(150deg, color-mix(in srgb, var(--rank) 16%, var(--surface)), var(--surface) 62%);
 }
 .rank-summary {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 .rank-summary p {
   margin: 0;
@@ -19,12 +20,13 @@
 }
 .rank-title {
   display: grid;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
 }
 .rank-name {
   color: var(--rank);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
+  text-wrap: balance;
   line-height: 1.15;
   text-transform: uppercase;
   letter-spacing: 0.01em;
@@ -46,63 +48,123 @@
 }
 .rank-next {
   font-weight: 650;
+  text-wrap: balance;
+}
+.rank-lines {
+  display: grid;
+  gap: 4px;
 }
 .rank-alert {
   color: var(--live);
   font-weight: 650;
 }
 .rank-peak {
-  margin: 12px 0 0;
+  margin: 16px 0 0;
 }
 .ladder {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: var(--space-cards);
 }
-.ladder li {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
+.tier {
+  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  gap: 14px;
+  padding: 16px 14px;
+  border: 1px solid color-mix(in srgb, var(--rank) 28%, var(--line));
+  border-radius: var(--radius);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--rank) 12%, var(--surface)), var(--surface) 55%);
 }
-.ladder li.current {
-  border: 2px solid var(--rank);
+.tier.current {
+  border-color: var(--rank);
+  box-shadow: 0 0 0 1px var(--rank);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--rank) 30%, var(--surface)), var(--surface) 90%);
 }
-.ladder li.ahead .rank-badge {
-  opacity: 0.6;
-}
-.ladder-name {
-  display: grid;
+.tier-main {
+  flex: 1;
   min-width: 0;
+  display: grid;
+  gap: 10px;
 }
-.ladder-name .small {
+.tier-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 8px;
+}
+.tier-name {
+  color: var(--rank);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.tier-here {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--rank);
+  color: var(--bg);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.tier-done {
+  display: inline-flex;
   color: var(--rank);
 }
-.ladder-floors {
-  display: grid;
-  justify-items: end;
+.tier-missing {
   color: var(--muted);
   font-size: 0.75rem;
-  line-height: 1.35;
 }
-.ladder-floors i {
-  display: inline-block;
-  width: 22px;
-  font-style: normal;
+.tier-steps {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
 }
-.ladder-floors .on {
+.tier-step {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.tier-track {
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.tier-track > span {
+  display: block;
+  height: 100%;
+  background: var(--rank);
+}
+.tier-step.active .tier-track {
+  outline: 1px solid var(--rank);
+  outline-offset: 2px;
+}
+.tier-floor {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 5px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.tier-floor b {
+  color: var(--text);
+}
+.tier-step.active .tier-floor {
   color: var(--text);
   font-weight: 700;
 }
 .points-list {
   list-style: none;
   margin: 0;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 ul.points-list:not(.card) {
   padding: 0;
@@ -112,13 +174,14 @@ ul.points-list:not(.card) {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 9px 0;
+  padding: 14px 0;
 }
 .points-list li + li {
   border-top: 1px solid var(--line);
 }
 .points-list small {
   display: block;
+  margin-top: 4px;
   color: var(--muted);
   font-size: 0.76rem;
 }
@@ -149,7 +212,7 @@ ul.points-list:not(.card) {
   align-items: center;
   gap: 8px;
   margin: 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: var(--radius-sm);
   background: var(--surface-2);
   color: var(--muted);
@@ -178,16 +241,16 @@ ul.points-list:not(.card) {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--space-cards);
 }
 .trophy {
   --rank: var(--muted);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
-  padding: 14px 10px;
+  padding: 18px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface);
@@ -221,26 +284,26 @@ ul.points-list:not(.card) {
   font-size: 0.74rem;
 }
 .tier-1 {
-  --rank: var(--rank-projeto);
+  --rank: var(--rank-beta);
 }
 .tier-2 {
-  --rank: var(--rank-casca);
+  --rank: var(--rank-sigma);
 }
 .tier-3 {
   --rank: var(--rank-frango);
 }
 .tier-4 {
-  --rank: var(--rank-focado);
+  --rank: var(--rank-cria);
 }
 .tier-5 {
   --rank: var(--rank-monstro);
 }
 .tier-6 {
-  --rank: var(--rank-mutante);
+  --rank: var(--rank-jaula);
 }
 .trophy-new {
   display: grid;
-  gap: 10px;
+  gap: 14px;
 }
 .trophy-line {
   display: flex;

@@ -8,7 +8,7 @@ Personal workout log. React talks to a Spring Boot API, and the API stores templ
 - **Treino**: log each set (kg, reps, optional RIR) with last time's numbers alongside, a rest timer that survives a reload, vibration and a beep when rest ends, and the screen kept awake. Sets and exercises can be added or removed, and the whole workout can be discarded.
 - **Histórico**: list and calendar, with duration, sets and volume. A workout can be repeated or deleted.
 - **Perfil**: name, photo, weight, height, birth date (age and BMI), a summary of all workouts, and changing the password. Opened from the avatar on Início.
-- **Rank**: points from the last 90 days (consistency, not load), 9 ranks from Frango to Lenda, 36 trophies and the friends board. The card on Início shows what is missing for the next rank.
+- **Rank**: points from the last 90 days (consistency, not load), 9 ranks (Frango, Beta, Cria, Shapeado, Sigma, Brabo, Monstro, Fora da Jaula, GOAT), 36 trophies and the friends board. The card on Início shows what is missing for the next rank.
 - **Cardio**: minutes, distance and intensity, inside a workout or logged directly from Início.
 - **Amigos**: find by @username, verified e-mail or opt-in phone. A friend sees rank and a summary, never loads, measurements, e-mail or phone.
 - **Evolução**: per-exercise chart (estimated 1RM, top load, reps, volume) with every record.
