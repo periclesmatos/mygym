@@ -1,17 +1,18 @@
 package com.appgym.identity.application;
 
-import com.appgym.identity.application.dto.AuthToken;
-import com.appgym.identity.application.dto.ChangeEmailCommand;
 import com.appgym.identity.application.dto.ChangePasswordCommand;
+import com.appgym.identity.application.dto.DiscoveryCommand;
 import com.appgym.identity.application.dto.PhotoCommand;
 import com.appgym.identity.application.dto.ProfileView;
 import com.appgym.identity.application.dto.UpdateProfileCommand;
-import com.appgym.identity.domain.Emails;
+import com.appgym.identity.application.dto.UsernameCommand;
+import com.appgym.identity.domain.Phones;
 import com.appgym.identity.domain.PhotoCodec;
 import com.appgym.identity.domain.User;
 import com.appgym.identity.domain.UserPhoto;
 import com.appgym.identity.domain.UserPhotoRepository;
 import com.appgym.identity.domain.UserRepository;
+import com.appgym.identity.domain.Usernames;
 import com.appgym.shared.error.BadRequestException;
 import com.appgym.shared.error.UnauthorizedException;
 import com.appgym.shared.util.Values;
@@ -19,20 +20,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Dados do perfil, foto, troca de e-mail e de senha do próprio usuário. */
+/** Dados do perfil, foto e troca de senha do próprio usuário. */
 @Service
 public class ProfileService {
     private final UserRepository users;
     private final UserPhotoRepository photos;
     private final PasswordEncoder encoder;
-    private final TokenIssuer tokens;
 
-    public ProfileService(
-            UserRepository users, UserPhotoRepository photos, PasswordEncoder encoder, TokenIssuer tokens) {
+    public ProfileService(UserRepository users, UserPhotoRepository photos, PasswordEncoder encoder) {
         this.users = users;
         this.photos = photos;
         this.encoder = encoder;
-        this.tokens = tokens;
     }
 
     @Transactional(readOnly = true)
@@ -51,6 +49,30 @@ public class ProfileService {
     }
 
     @Transactional
+    public ProfileView changeUsername(Long userId, UsernameCommand command) {
+        User user = user(userId);
+        String username = Usernames.parse(command.username());
+        boolean taken = users.findByUsername(username)
+                .filter(other -> !other.getId().equals(userId))
+                .isPresent();
+        if (taken) throw new BadRequestException("Esse username já está em uso.");
+        user.setUsername(username);
+        return toView(user);
+    }
+
+    @Transactional
+    public ProfileView changeDiscovery(Long userId, DiscoveryCommand command) {
+        User user = user(userId);
+        String phone = Values.blankToNull(command.phone());
+        if (phone != null) {
+            phone = Phones.normalize(phone)
+                    .orElseThrow(() -> new BadRequestException("Telefone inválido. Use DDD e número."));
+        }
+        user.changeDiscovery(phone, command.phoneSearchable(), command.emailSearchable());
+        return toView(user);
+    }
+
+    @Transactional
     public ProfileView updatePhoto(Long userId, PhotoCommand command) {
         PhotoCodec.Decoded decoded = PhotoCodec.decode(command.dataUrl());
         UserPhoto photo = photos.findById(userId).orElseGet(() -> new UserPhoto(userId));
@@ -62,19 +84,6 @@ public class ProfileService {
     @Transactional
     public void deletePhoto(Long userId) {
         photos.findById(userId).ifPresent(photos::delete);
-    }
-
-    @Transactional
-    public AuthToken changeEmail(Long userId, ChangeEmailCommand command) {
-        User user = user(userId);
-        if (!user.hasPassword()) throw new BadRequestException("Defina uma senha antes de trocar o e-mail.");
-        checkPassword(user, command.currentPassword());
-        String email = Emails.normalize(command.email());
-        if (!email.equals(user.getEmail())) {
-            if (users.existsByEmail(email)) throw new BadRequestException("Já existe uma conta com este e-mail.");
-            user.setEmail(email);
-        }
-        return tokens.issue(user);
     }
 
     @Transactional
@@ -103,7 +112,12 @@ public class ProfileService {
                 photo,
                 user.hasPassword(),
                 user.getGoogleSub() != null,
-                user.getAppleSub() != null);
+                user.getAppleSub() != null,
+                user.getUsername(),
+                user.getPhone(),
+                user.isPhoneSearchable(),
+                user.isEmailSearchable(),
+                user.isEmailVerified());
     }
 
     private User user(Long userId) {

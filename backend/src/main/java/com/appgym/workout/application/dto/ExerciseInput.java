@@ -1,5 +1,6 @@
 package com.appgym.workout.application.dto;
 
+import com.appgym.shared.util.CardioTarget;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
@@ -34,4 +35,13 @@ public record ExerciseInput(
 
         @Min(value = 0, message = "RIR deve ficar entre 0 e 10.")
         @Max(value = 10, message = "RIR deve ficar entre 0 e 10.")
-        Integer rir) {}
+        Integer rir,
+
+        /** "Cardio" com meta em minutos mede em minutos; qualquer outro, em séries e reps. */
+        @Size(max = 20, message = "Grupo muscular inválido.")
+        String muscleGroup) {
+
+    public boolean cardio() {
+        return CardioTarget.inMinutes(muscleGroup, reps);
+    }
+}

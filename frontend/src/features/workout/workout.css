@@ -296,3 +296,46 @@
   background: var(--accent);
   color: var(--accent-ink);
 }
+
+/* ---------- Cardio ---------- */
+.cardio-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) minmax(0, 1fr) var(--tap);
+  align-items: end;
+  gap: 8px;
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+}
+.cardio-row.done {
+  background: var(--accent-soft);
+}
+.cardio-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.cardio-field .set-input {
+  width: 100%;
+}
+.intensity {
+  grid-column: 2 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.intensity button {
+  min-height: var(--tap);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.intensity button.on {
+  border-color: var(--accent-text);
+  color: var(--text);
+  background: var(--surface-2);
+}

@@ -15,6 +15,7 @@ public record StartSessionCommand(
         @Size(max = 80, message = "O nome do treino está longo demais.")
         String name,
 
-        @Valid List<ExerciseInput> exercises,
+        @Size(max = 30, message = "O treino pode ter até 30 exercícios.") @Valid
+        List<ExerciseInput> exercises,
 
         Instant startedAt) {}

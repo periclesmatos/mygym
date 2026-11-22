@@ -1,10 +1,12 @@
+import { CardioRow } from '@/features/workout/components/CardioRow'
 import { SetRow } from '@/features/workout/components/SetRow'
 import { draftFrom, previousSet } from '@/features/workout/domain/session'
 import { formatRest, relativeDay } from '@/shared/lib/date'
-import { exerciseKey, formatLoad, formatSet } from '@/shared/lib/training'
+import { exerciseKey, formatEntry, formatLoad } from '@/shared/lib/training'
 import { Icon, IconButton } from '@/shared/ui/Icon'
 
 function targetText(exercise) {
+  if (exercise.cardio) return exercise.targetReps
   return [
     `${exercise.targetReps} reps`,
     formatLoad(exercise.targetLoad),
@@ -46,12 +48,24 @@ export function ExerciseCard({
         <p className="last-line">
           <Icon name="history" size={15} />
           <span>
-            {relativeDay(previous.date)}: {previous.sets.map((item) => formatSet(item.load, item.reps)).join(' · ')}
+            {relativeDay(previous.date)}: {previous.sets.map(formatEntry).join(' · ')}
           </span>
         </p>
       )}
 
-      {exercise.sets.length > 0 && (
+      {exercise.cardio &&
+        exercise.sets.map((set) => (
+          <CardioRow
+            key={set.id}
+            set={set}
+            draft={drafts[set.id] || draftFrom(set, true)}
+            target={exercise.targetReps}
+            onOptions={() => onSetOptions(set)}
+            onChange={(field, value) => onChange(set.id, field, value)}
+            onToggle={() => onToggle(set)}
+          />
+        ))}
+      {!exercise.cardio && exercise.sets.length > 0 && (
         <div className="sets" role="table" aria-label={`Séries de ${exercise.name}`}>
           <div className="set-row head" role="row">
             <span role="columnheader">Série</span>
@@ -80,7 +94,7 @@ export function ExerciseCard({
 
       <button type="button" className="btn btn-quiet btn-sm btn-block" onClick={onAddSet}>
         <Icon name="plus" size={18} />
-        Adicionar série
+        {exercise.cardio ? 'Adicionar trecho' : 'Adicionar série'}
       </button>
     </section>
   )

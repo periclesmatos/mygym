@@ -1,9 +1,11 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { PendingBadge } from '@/features/social'
 import { Icon } from '@/shared/ui/Icon'
 
 const TABS = [
   { to: '/', label: 'Início', icon: 'home', end: true },
   { to: '/rotina', label: 'Rotina', icon: 'routine' },
+  { to: '/rank', label: 'Rank', icon: 'rank' },
   { to: '/historico', label: 'Histórico', icon: 'history' },
   { to: '/evolucao', label: 'Evolução', icon: 'chart' }
 ]
@@ -27,6 +29,7 @@ export function Layout() {
             <NavLink key={tab.to} to={tab.to} end={tab.end}>
               <Icon name={tab.icon} size={22} />
               <span>{tab.label}</span>
+              {tab.to === '/rank' && <PendingBadge />}
             </NavLink>
           ))}
         </nav>

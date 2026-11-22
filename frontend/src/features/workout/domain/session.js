@@ -1,9 +1,17 @@
 import { LIVE_LIMIT } from '@/shared/lib/activity'
+import { parseCardio } from '@/shared/lib/cardio'
 import { numberOrNull } from '@/shared/lib/number'
 import { bestSet, estimatedMax, exerciseKey, formatSet } from '@/shared/lib/training'
 
 /** Valores de uma série como texto, para os campos editáveis. */
-export function draftFrom(set) {
+export function draftFrom(set, cardio = false) {
+  if (cardio) {
+    return {
+      minutes: set.durationSeconds ? String(Math.round(set.durationSeconds / 6) / 10) : '',
+      km: set.distanceMeters == null ? '' : String(set.distanceMeters / 1000),
+      intensity: set.intensity || 'moderate'
+    }
+  }
   return {
     reps: set.reps == null ? '' : String(set.reps),
     load: set.load == null ? '' : String(Number(set.load)),
@@ -12,7 +20,8 @@ export function draftFrom(set) {
 }
 
 /** Converte o rascunho de uma série para a API, ou devolve { error }. */
-export function parseDraft(draft) {
+export function parseDraft(draft, cardio = false) {
+  if (cardio) return parseCardio(draft)
   const reps = numberOrNull(draft.reps)
   const load = numberOrNull(draft.load)
   const rir = numberOrNull(draft.rir)
@@ -20,6 +29,11 @@ export function parseDraft(draft) {
   if (load != null && (load < 0 || load > 9999.99)) return { error: 'Carga inválida.' }
   if (rir != null && (!Number.isInteger(rir) || rir < 0 || rir > 10)) return { error: 'RIR deve ficar entre 0 e 10.' }
   return { values: { reps, load, rir } }
+}
+
+/** A série pertence a um exercício de cardio? */
+export function isCardioSet(session, setId) {
+  return Boolean(session?.exercises.find((exercise) => exercise.sets.some((set) => set.id === setId))?.cardio)
 }
 
 export function findSet(session, setId) {
@@ -70,6 +84,7 @@ export function previousSet(last, exercise, set) {
 export function highlights(session, last) {
   const result = []
   for (const exercise of session.exercises) {
+    if (exercise.cardio) continue
     const best = bestSet(exercise)
     if (!best) continue
     const previous = last[exerciseKey(exercise.name)]

@@ -1,6 +1,8 @@
 package com.appgym.workout.application;
 
 import com.appgym.workout.CompletedExercise;
+import com.appgym.workout.LiftSet;
+import com.appgym.workout.SessionActivity;
 import com.appgym.workout.WorkoutApi;
 import com.appgym.workout.domain.SessionRepository;
 import java.util.Collection;
@@ -24,6 +26,18 @@ class WorkoutQueries implements WorkoutApi {
         return sessions.findFinishedExercises(userId, nameKeys).stream()
                 .map(SessionMapper::toCompleted)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SessionActivity> activities(Collection<Long> userIds) {
+        return userIds.isEmpty() ? List.of() : sessions.activities(userIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LiftSet> lifts(Long userId) {
+        return sessions.lifts(userId);
     }
 
     @Override

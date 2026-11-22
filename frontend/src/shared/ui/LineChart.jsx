@@ -4,6 +4,8 @@ import { formatNumber } from '@/shared/lib/number'
 const W = 340
 const H = 180
 const PAD = { top: 16, right: 14, bottom: 26, left: 40 }
+/** Acima disto os pontos virariam uma faixa: só aparece o escolhido. */
+const MAX_DOTS = 31
 
 function niceTicks(min, max, count = 4) {
   if (min === max) {
@@ -101,15 +103,17 @@ export function LineChart({ points, unit, formatDate }) {
           <line className="chart-crosshair" x1={point.cx} x2={point.cx} y1={PAD.top} y2={H - PAD.bottom} />
         )}
         <path className="chart-line" d={geometry.path} />
-        {geometry.coords.map((item, index) => (
-          <circle
-            key={index}
-            className={index === shown ? 'chart-dot on' : 'chart-dot'}
-            cx={item.cx}
-            cy={item.cy}
-            r={index === shown ? 5.5 : 4}
-          />
-        ))}
+        {geometry.coords.map((item, index) =>
+          index !== shown && geometry.coords.length > MAX_DOTS ? null : (
+            <circle
+              key={index}
+              className={index === shown ? 'chart-dot on' : 'chart-dot'}
+              cx={item.cx}
+              cy={item.cy}
+              r={index === shown ? 5.5 : 4}
+            />
+          )
+        )}
       </svg>
     </figure>
   )

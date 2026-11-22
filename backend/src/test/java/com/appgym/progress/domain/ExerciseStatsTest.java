@@ -20,9 +20,11 @@ class ExerciseStatsTest {
                     records.size() + 1,
                     (Integer) values[1],
                     values[0] == null ? null : new BigDecimal(values[0].toString()),
+                    null,
+                    null,
                     (Boolean) values[2]));
         }
-        return new CompletedExercise(1L, "Treino", Instant.parse("2026-01-01T11:00:00Z"), "Supino", records);
+        return new CompletedExercise(1L, "Treino", Instant.parse("2026-01-01T11:00:00Z"), "Supino", false, records);
     }
 
     @Test

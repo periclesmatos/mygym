@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import java.math.BigDecimal;
 
 public record UpdateSetCommand(
@@ -17,5 +18,14 @@ public record UpdateSetCommand(
         @Min(value = 0, message = "RIR deve ficar entre 0 e 10.")
         @Max(value = 10, message = "RIR deve ficar entre 0 e 10.")
         Integer rir,
+
+        @Min(value = 1, message = "Duração inválida.") @Max(value = 86400, message = "Duração inválida.")
+        Integer durationSeconds,
+
+        @Min(value = 0, message = "Distância inválida.") @Max(value = 1000000, message = "Distância inválida.")
+        Integer distanceMeters,
+
+        @Pattern(regexp = "light|moderate|intense", message = "Intensidade inválida.")
+        String intensity,
 
         boolean completed) {}

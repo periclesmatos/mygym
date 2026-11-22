@@ -1,3 +1,5 @@
+# Tudo aqui é de teste, com senha padrão pública: as portas só atendem esta máquina.
+# Não tire o 127.0.0.1: sem ele o Docker publica em todas as redes, inclusive IPv6 público.
 services:
   postgres:
     profiles: ["db", "app"]
@@ -7,7 +9,7 @@ services:
       POSTGRES_USER: appgym
       POSTGRES_PASSWORD: appgym
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -31,7 +33,7 @@ services:
       JWT_SECRET: dev-secret-change-me-in-production-32
       PORT: "8080"
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
 
   # Desenvolvimento com recarga automática: docker compose --profile dev up
   # Usa o Postgres que já estiver na porta 5432 da máquina.
@@ -63,7 +65,7 @@ services:
       API_PROXY: http://api-dev:8080
       VITE_POLL: "1"
     ports:
-      - "5173:5173"
+      - "127.0.0.1:5173:5173"
     depends_on:
       - api-dev
 

@@ -4,7 +4,9 @@ import { NextCard } from '@/features/home/components/NextCard'
 import { OpenCard } from '@/features/home/components/OpenCard'
 import { WeekStrip } from '@/features/home/components/WeekStrip'
 import { greeting } from '@/features/home/domain/greeting'
+import { RankCard } from '@/features/ranking'
 import { PackSheet, dayLetter, nextInRoutine, orderedDays } from '@/features/routine'
+import { CardioSheet } from '@/features/workout'
 import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
 import { monthStats, sessionsByDay, streak, weekStart } from '@/shared/lib/activity'
@@ -29,6 +31,7 @@ export function HomePage() {
   const [busy, setBusy] = useState(false)
   const [picker, setPicker] = useState(false)
   const [packs, setPacks] = useState(false)
+  const [cardio, setCardio] = useState(false)
   const [quickName, setQuickName] = useState('')
   const { data: profile } = useAsync(() => profileApi.get(), [])
   const { data, error, loading, reload } = useAsync(
@@ -112,6 +115,8 @@ export function HomePage() {
 
       {open && <OpenCard session={open} onDiscard={() => discard(open)} />}
 
+      <RankCard />
+
       <section className="section">
         <div className="section-head">
           <h2>Esta semana</h2>
@@ -160,6 +165,11 @@ export function HomePage() {
         </section>
       )}
 
+      <button type="button" className="btn btn-secondary btn-block" onClick={() => setCardio(true)}>
+        <Icon name="run" size={20} />
+        Registrar cardio
+      </button>
+
       {recent.length > 0 && (
         <section className="section">
           <div className="section-head">
@@ -176,7 +186,9 @@ export function HomePage() {
                   <span className="muted small">
                     {relativeDay(session.finishedAt)}
                     {session.durationSeconds ? ` · ${formatDuration(session.durationSeconds)}` : ''}
-                    {` · ${plural(session.completedSets, 'série', 'séries')}`}
+                    {session.cardioSeconds && !Number(session.volume)
+                      ? ''
+                      : ` · ${plural(session.completedSets, 'série', 'séries')}`}
                   </span>
                 </span>
                 <Icon name="forward" size={18} className="muted" />
@@ -185,6 +197,8 @@ export function HomePage() {
           </div>
         </section>
       )}
+
+      <CardioSheet open={cardio} onClose={() => setCardio(false)} />
 
       <PackSheet
         open={packs}

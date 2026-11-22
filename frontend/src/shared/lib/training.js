@@ -1,3 +1,4 @@
+import { formatCardio, isCardio, targetMinutes } from '@/shared/lib/cardio'
 import { formatNumber } from '@/shared/lib/number'
 
 export function formatLoad(value) {
@@ -21,6 +22,11 @@ export function formatSet(load, reps) {
   return hasLoad ? `${formatNumber(load)} × ${reps}` : `${reps} reps`
 }
 
+/** Uma série de força ou um trecho de cardio. */
+export function formatEntry(set) {
+  return set.durationSeconds ? formatCardio(set.durationSeconds, set.distanceMeters) : formatSet(set.load, set.reps)
+}
+
 /** Primeiro número de "8-12", "10", "até a falha 12" etc. */
 export function firstReps(target) {
   const match = String(target || '').match(/\d+/)
@@ -32,6 +38,10 @@ export function estimateMinutes(exercises) {
   let seconds = 0
   for (const exercise of exercises || []) {
     const sets = Number(exercise.plannedSets) || 0
+    if (isCardio(exercise)) {
+      seconds += sets * (targetMinutes(exercise.reps) || 20) * 60
+      continue
+    }
     seconds += sets * 45 + Math.max(0, sets - 1) * (Number(exercise.restSeconds) || 0) + 60
   }
   return Math.max(5, Math.round(seconds / 300) * 5)
@@ -42,16 +52,18 @@ export function sessionTotals(session) {
   let done = 0
   let total = 0
   let volume = 0
+  let cardio = 0
   for (const exercise of session?.exercises || []) {
     for (const set of exercise.sets) {
       total += 1
       if (!set.completedAt) continue
       done += 1
-      if (set.reps != null && set.load != null) volume += Number(set.load) * set.reps
+      if (exercise.cardio) cardio += set.durationSeconds || 0
+      else if (set.reps != null && set.load != null) volume += Number(set.load) * set.reps
     }
   }
   const duration = session?.finishedAt ? (new Date(session.finishedAt) - new Date(session.startedAt)) / 1000 : null
-  return { done, total, volume, duration }
+  return { done, total, volume, duration, cardio }
 }
 
 /** Melhor série feita de um exercício da sessão (maior carga; empate, mais reps). */

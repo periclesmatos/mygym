@@ -9,6 +9,7 @@ import com.appgym.routine.application.dto.TemplateView.ExerciseView;
 import com.appgym.routine.domain.Template;
 import com.appgym.routine.domain.TemplateExercise;
 import com.appgym.shared.error.BadRequestException;
+import com.appgym.shared.util.CardioTarget;
 import com.appgym.shared.util.Values;
 import java.util.Comparator;
 import java.util.List;
@@ -37,7 +38,8 @@ final class TemplateMapper {
                                 exercise.getReps(),
                                 exercise.getLoad(),
                                 exercise.getRestSeconds(),
-                                exercise.getRir()))
+                                exercise.getRir(),
+                                CardioTarget.inMinutes(exercise.getMuscleGroup(), exercise.getReps())))
                         .toList());
     }
 

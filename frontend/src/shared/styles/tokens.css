@@ -18,9 +18,18 @@
   --danger-soft: rgba(255, 107, 107, 0.12);
   --live: #ff8a3d;
   --backdrop: rgba(0, 0, 0, 0.6);
-  --bar: rgba(14, 15, 18, 0.86);
+  --bar: rgba(14, 15, 18, 0.95);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   --focus: 0 0 0 3px rgba(198, 244, 50, 0.45);
+  --rank-frango: #f2c94c;
+  --rank-beta: #d9905f;
+  --rank-cria: #4cc9c0;
+  --rank-shapeado: #7fd858;
+  --rank-sigma: #8fa8c8;
+  --rank-brabo: #ff7a3d;
+  --rank-monstro: #b57cff;
+  --rank-jaula: #ff5fb0;
+  --rank-goat: #ffd84d;
 }
 
 [data-theme='light'] {
@@ -41,9 +50,18 @@
   --danger-soft: #fde8e8;
   --live: #d9620f;
   --backdrop: rgba(20, 22, 26, 0.45);
-  --bar: rgba(255, 255, 255, 0.9);
+  --bar: rgba(255, 255, 255, 0.96);
   --shadow: 0 8px 24px rgba(20, 22, 26, 0.08);
   --focus: 0 0 0 3px rgba(91, 127, 0, 0.35);
+  --rank-frango: #9a6c00;
+  --rank-beta: #a4531f;
+  --rank-cria: #0d756e;
+  --rank-shapeado: #39781b;
+  --rank-sigma: #43607f;
+  --rank-brabo: #c2410c;
+  --rank-monstro: #6d35c4;
+  --rank-jaula: #b5186b;
+  --rank-goat: #8a6200;
 }
 
 :root {
@@ -51,6 +69,11 @@
   --radius-sm: 12px;
   --tap: 44px;
   --gutter: 16px;
+  /* Ritmo vertical: entre blocos > do título ao conteúdo = entre cards vizinhos. */
+  --space-block: 28px;
+  --space-head: 12px;
+  --space-cards: 12px;
+  --space-focus: 16px;
   --tabbar-h: 64px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);

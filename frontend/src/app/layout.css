@@ -8,10 +8,12 @@
   padding: calc(12px + var(--safe-t)) var(--gutter) calc(var(--tabbar-h) + 32px + var(--safe-b));
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-block);
   animation: page-in 0.22s ease-out;
 }
 .app.focused .page {
+  /* Treino e editores são densos de propósito. */
+  gap: var(--space-focus);
   padding-bottom: calc(40px + var(--safe-b));
 }
 @keyframes page-in {
@@ -30,7 +32,7 @@
   height: calc(var(--tabbar-h) + var(--safe-b));
   padding: 0 8px var(--safe-b);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   background: var(--bar);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

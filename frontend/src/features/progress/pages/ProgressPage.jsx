@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { LineChart } from '@/features/progress/components/LineChart'
 import { useAsync } from '@/shared/hooks/useAsync'
+import { formatCardio, formatKm } from '@/shared/lib/cardio'
 import { formatDay, relativeDay } from '@/shared/lib/date'
 import { formatNumber } from '@/shared/lib/number'
 import { plural } from '@/shared/lib/text'
-import { formatSet, formatVolume } from '@/shared/lib/training'
+import { formatEntry, formatSet, formatVolume } from '@/shared/lib/training'
 import { Segmented } from '@/shared/ui/Fields'
 import { Icon } from '@/shared/ui/Icon'
+import { LineChart } from '@/shared/ui/LineChart'
 import { PageHeader } from '@/shared/ui/PageHeader'
 import { StatCard } from '@/shared/ui/StatCard'
 import { Empty, ErrorState, Skeleton } from '@/shared/ui/States'
@@ -74,6 +75,11 @@ const METRICS = {
   volume: { label: 'Volume', unit: 'kg', pick: (item) => Number(item.volume) || 0 }
 }
 
+const CARDIO_METRICS = {
+  minutes: { label: 'Minutos', unit: 'min', pick: (item) => Math.round(item.durationSeconds / 60) },
+  distance: { label: 'Distância', unit: 'km', pick: (item) => item.distanceMeters / 1000 }
+}
+
 function chartDate(value, short) {
   return new Date(value).toLocaleDateString(
     'pt-BR',
@@ -87,7 +93,15 @@ export function ProgressDetailPage() {
   const { data, error, loading, reload } = useAsync(() => progressApi.progress(name), [name])
   const hasLoad = (data || []).some((item) => Number(item.topLoad) > 0)
   const [metric, setMetric] = useState(null)
-  const active = metric || (hasLoad ? 'max' : 'reps')
+  const [kind, setKind] = useState(null)
+  const mixed = new Set((data || []).map((item) => Boolean(item.cardio))).size > 1
+  // Segue o registro mais recente, mas quem tem os dois jeitos escolhe qual ver.
+  const cardio = mixed && kind ? kind === 'cardio' : Boolean(data?.length && data[data.length - 1].cardio)
+  const records = (data || []).filter((item) => Boolean(item.cardio) === cardio)
+  const metrics = cardio ? CARDIO_METRICS : METRICS
+  const fallback = cardio ? 'minutes' : hasLoad ? 'max' : 'reps'
+  const active = metrics[metric] ? metric : fallback
+  const hasDistance = records.some((item) => item.distanceMeters > 0)
 
   const best = useMemo(() => {
     if (!data?.length) return null
@@ -101,9 +115,9 @@ export function ProgressDetailPage() {
     return { top, maxEstimate }
   }, [data])
 
-  const points = (data || []).map((item) => ({ date: item.date, value: METRICS[active].pick(item) }))
-  const options = Object.entries(METRICS)
-    .filter(([key]) => hasLoad || key === 'reps')
+  const points = records.map((item) => ({ date: item.date, value: metrics[active].pick(item) }))
+  const options = Object.entries(metrics)
+    .filter(([key]) => (cardio ? key === 'minutes' || hasDistance : hasLoad || key === 'reps'))
     .map(([value, item]) => ({ value, label: item.label }))
 
   return (
@@ -129,9 +143,35 @@ export function ProgressDetailPage() {
       )}
       {data?.length > 0 && (
         <>
+          {mixed && (
+            <Segmented
+              label="Tipo de registro"
+              value={cardio ? 'cardio' : 'sets'}
+              onChange={setKind}
+              options={[
+                { value: 'cardio', label: 'Em minutos' },
+                { value: 'sets', label: 'Em séries' }
+              ]}
+            />
+          )}
           <section className="stats">
-            <StatCard icon="trophy" value={formatSet(best.top.topLoad, best.top.topReps)} label="melhor série" />
-            {best.maxEstimate > 0 && (
+            {cardio ? (
+              <StatCard
+                icon="run"
+                value={formatCardio(Math.max(...records.map((item) => item.durationSeconds)))}
+                label="maior duração"
+              />
+            ) : (
+              <StatCard icon="trophy" value={formatSet(best.top.topLoad, best.top.topReps)} label="melhor série" />
+            )}
+            {cardio && hasDistance && (
+              <StatCard
+                icon="flame"
+                value={formatKm(Math.max(...records.map((item) => item.distanceMeters)))}
+                label="maior distância"
+              />
+            )}
+            {!cardio && best.maxEstimate > 0 && (
               <StatCard icon="flame" value={`${formatNumber(best.maxEstimate, 1)} kg`} label="1RM estimado" />
             )}
             <StatCard icon="calendar" value={relativeDay(data[data.length - 1].date)} label="último treino" />
@@ -139,7 +179,7 @@ export function ProgressDetailPage() {
 
           <section className="card">
             {options.length > 1 && <Segmented label="Métrica" value={active} onChange={setMetric} options={options} />}
-            <LineChart points={points} unit={METRICS[active].unit} formatDate={chartDate} />
+            <LineChart points={points} unit={metrics[active].unit} formatDate={chartDate} />
             {active === 'max' && (
               <p className="muted small">
                 Estimativa de 1 repetição máxima pela fórmula de Epley: carga × (1 + reps ÷ 30), na melhor série do dia.
@@ -152,15 +192,13 @@ export function ProgressDetailPage() {
               <h2>Registros</h2>
             </div>
             <div className="list">
-              {[...data].reverse().map((item) => (
+              {[...records].reverse().map((item) => (
                 <Link key={item.sessionId} to={`/historico/${item.sessionId}`} className="list-item">
                   <span className="list-main">
                     <strong>
                       {formatDay(item.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
                     </strong>
-                    <span className="muted small">
-                      {item.sets.map((set) => formatSet(set.load, set.reps)).join(' · ')}
-                    </span>
+                    <span className="muted small">{item.sets.map(formatEntry).join(' · ')}</span>
                   </span>
                   {formatVolume(item.volume) && (
                     <span className="list-meta muted small">{formatVolume(item.volume)}</span>

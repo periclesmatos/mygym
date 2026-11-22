@@ -2,6 +2,7 @@ package com.appgym.identity.domain;
 
 import com.appgym.shared.error.BadRequestException;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,8 +33,17 @@ public final class PhotoCodec {
         return new Decoded(matcher.group(1), bytes);
     }
 
+    /** A foto como outra pessoa pode ver: sem metadados. */
+    public static Optional<String> encodePublic(UserPhoto photo) {
+        return PhotoMetadata.strip(photo.getContentType(), photo.getData())
+                .map(data -> dataUrl(photo.getContentType(), data));
+    }
+
     public static String encode(UserPhoto photo) {
-        return "data:" + photo.getContentType() + ";base64,"
-                + Base64.getEncoder().encodeToString(photo.getData());
+        return dataUrl(photo.getContentType(), photo.getData());
+    }
+
+    private static String dataUrl(String contentType, byte[] data) {
+        return "data:" + contentType + ";base64," + Base64.getEncoder().encodeToString(data);
     }
 }

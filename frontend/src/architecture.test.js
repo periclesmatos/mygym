@@ -13,11 +13,13 @@ import { describe, expect, it } from 'vitest'
 const ALLOWED = {
   auth: [],
   catalog: [],
-  history: [],
-  home: ['catalog', 'routine'],
-  profile: ['auth'],
+  history: ['ranking'],
+  home: ['catalog', 'ranking', 'routine', 'workout'],
+  profile: ['auth', 'social'],
   progress: [],
+  ranking: ['social'],
   routine: ['catalog'],
+  social: [],
   workout: ['routine']
 }
 

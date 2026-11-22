@@ -13,4 +13,7 @@ public record Performance(
         BigDecimal topLoad,
         Integer topReps,
         BigDecimal volume,
-        BigDecimal estimatedMax) {}
+        BigDecimal estimatedMax,
+        boolean cardio,
+        long durationSeconds,
+        long distanceMeters) {}

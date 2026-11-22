@@ -64,19 +64,15 @@ class ProfileApiTest extends IntegrationTest {
     }
 
     @Test
-    void changesEmailAndReturnsNewToken() throws Exception {
+    void emailCannotBeChangedWithoutProofOfOwnership() throws Exception {
         Account account = newAccount();
-        Account other = newAccount();
-        perform(put("/api/profile/email"), account, Map.of("email", other.email(), "currentPassword", "senha123"))
-                .andExpect(status().isBadRequest());
-
-        String email = "novo-" + account.email();
-        perform(put("/api/profile/email"), account, Map.of("email", email.toUpperCase(), "currentPassword", "senha123"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value(email))
-                .andExpect(jsonPath("$.token").isNotEmpty());
-        perform(post("/api/auth/login"), null, Map.of("email", email, "password", "senha123"))
-                .andExpect(status().isOk());
+        perform(
+                        put("/api/profile/email"),
+                        account,
+                        Map.of("email", "vitima-" + account.email(), "currentPassword", "senha123"))
+                .andExpect(status().is4xxClientError());
+        perform(get("/api/profile"), account, null)
+                .andExpect(jsonPath("$.email").value(account.email()));
     }
 
     @Test
@@ -85,13 +81,6 @@ class ProfileApiTest extends IntegrationTest {
         User user = users.findByEmail(account.email()).orElseThrow();
         user.setPasswordSet(false);
         users.save(user);
-
-        perform(
-                        put("/api/profile/email"),
-                        account,
-                        Map.of("email", "x" + account.email(), "currentPassword", "senha123"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Defina uma senha antes de trocar o e-mail."));
 
         Map<String, Object> body = new HashMap<>();
         body.put("currentPassword", null);

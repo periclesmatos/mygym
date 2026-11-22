@@ -2,7 +2,7 @@
 .week {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 8px;
 }
 .week-day {
   display: flex;
@@ -44,4 +44,10 @@
 .week-day.trained .week-dot {
   background: var(--accent);
   color: var(--accent-ink);
+}
+/* iPhone com Zoom da Tela: sete dias não cabem com mais folga. */
+@media (max-width: 359px) {
+  .week {
+    gap: 5px;
+  }
 }

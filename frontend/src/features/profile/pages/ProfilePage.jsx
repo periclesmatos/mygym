@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { EmailSheet } from '@/features/profile/components/EmailSheet'
 import { PasswordSheet } from '@/features/profile/components/PasswordSheet'
 import { SettingsSheet } from '@/features/profile/components/SettingsSheet'
 import { ageFrom, bmiFrom } from '@/features/profile/domain/body'
 import { squarePhoto } from '@/features/profile/services/photo'
+import { DiscoverySheet } from '@/features/social'
 import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
 import { monthStats, streak } from '@/shared/lib/activity'
@@ -157,6 +157,7 @@ export function ProfilePage() {
         </button>
         <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
         <h2>{profile.name || 'Sem nome'}</h2>
+        {profile.username && <p className="profile-username">@{profile.username}</p>}
         <p className="muted">{profile.email}</p>
         {(profile.google || profile.apple) && (
           <div className="profile-badges">
@@ -264,10 +265,10 @@ export function ProfilePage() {
         </div>
         <ActionList>
           <Action
-            icon={<Icon name="mail" />}
-            label="Trocar e-mail"
-            hint={profile.email}
-            onClick={() => setSheet('email')}
+            icon={<Icon name="user" />}
+            label="Como me acham"
+            hint={profile.username ? `@${profile.username}` : 'Escolha seu username'}
+            onClick={() => setSheet('discovery')}
           />
           <Action
             icon={<Icon name="lock" />}
@@ -298,15 +299,11 @@ export function ProfilePage() {
         </ActionList>
       </Sheet>
 
-      <EmailSheet
-        open={sheet === 'email'}
+      <DiscoverySheet
+        open={sheet === 'discovery'}
         profile={profile}
         onClose={() => setSheet(null)}
-        onDone={(email) => {
-          setProfile({ ...profile, email })
-          setSheet(null)
-          toast('E-mail atualizado.', 'success')
-        }}
+        onSaved={setProfile}
       />
       <PasswordSheet
         open={sheet === 'password'}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { draftFrom, findSet, parseDraft } from '@/features/workout/domain/session'
+import { draftFrom, findSet, isCardioSet, parseDraft } from '@/features/workout/domain/session'
 import { progressApi } from '@/shared/api/progress'
 import { sessionsApi } from '@/shared/api/workout'
 
@@ -35,7 +35,7 @@ export function useWorkoutSession(id, { onError, onAlreadyFinished }) {
     for (const exercise of data.exercises) {
       for (const set of exercise.sets) {
         ids.add(String(set.id))
-        if (!next[set.id]) next[set.id] = draftFrom(set)
+        if (!next[set.id]) next[set.id] = draftFrom(set, exercise.cardio)
       }
     }
     for (const key of Object.keys(next)) if (!ids.has(key)) delete next[key]
@@ -79,7 +79,7 @@ export function useWorkoutSession(id, { onError, onAlreadyFinished }) {
     cancelPending([setId])
     const draft = draftsRef.current[setId]
     if (!draft) return null
-    const { values, error } = parseDraft(draft)
+    const { values, error } = parseDraft(draft, isCardioSet(sessionRef.current, setId))
     if (error) {
       callbacks.current.onError(error)
       return null
@@ -88,7 +88,15 @@ export function useWorkoutSession(id, { onError, onAlreadyFinished }) {
       const updated = await sessionsApi.updateSet(sessionId, setId, { ...values, completed })
       const fresh = findSet(updated, setId)
       if (fresh && sessionRef.current)
-        patchSet(setId, { completedAt: fresh.completedAt, reps: fresh.reps, load: fresh.load, rir: fresh.rir })
+        patchSet(setId, {
+          completedAt: fresh.completedAt,
+          reps: fresh.reps,
+          load: fresh.load,
+          rir: fresh.rir,
+          durationSeconds: fresh.durationSeconds,
+          distanceMeters: fresh.distanceMeters,
+          intensity: fresh.intensity
+        })
       return updated
     } catch (caught) {
       callbacks.current.onError(caught.message)

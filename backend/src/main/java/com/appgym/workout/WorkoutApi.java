@@ -14,6 +14,12 @@ public interface WorkoutApi {
      */
     List<CompletedExercise> finishedExercises(Long userId, Collection<String> nameKeys);
 
+    /** Treinos concluídos destes usuários numa consulta só, do mais recente para o mais antigo. */
+    List<SessionActivity> activities(Collection<Long> userIds);
+
+    /** Séries de força com carga, para achar recordes. */
+    List<LiftSet> lifts(Long userId);
+
     /** Nomes de exercício usados nos treinos, sem espaços nas pontas. */
     List<String> exerciseNames(Long userId);
 }

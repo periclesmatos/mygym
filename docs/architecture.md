@@ -16,16 +16,21 @@ The app is a **modular monolith**: one deployable (a Spring Boot jar that also s
                        ▲                                 │
                        └─────────────────────────────────┘
 
+           ranking ──► workout
+           social  ──► identity, ranking, workout
+
            shared: errors, JWT security, config, SPA routes (used by all)
 ```
 
 | Module | Owns (tables) | Public API (what other modules may use) |
 |---|---|---|
-| `identity` | `app_user`, `user_photo` | none: it implements `shared.security.UserLookup` |
+| `identity` | `app_user`, `user_photo` | `IdentityApi`, `PublicUser` (public data only); implements `shared.security.UserLookup` |
 | `catalog` | `exercise_catalog` | `MuscleGroups` |
 | `routine` | `template`, `template_exercise` | `RoutineApi`, `TemplatePlan` |
-| `workout` | `workout_session`, `session_exercise`, `workout_set` | `WorkoutApi`, `CompletedExercise` |
+| `workout` | `workout_session`, `session_exercise`, `workout_set` | `WorkoutApi`, `CompletedExercise`, `SessionActivity`, `LiftSet` |
 | `progress` | none (reads through `WorkoutApi` and `RoutineApi`) | none |
+| `ranking` | none (computes on read through `WorkoutApi`) | `RankingApi`, `Rank` |
+| `social` | `friendship`, `user_block` | none |
 | `shared` | none | everything (open module) |
 
 Rules:
@@ -36,6 +41,12 @@ Rules:
 - `shared` depends on no business module. When it needs something from one, it declares a port (an interface) that the module implements, like `UserLookup`.
 
 Enforced by `ModularityTest` (Spring Modulith `verify()`), which also writes PlantUML diagrams of the modules to `backend/target/spring-modulith-docs`.
+
+## Ranking rules
+
+The numbers live in `ranking/domain/ScoringRules` and `RankLadder`. Nothing is stored: points, rank, record and trophies come from the history on each read, so deleting a workout undoes everything it gave. Two properties are tested and must hold after any change: **an extra workout never lowers the points** and **points never rise without training**. They depend on evaluating each week only with the days inside the 90-day window.
+
+A day follows `finished_at` in `app.timezone` (default `America/Sao_Paulo`). A workout counts if it was recorded (`recorded_at`) up to 7 days after it ended and wasn't moved more than 24 hours past that.
 
 ## Layers inside a backend module
 
@@ -83,11 +94,11 @@ src/
     └── <name>.css
 ```
 
-Features: `auth`, `catalog`, `history`, `home`, `profile`, `progress`, `routine`, `workout`.
+Features: `auth`, `catalog`, `history`, `home`, `profile`, `progress`, `ranking`, `routine`, `social`, `workout`.
 
 Rules:
 
-- A feature uses another only through its `index.js`, and only if it is listed in `ALLOWED` in `src/architecture.test.js` (`home → routine, catalog`; `routine → catalog`; `workout → routine`; `profile → auth`).
+- A feature uses another only through its `index.js`, and only if it is listed in `ALLOWED` in `src/architecture.test.js` (`home → catalog, ranking, routine, workout`; `history → ranking`; `ranking → social`; `routine → catalog`; `workout → routine`; `profile → auth, social`).
 - Inside a feature, files import each other by full path, never through their own `index.js`.
 - `shared/` never imports a feature.
 - `domain/` is pure: no React, no API calls, no UI.
