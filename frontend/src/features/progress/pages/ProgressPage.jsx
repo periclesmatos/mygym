@@ -93,7 +93,10 @@ export function ProgressDetailPage() {
   const { data, error, loading, reload } = useAsync(() => progressApi.progress(name), [name])
   const hasLoad = (data || []).some((item) => Number(item.topLoad) > 0)
   const [metric, setMetric] = useState(null)
-  const cardio = Boolean(data?.length && data[data.length - 1].cardio)
+  const [kind, setKind] = useState(null)
+  const mixed = new Set((data || []).map((item) => Boolean(item.cardio))).size > 1
+  // Segue o registro mais recente, mas quem tem os dois jeitos escolhe qual ver.
+  const cardio = mixed && kind ? kind === 'cardio' : Boolean(data?.length && data[data.length - 1].cardio)
   const records = (data || []).filter((item) => Boolean(item.cardio) === cardio)
   const metrics = cardio ? CARDIO_METRICS : METRICS
   const fallback = cardio ? 'minutes' : hasLoad ? 'max' : 'reps'
@@ -140,6 +143,17 @@ export function ProgressDetailPage() {
       )}
       {data?.length > 0 && (
         <>
+          {mixed && (
+            <Segmented
+              label="Tipo de registro"
+              value={cardio ? 'cardio' : 'sets'}
+              onChange={setKind}
+              options={[
+                { value: 'cardio', label: 'Em minutos' },
+                { value: 'sets', label: 'Em séries' }
+              ]}
+            />
+          )}
           <section className="stats">
             {cardio ? (
               <StatCard

@@ -80,6 +80,7 @@ class SocialApiTest extends IntegrationTest {
         perform(get("/api/social/users/" + id(bea) + "/photo"), ana, null).andExpect(status().isNotFound());
         perform(get("/api/social"), bea, null)
                 .andExpect(jsonPath("$.blocked.length()").value(1));
+        perform(delete("/api/social/blocks/" + id(bea)), ana, null).andExpect(status().isNotFound());
         perform(delete("/api/social/blocks/" + id(ana)), bea, null).andExpect(status().isNoContent());
         perform(post("/api/social/search"), ana, Map.of("query", username))
                 .andExpect(jsonPath("$.length()").value(1));

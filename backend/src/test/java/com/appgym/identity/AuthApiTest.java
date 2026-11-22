@@ -56,6 +56,16 @@ class AuthApiTest extends IntegrationTest {
     }
 
     @Test
+    void changingEmailInTheDatabaseClearsVerification() throws Exception {
+        Account account = newAccount();
+        jdbc.update("update app_user set email_verified_at = now() where email = ?", account.email());
+        // Como a imagem anterior faria num rollback.
+        jdbc.update("update app_user set email = ? where email = ?", "trocado-" + account.email(), account.email());
+        assertThat(users.findByEmail("trocado-" + account.email()).orElseThrow().isEmailVerified())
+                .isFalse();
+    }
+
+    @Test
     void passwordSignupDoesNotVerifyEmail() throws Exception {
         Account account = newAccount();
         assertThat(users.findByEmail(account.email()).orElseThrow().isEmailVerified())
@@ -111,6 +121,6 @@ class AuthApiTest extends IntegrationTest {
     @Test
     void migrationsAreApplied() {
         assertThat(jdbc.queryForList("select version from flyway_schema_history where success", String.class))
-                .contains("1", "2", "3", "4", "5", "6", "7", "8", "9");
+                .contains("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
     }
 }

@@ -1,4 +1,4 @@
-import { CARDIO_GROUP, isCardio, targetMinutes } from '@/shared/lib/cardio'
+import { CARDIO_GROUP, isCardio } from '@/shared/lib/cardio'
 import { formatRest } from '@/shared/lib/date'
 import { numberOrNull } from '@/shared/lib/number'
 import { formatLoad } from '@/shared/lib/training'
@@ -53,7 +53,8 @@ export function validateExercise(exercise) {
   const sets = Number(exercise.plannedSets)
   if (!Number.isInteger(sets) || sets < 1 || sets > 20) return 'Use de 1 a 20 séries.'
   if (!String(exercise.reps).trim()) return 'Informe as repetições, como 8-12.'
-  if (exercise.muscleGroup === CARDIO_GROUP && /min/i.test(exercise.reps) && !targetMinutes(exercise.reps))
+  // Só a duração vazia ou zerada do formulário; metas livres antigas ("5 km em 30 min") continuam valendo.
+  if (exercise.muscleGroup === CARDIO_GROUP && /^(0+\s*)?min$/i.test(String(exercise.reps).trim()))
     return 'Informe a duração, como 20 min.'
   if (String(exercise.reps).trim().length > 20) return 'Repetições deve ser curto, como 8-12.'
   const load = numberOrNull(exercise.load)

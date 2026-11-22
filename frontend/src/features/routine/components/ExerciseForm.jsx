@@ -23,10 +23,12 @@ export function ExerciseSheet({ exercise, isNew, onSave, onRemove, onClose, save
   const [error, setError] = useState('')
   const [showRir, setShowRir] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [pickedCardio, setPickedCardio] = useState(false)
 
   useEffect(() => {
     if (!exercise) return
     setDraft(exercise)
+    setPickedCardio(false)
     setError('')
     setBusy(false)
     setShowRir(exercise.rir !== '' && exercise.rir != null)
@@ -45,8 +47,8 @@ export function ExerciseSheet({ exercise, isNew, onSave, onRemove, onClose, save
     () => (draft.name.trim() ? searchCatalog(catalog.items, draft.name, { used: catalog.used }).slice(0, 6) : []),
     [catalog.items, catalog.used, draft.name]
   )
-  // Um exercício salvo em reps segue em reps ao editar; novo ou com outro nome segue o grupo.
-  const cardio = group === CARDIO_GROUP && (inMinutes(exercise?.reps) || draft.name !== exercise?.name)
+  // Exercício salvo segue a meta salva, mesmo renomeado: só vira cardio se escolhido da lista.
+  const cardio = group === CARDIO_GROUP && (isNew || pickedCardio || inMinutes(exercise?.reps))
   // Ao virar cardio, "8-12" reps não é duração: cai em 20 min.
   const minutes = /min/i.test(draft.reps) ? String(targetMinutes(draft.reps) || '') : '20'
   const showSuggestions =
@@ -54,6 +56,7 @@ export function ExerciseSheet({ exercise, isNew, onSave, onRemove, onClose, save
 
   function pick(item) {
     set('name', item.name)
+    setPickedCardio(item.muscleGroup === CARDIO_GROUP)
     if (item.muscleGroup === CARDIO_GROUP) {
       set('reps', item.reps)
       set('plannedSets', '1')

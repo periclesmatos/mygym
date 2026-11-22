@@ -37,11 +37,11 @@ public final class TrainingLog {
         });
     }
 
-    /** Registrado em até 7 dias, e não movido para depois de quando foi registrado. */
+    /** Registrado em até 7 dias, e não movido mais de um dia para depois disso. */
     public static boolean onTime(SessionActivity session) {
         Instant end = session.finishedAt();
         Instant recorded = session.recordedAt() == null ? end : session.recordedAt();
-        return !end.isAfter(recorded.plus(ScoringRules.CLOCK_SKEW))
+        return !end.isAfter(recorded.plus(ScoringRules.FORWARD_LIMIT))
                 && Duration.between(end, recorded).compareTo(ScoringRules.LATE_LIMIT) <= 0;
     }
 

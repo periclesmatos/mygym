@@ -47,3 +47,25 @@ describe('modelo do formulário de exercício', () => {
     expect(emptyExercise().key).not.toBe(emptyExercise().key)
   })
 })
+
+describe('validateExercise no cardio', () => {
+  const cardio = (reps) => ({
+    name: 'Esteira',
+    plannedSets: '1',
+    reps,
+    load: '',
+    restSeconds: '0',
+    rir: '',
+    muscleGroup: 'Cardio'
+  })
+  it('aceita metas livres antigas', () => {
+    for (const reps of ['aquecimento 5 min', '5 km em 30 min', '2x 10 min', '8-12']) {
+      expect(validateExercise(cardio(reps))).toBe('')
+    }
+  })
+  it('recusa duração vazia ou zero', () => {
+    for (const reps of [' min', '0 min']) {
+      expect(validateExercise(cardio(reps))).toBe('Informe a duração, como 20 min.')
+    }
+  })
+})
