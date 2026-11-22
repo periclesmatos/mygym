@@ -111,6 +111,6 @@ class AuthApiTest extends IntegrationTest {
     @Test
     void migrationsAreApplied() {
         assertThat(jdbc.queryForList("select version from flyway_schema_history where success", String.class))
-                .contains("1", "2", "3", "4", "5", "6");
+                .contains("1", "2", "3", "4", "5", "6", "7", "8", "9");
     }
 }

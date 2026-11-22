@@ -15,4 +15,9 @@ public record ProfileView(
         String photo,
         boolean hasPassword,
         boolean google,
-        boolean apple) {}
+        boolean apple,
+        String username,
+        String phone,
+        boolean phoneSearchable,
+        boolean emailSearchable,
+        boolean emailVerified) {}

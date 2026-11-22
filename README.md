@@ -8,6 +8,9 @@ Personal workout log. React talks to a Spring Boot API, and the API stores templ
 - **Treino**: log each set (kg, reps, optional RIR) with last time's numbers alongside, a rest timer that survives a reload, vibration and a beep when rest ends, and the screen kept awake. Sets and exercises can be added or removed, and the whole workout can be discarded.
 - **Histórico**: list and calendar, with duration, sets and volume. A workout can be repeated or deleted.
 - **Perfil**: name, photo, weight, height, birth date (age and BMI), a summary of all workouts, and changing the password. Opened from the avatar on Início.
+- **Rank**: points from the last 90 days (consistency, not load), 9 ranks from Frango to Lenda, 36 trophies and the friends board. The card on Início shows what is missing for the next rank.
+- **Cardio**: minutes, distance and intensity, inside a workout or logged directly from Início.
+- **Amigos**: find by @username, verified e-mail or opt-in phone. A friend sees rank and a summary, never loads, measurements, e-mail or phone.
 - **Evolução**: per-exercise chart (estimated 1RM, top load, reps, volume) with every record.
 
 ## Run it locally
@@ -64,7 +67,7 @@ The schema lives in `backend/src/main/resources/db/migration` (Flyway) and Hiber
 
 A **modular monolith** with **Clean Architecture** inside each module, ready to split into services later. See [docs/architecture.md](docs/architecture.md) for the full picture, the rules, and how to add things.
 
-- **Backend** (`backend/src/main/java/com/appgym`): one top-level package per module (`identity`, `catalog`, `routine`, `workout`, `progress`) plus `shared`. Inside each: `domain/` (entities, rules, repository ports), `application/` (use cases), `infrastructure/` (Spring Data, external services, config) and `web/` (controllers). Modules talk only through a small public interface at their root (`RoutineApi`, `WorkoutApi`) and keep other modules' data as ids.
+- **Backend** (`backend/src/main/java/com/appgym`): one top-level package per module (`identity`, `catalog`, `routine`, `workout`, `progress`, `ranking`, `social`) plus `shared`. Inside each: `domain/` (entities, rules, repository ports), `application/` (use cases), `infrastructure/` (Spring Data, external services, config) and `web/` (controllers). Modules talk only through a small public interface at their root (`RoutineApi`, `WorkoutApi`) and keep other modules' data as ids.
 - **Frontend** (`frontend/src`): `app/` (routes, layout), `shared/` (HTTP client with one file per backend module, UI kit, hooks, helpers) and `features/<name>/` with `pages/`, `components/`, `hooks/`, `domain/`, `services/` and an `index.js` as its public API.
 - **Enforced by tests**: `ModularityTest` (Spring Modulith) and `LayeringTest` (ArchUnit) in the backend, `src/architecture.test.js` and an ESLint rule in the frontend.
 

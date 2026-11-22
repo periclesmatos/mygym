@@ -1,11 +1,13 @@
 import { useSearchParams } from 'react-router-dom'
 import { MyRank } from '@/features/ranking/components/MyRank'
 import { Trophies } from '@/features/ranking/components/Trophies'
+import { FriendsPanel } from '@/features/social'
 import { Segmented } from '@/shared/ui/Fields'
 import { PageHeader } from '@/shared/ui/PageHeader'
 
 const VIEWS = [
   { value: 'meu', label: 'Meu rank' },
+  { value: 'amigos', label: 'Amigos' },
   { value: 'trofeus', label: 'Troféus' }
 ]
 
@@ -23,6 +25,7 @@ export function RankPage() {
         onChange={(value) => setParams(value === 'meu' ? {} : { aba: value }, { replace: true })}
       />
       {view === 'meu' && <MyRank />}
+      {view === 'amigos' && <FriendsPanel />}
       {view === 'trofeus' && <Trophies />}
     </>
   )
