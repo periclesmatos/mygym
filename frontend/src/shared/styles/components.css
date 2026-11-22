@@ -318,7 +318,7 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-head);
 }
 .section-head {
   display: flex;
@@ -330,7 +330,7 @@
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: var(--space-cards);
 }
 .stat {
   display: flex;
@@ -906,17 +906,17 @@ textarea.input {
 .rank-frango {
   --rank: var(--rank-frango);
 }
-.rank-projeto {
-  --rank: var(--rank-projeto);
+.rank-beta {
+  --rank: var(--rank-beta);
 }
-.rank-focado {
-  --rank: var(--rank-focado);
+.rank-cria {
+  --rank: var(--rank-cria);
 }
-.rank-maromba {
-  --rank: var(--rank-maromba);
+.rank-shapeado {
+  --rank: var(--rank-shapeado);
 }
-.rank-casca {
-  --rank: var(--rank-casca);
+.rank-sigma {
+  --rank: var(--rank-sigma);
 }
 .rank-brabo {
   --rank: var(--rank-brabo);
@@ -924,9 +924,9 @@ textarea.input {
 .rank-monstro {
   --rank: var(--rank-monstro);
 }
-.rank-mutante {
-  --rank: var(--rank-mutante);
+.rank-jaula {
+  --rank: var(--rank-jaula);
 }
-.rank-lenda {
-  --rank: var(--rank-lenda);
+.rank-goat {
+  --rank: var(--rank-goat);
 }

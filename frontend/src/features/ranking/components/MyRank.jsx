@@ -1,12 +1,11 @@
 import { useState } from 'react'
+import { Ladder } from '@/features/ranking/components/Ladder'
 import { RankSummary } from '@/features/ranking/components/RankSummary'
 import { points } from '@/features/ranking/domain/rankText'
 import { useAsync } from '@/shared/hooks/useAsync'
 import { formatDay, parseDateKey } from '@/shared/lib/date'
-import { formatNumber } from '@/shared/lib/number'
 import { plural } from '@/shared/lib/text'
 import { LineChart } from '@/shared/ui/LineChart'
-import { RankBadge } from '@/shared/ui/RankBadge'
 import { ErrorState, Skeleton } from '@/shared/ui/States'
 import { rankingApi } from '@/shared/api/ranking'
 
@@ -31,13 +30,6 @@ function breakdown(item) {
     .join(' · ')
 }
 
-/** Nove ranks; cada um com os pontos de cada divisão. */
-function tiers(ladder) {
-  const map = new Map()
-  for (const step of ladder) map.set(step.key, [...(map.get(step.key) || []), step])
-  return [...map.values()].reverse()
-}
-
 export function MyRank() {
   const { data, error, reload } = useAsync(() => rankingApi.details(), [])
   const [allDays, setAllDays] = useState(false)
@@ -57,7 +49,7 @@ export function MyRank() {
   return (
     <>
       <section className={`card rank-card rank-${rank.key}`}>
-        <RankSummary overview={overview} size={92} />
+        <RankSummary overview={overview} size={72} />
         {peak.date && (
           <p className="muted small rank-peak">
             Recorde: <strong>{peak.rank.label}</strong> em {chartDate(peak.date)}
@@ -65,53 +57,22 @@ export function MyRank() {
         )}
       </section>
 
-      <section className="section">
-        <div className="section-head">
-          <h2>Escada</h2>
-          <span className="muted small">9 ranks</span>
-        </div>
-        <ol className="ladder">
-          {tiers(ladder).map((steps) => {
-            const current = steps[0].key === rank.key
-            const reached = rank.index >= steps[0].index
-            const shown = current ? rank : steps[steps.length - 1]
-            return (
-              <li
-                key={steps[0].key}
-                className={`rank-${steps[0].key}${current ? ' current' : ''}${reached ? '' : ' ahead'}`}
-                aria-current={current ? 'step' : undefined}
-              >
-                <RankBadge rank={{ ...shown, division: 0 }} size={42} />
-                <span className="ladder-name">
-                  <strong>{steps[0].name}</strong>
-                  {current && <span className="small">você está aqui</span>}
-                </span>
-                <span className="ladder-floors tabular">
-                  {steps.map((step) => (
-                    <span key={step.index} className={step.index === rank.index ? 'on' : ''}>
-                      {step.division > 0 && <i>{'I'.repeat(step.division)}</i>}
-                      {formatNumber(step.floor, 0)}
-                    </span>
-                  ))}
-                </span>
-              </li>
-            )
-          })}
-        </ol>
-      </section>
+      <Ladder ladder={ladder} overview={overview} />
 
-      <section className="section">
-        <div className="section-head">
-          <h2>Seus 90 dias</h2>
-        </div>
-        <div className="card">
-          <LineChart
-            points={history.map((item) => ({ date: item.date, value: item.points }))}
-            unit="pts"
-            formatDate={chartDate}
-          />
-        </div>
-      </section>
+      {history.some((item) => item.points > 0) && (
+        <section className="section">
+          <div className="section-head">
+            <h2>Seus 90 dias</h2>
+          </div>
+          <div className="card">
+            <LineChart
+              points={history.map((item) => ({ date: item.date, value: item.points }))}
+              unit="pts"
+              formatDate={chartDate}
+            />
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <div className="section-head">
