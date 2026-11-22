@@ -1,0 +1,19 @@
+# Proxy HTTPS da produção. Fica em /opt/appgym e é copiado a cada deploy.
+# O certificado é emitido e renovado sozinho: precisa do DNS apontando para
+# a VM (na Cloudflare, "DNS only") e das portas 80 e 443 abertas.
+{
+	# Sem HTTP/3: a porta 443/udp não é publicada.
+	servers {
+		protocols h1 h2
+	}
+}
+
+boratreinar.periclesm.dev {
+	encode zstd gzip
+	reverse_proxy app:8080
+}
+
+# Quem entrar pelo IP vai para o domínio.
+http:// {
+	redir https://boratreinar.periclesm.dev{uri} permanent
+}

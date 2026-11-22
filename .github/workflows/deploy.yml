@@ -69,7 +69,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: production
-      url: http://${{ vars.VM_PUBLIC_HOST }}
+      url: https://${{ vars.VM_PUBLIC_HOST }}
     permissions:
       contents: write
       packages: read
@@ -90,7 +90,7 @@ jobs:
           printf '%s\n' "$VM_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
       - name: Copia compose e scripts
-        run: scp deploy/compose.prod.yml deploy/deploy.sh deploy/backup.sh "$VM:/opt/appgym/"
+        run: scp deploy/compose.prod.yml deploy/Caddyfile deploy/deploy.sh deploy/backup.sh "$VM:/opt/appgym/"
 
       - name: Login no GHCR na VM
         env:
