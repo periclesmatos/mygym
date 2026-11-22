@@ -50,6 +50,9 @@ public class Session {
     @Column(nullable = false)
     private boolean backdated;
 
+    /** Quando o treino entrou no app como concluído; nunca muda, nem ao ajustar o horário. */
+    private Instant recordedAt;
+
     /** Chave do envio no cardio rápido, para repetir o envio não duplicar o treino. */
     @Column(length = 40)
     private String clientKey;
@@ -164,6 +167,16 @@ public class Session {
         changePeriod(end.minusSeconds(durationSeconds), end, now);
         backdated = true;
         this.clientKey = clientKey;
+        markRecorded(now);
+    }
+
+    /** Só a primeira vez vale. */
+    public void markRecorded(Instant now) {
+        if (recordedAt == null) recordedAt = now;
+    }
+
+    public Instant getRecordedAt() {
+        return recordedAt;
     }
 
     /** Duração em segundos, só para treino concluído. */

@@ -4,6 +4,7 @@ import { Icon } from '@/shared/ui/Icon'
 const TABS = [
   { to: '/', label: 'Início', icon: 'home', end: true },
   { to: '/rotina', label: 'Rotina', icon: 'routine' },
+  { to: '/rank', label: 'Rank', icon: 'rank' },
   { to: '/historico', label: 'Histórico', icon: 'history' },
   { to: '/evolucao', label: 'Evolução', icon: 'chart' }
 ]

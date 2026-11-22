@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { SessionImpact } from '@/features/ranking'
 import { useAction } from '@/shared/hooks/useAction'
 import { useAsync } from '@/shared/hooks/useAsync'
 import { CARDIO_GROUP, formatCardio, intensityLabel } from '@/shared/lib/cardio'
@@ -135,6 +136,8 @@ export function HistoryDetailPage() {
           )}
         </section>
       )}
+
+      <SessionImpact sessionId={session.id} finishedAt={session.finishedAt} celebrate={Boolean(celebration)} />
 
       <section className="stats">
         <StatCard icon="timer" value={duration ? formatDuration(duration) : '—'} label="duração" />

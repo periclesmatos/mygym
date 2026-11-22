@@ -165,20 +165,23 @@ public class SessionService {
         // Encerrar agora não valida: um treino esquecido há dias ainda precisa poder fechar.
         if (start == null && end == null) session.setFinishedAt(now);
         else session.changePeriod(start == null ? session.getStartedAt() : start, end == null ? now : end, now);
+        session.markRecorded(now);
         return SessionMapper.toView(session);
     }
 
     @Transactional
     public SessionView changePeriod(Long userId, Long id, ChangePeriodCommand command) {
-        Session session = load(userId, id);
+        Session session = locked(userId, id);
         if (!session.isFinished()) throw new ConflictException("Encerre o treino antes de ajustar o horário.");
+        // Sem registro (gravado por versão antiga): vale o fim original, senão mover para hoje pontuaria.
+        session.markRecorded(session.getFinishedAt());
         session.changePeriod(command.startedAt(), command.finishedAt(), Instant.now());
         return SessionMapper.toView(session);
     }
 
     @Transactional
     public void delete(Long userId, Long id) {
-        sessions.delete(load(userId, id));
+        sessions.delete(locked(userId, id));
     }
 
     @Transactional
@@ -200,9 +203,15 @@ public class SessionService {
     }
 
     private Session open(Long userId, Long id) {
-        Session session = load(userId, id);
+        Session session = locked(userId, id);
         if (session.isFinished()) throw new ConflictException("Este treino já foi encerrado.");
         return session;
+    }
+
+    /** Trava antes de ler, para salvar série, encerrar e apagar não se atropelarem. */
+    private Session locked(Long userId, Long id) {
+        sessions.findForUpdate(id, userId).orElseThrow(() -> new NotFoundException("Treino não encontrado."));
+        return load(userId, id);
     }
 
     private Session load(Long userId, Long id) {
