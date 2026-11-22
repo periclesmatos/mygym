@@ -1,5 +1,6 @@
 package com.appgym.workout.domain;
 
+import com.appgym.shared.error.BadRequestException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,6 +22,10 @@ import java.util.stream.Stream;
 @Entity
 @Table(name = "workout_session")
 public class Session {
+    private static final Instant EARLIEST = Instant.parse("2000-01-01T00:00:00Z");
+    private static final Duration LONGEST = Duration.ofHours(24);
+    /** Folga para o relógio do celular um pouco adiantado. */
+    private static final Duration CLOCK_SKEW = Duration.ofMinutes(1);
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +45,10 @@ public class Session {
     private Instant startedAt;
 
     private Instant finishedAt;
+
+    /** Registrado depois de feito: não tem cronômetro e o fim é sempre informado. */
+    @Column(nullable = false)
+    private boolean backdated;
 
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
@@ -85,6 +94,34 @@ public class Session {
 
     public Optional<WorkoutSet> findSet(Long setId) {
         return allSets().filter(set -> set.getId().equals(setId)).findFirst();
+    }
+
+    /** Começa o registro de um treino que já aconteceu. */
+    public void startBackdated(Instant start, Instant now) {
+        checkMoment(start, now);
+        startedAt = start;
+        backdated = true;
+    }
+
+    /** Define início e fim informados pelo usuário. */
+    public void changePeriod(Instant start, Instant end, Instant now) {
+        checkMoment(start, now);
+        checkMoment(end, now);
+        if (!end.isAfter(start)) throw new BadRequestException("O fim precisa ser depois do início.");
+        if (Duration.between(start, end).compareTo(LONGEST) > 0) {
+            throw new BadRequestException("O treino pode ter no máximo 24 horas.");
+        }
+        startedAt = start;
+        finishedAt = end;
+    }
+
+    private static void checkMoment(Instant moment, Instant now) {
+        if (moment.isAfter(now.plus(CLOCK_SKEW))) throw new BadRequestException("O horário não pode ficar no futuro.");
+        if (moment.isBefore(EARLIEST)) throw new BadRequestException("Data inválida.");
+    }
+
+    public boolean isBackdated() {
+        return backdated;
     }
 
     public boolean isFinished() {

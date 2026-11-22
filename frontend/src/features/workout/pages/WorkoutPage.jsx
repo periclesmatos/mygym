@@ -7,17 +7,19 @@ import { useBeep } from '@/features/workout/hooks/useBeep'
 import { useRestTimer } from '@/features/workout/hooks/useRestTimer'
 import { useWorkoutSession } from '@/features/workout/hooks/useWorkoutSession'
 import { writeRest } from '@/features/workout/services/restStorage'
-import { findSet, highlights, nextOpenSet, previousSet } from '@/features/workout/domain/session'
+import { findSet, highlights, nextOpenSet, previousSet, suggestedEnd } from '@/features/workout/domain/session'
 import { useAction } from '@/shared/hooks/useAction'
 import { useNow } from '@/shared/hooks/useNow'
 import { useWakeLock } from '@/shared/hooks/useWakeLock'
-import { formatClock } from '@/shared/lib/date'
+import { isLive } from '@/shared/lib/activity'
+import { formatClock, formatDay, formatTime } from '@/shared/lib/date'
 import { vibrate } from '@/shared/lib/device'
 import { numberOrNull } from '@/shared/lib/number'
 import { plural } from '@/shared/lib/text'
 import { firstReps, sessionTotals } from '@/shared/lib/training'
 import { Stepper } from '@/shared/ui/Fields'
 import { Icon, IconButton } from '@/shared/ui/Icon'
+import { PeriodSheet } from '@/shared/ui/PeriodSheet'
 import { Action, ActionList, Sheet } from '@/shared/ui/Sheet'
 import { Empty, ErrorState, Skeleton } from '@/shared/ui/States'
 import { useFeedback } from '@/shared/ui/feedbackContext'
@@ -38,14 +40,17 @@ export function WorkoutPage() {
   const [adding, setAdding] = useState(false)
   const [menu, setMenu] = useState(false)
   const [finishing, setFinishing] = useState(false)
+  const [period, setPeriod] = useState(null)
   const now = useNow(1000, Boolean(session))
+  const live = Boolean(session) && isLive(session, now)
   const { prime, beep } = useBeep()
   const rest = useRestTimer(sessionId, now, () => {
+    if (session && !live) return
     vibrate([180, 90, 180])
     beep()
     toast('Descanso encerrado. Próxima série!')
   })
-  useWakeLock(Boolean(session))
+  useWakeLock(live)
 
   /** Roda uma ação que devolve a sessão atualizada. */
   function run(action, success) {
@@ -86,11 +91,11 @@ export function WorkoutPage() {
         toast('Informe quantas repetições você fez.', 'error')
         return
       }
-      prime()
+      if (live) prime()
       vibrate(15)
     }
     workout.patchSet(set.id, { completedAt: completing ? new Date().toISOString() : null })
-    if (completing) startRest(exercise, set.id)
+    if (completing && live) startRest(exercise, set.id)
     const updated = await workout.persist(set.id, completing)
     if (!updated) workout.patchSet(set.id, { completedAt: set.completedAt })
   }
@@ -169,7 +174,8 @@ export function WorkoutPage() {
     })
   }
 
-  async function finish() {
+  /** Conclui agora, ou pergunta o horário se o treino não é ao vivo ou se o usuário pediu. */
+  async function finish({ askPeriod = false } = {}) {
     await workout.flushAll()
     const { done, total } = sessionTotals(sessionRef.current)
     if (done === 0) {
@@ -194,14 +200,30 @@ export function WorkoutPage() {
       })
       if (!ok) return
     }
+    const current = sessionRef.current
+    const at = Date.now()
+    if (askPeriod || !isLive(current, at)) {
+      setPeriod({ startedAt: current.startedAt, finishedAt: suggestedEnd(current, at) })
+      return
+    }
+    await complete()
+  }
+
+  async function complete(chosen) {
+    const before = sessionRef.current
     setFinishing(true)
     await runAction(
       async () => {
-        const updated = await sessionsApi.finish(sessionId)
+        const updated = await sessionsApi.finish(sessionId, chosen)
         writeRest(null)
+        if (before.backdated) toast('Treino registrado.', 'success')
+        // A "última vez" foi buscada pelo início original: se ele mudou, a comparação não vale.
+        const sameStart = !chosen || new Date(chosen.startedAt).getTime() === new Date(before.startedAt).getTime()
         navigate(`/historico/${updated.id}`, {
           replace: true,
-          state: { justFinished: true, highlights: highlights(updated, last) }
+          state: before.backdated
+            ? null
+            : { justFinished: true, highlights: sameStart ? highlights(updated, last) : [] }
         })
       },
       () => {
@@ -223,21 +245,24 @@ export function WorkoutPage() {
   const { done, total } = sessionTotals(session)
   const elapsed = (now - new Date(session.startedAt).getTime()) / 1000
   const allDone = total > 0 && done === total
+  const finishLabel = session.backdated ? 'Salvar' : 'Concluir'
+  const when = `${formatDay(session.startedAt, { day: '2-digit', month: '2-digit' })} ${formatTime(session.startedAt)}`
   const menuSet = setSheet ? findSet(session, setSheet.setId) : null
 
   return (
-    <div className={rest.rest ? 'workout has-rest' : 'workout'}>
+    <div className={live && rest.rest ? 'workout has-rest' : 'workout'}>
       <header className="workout-head">
         <IconButton icon="back" label="Voltar ao início" onClick={() => navigate('/')} />
         <div className="workout-title">
           <h1>{session.name}</h1>
           <p>
-            <span className="tabular">{formatClock(elapsed)}</span> · {done}/{total} séries
+            <span className="tabular">{live ? formatClock(elapsed) : when}</span> · {done}/{total}
+            {live && ' séries'}
           </p>
         </div>
         <IconButton icon="more" label="Opções do treino" onClick={() => setMenu(true)} />
-        <button type="button" className="btn btn-primary btn-sm" onClick={finish} disabled={finishing}>
-          {finishing ? 'Salvando…' : 'Concluir'}
+        <button type="button" className="btn btn-primary btn-sm" onClick={() => finish()} disabled={finishing}>
+          {finishing ? 'Salvando…' : finishLabel}
         </button>
         <div className="progress thin" aria-hidden="true">
           <span style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
@@ -272,15 +297,15 @@ export function WorkoutPage() {
         <button
           type="button"
           className="btn btn-primary btn-lg btn-block finish-cta"
-          onClick={finish}
+          onClick={() => finish()}
           disabled={finishing}
         >
           <Icon name="check" size={20} strokeWidth={3} />
-          Concluir treino
+          {finishLabel} treino
         </button>
       )}
 
-      {rest.rest && (
+      {live && rest.rest && (
         <RestBar
           remaining={rest.remaining}
           total={rest.rest.total}
@@ -294,12 +319,23 @@ export function WorkoutPage() {
         <ActionList>
           <Action
             icon={<Icon name="check" />}
-            label="Concluir treino"
+            label={`${finishLabel} treino`}
             onClick={() => {
               setMenu(false)
               finish()
             }}
           />
+          {!session.backdated && (
+            <Action
+              icon={<Icon name="timer" />}
+              label="Concluir em outro horário"
+              hint="Para quando você esqueceu de encerrar"
+              onClick={() => {
+                setMenu(false)
+                finish({ askPeriod: true })
+              }}
+            />
+          )}
           <Action
             icon={<Icon name="trash" />}
             label="Descartar treino"
@@ -352,6 +388,16 @@ export function WorkoutPage() {
           </div>
         )}
       </Sheet>
+
+      <PeriodSheet
+        open={!!period}
+        onClose={() => setPeriod(null)}
+        title="Quando foi o treino?"
+        subtitle="Confira o horário em que ele terminou."
+        period={period}
+        busy={finishing}
+        onSave={complete}
+      />
 
       <ExercisePicker
         open={adding}

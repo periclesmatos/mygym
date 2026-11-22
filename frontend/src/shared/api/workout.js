@@ -8,7 +8,9 @@ export const sessionsApi = {
   get: (id) => request(`/api/sessions/${id}`),
   create: (body) => request('/api/sessions', { method: 'POST', body }),
   remove: (id) => request(`/api/sessions/${id}`, { method: 'DELETE' }),
-  finish: (id) => request(`/api/sessions/${id}/finish`, { method: 'POST' }),
+  /** Sem `period` encerra agora. */
+  finish: (id, period) => request(`/api/sessions/${id}/finish`, { method: 'POST', body: period }),
+  changePeriod: (id, period) => request(`/api/sessions/${id}/period`, { method: 'PUT', body: period }),
   addExercise: (id, body) => request(`/api/sessions/${id}/exercises`, { method: 'POST', body }),
   removeExercise: (id, exerciseId) => request(`/api/sessions/${id}/exercises/${exerciseId}`, { method: 'DELETE' }),
   addSet: (id, exerciseId) => request(`/api/sessions/${id}/exercises/${exerciseId}/sets`, { method: 'POST' }),

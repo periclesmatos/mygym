@@ -23,6 +23,7 @@ final class SessionMapper {
                 session.getName(),
                 session.getStartedAt(),
                 session.getFinishedAt(),
+                session.isBackdated(),
                 session.getExercises().stream()
                         .sorted(Comparator.comparingInt(exercise -> exercise.getPosition()))
                         .map(SessionMapper::toView)
@@ -36,6 +37,7 @@ final class SessionMapper {
                 session.getTemplateId(),
                 session.getStartedAt(),
                 session.getFinishedAt(),
+                session.isBackdated(),
                 session.getExercises().size(),
                 session.completedSets(),
                 session.totalSets(),

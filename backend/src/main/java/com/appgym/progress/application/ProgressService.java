@@ -6,6 +6,7 @@ import com.appgym.routine.RoutineApi;
 import com.appgym.shared.error.BadRequestException;
 import com.appgym.workout.CompletedExercise;
 import com.appgym.workout.WorkoutApi;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -35,8 +36,12 @@ public class ProgressService {
         return new ArrayList<>(names);
     }
 
-    /** Última vez de cada exercício, por chave normalizada do nome. */
-    public Map<String, Performance> last(Long userId, List<String> names) {
+    /**
+     * Última vez de cada exercício, por chave normalizada do nome.
+     *
+     * @param before se vier, só conta o que terminou antes disso (para registrar treino passado)
+     */
+    public Map<String, Performance> last(Long userId, List<String> names, Instant before) {
         Map<String, Performance> result = new LinkedHashMap<>();
         if (names == null || names.isEmpty()) return result;
         List<String> keys = names.stream()
@@ -48,6 +53,7 @@ public class ProgressService {
         if (keys.size() > MAX_NAMES) throw new BadRequestException("Peça no máximo 60 exercícios.");
         // Vem do mais recente para o mais antigo: o primeiro com séries válidas vence.
         for (CompletedExercise exercise : workouts.finishedExercises(userId, keys)) {
+            if (before != null && !exercise.finishedAt().isBefore(before)) continue;
             String key = ExerciseStats.key(exercise.name());
             if (!result.containsKey(key)) {
                 ExerciseStats.performance(exercise).ifPresent(performance -> result.put(key, performance));

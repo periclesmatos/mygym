@@ -111,7 +111,7 @@ export function useWorkoutSession(id, { onError, onAlreadyFinished }) {
 
   function loadLast(names) {
     progressApi
-      .last(names)
+      .last(names, sessionRef.current?.startedAt)
       .then((map) => setLast((current) => ({ ...current, ...map })))
       .catch(() => {})
   }
@@ -128,7 +128,10 @@ export function useWorkoutSession(id, { onError, onAlreadyFinished }) {
         }
         applySession(data)
         progressApi
-          .last(data.exercises.map((exercise) => exercise.name))
+          .last(
+            data.exercises.map((exercise) => exercise.name),
+            data.startedAt
+          )
           .then((map) => {
             if (active) setLast(map)
           })

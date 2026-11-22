@@ -10,6 +10,7 @@ public record SessionSummaryView(
         Long templateId,
         Instant startedAt,
         Instant finishedAt,
+        boolean backdated,
         int exerciseCount,
         int completedSets,
         int totalSets,
