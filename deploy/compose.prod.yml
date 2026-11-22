@@ -38,11 +38,33 @@ services:
       DATABASE_USER: appgym
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       PORT: "8080"
+      # O HTTPS termina no Caddy. Sem isto o Spring se vê como http e o CORS
+      # recusa com 403 os POST/PUT/DELETE do próprio site.
+      SERVER_FORWARD_HEADERS_STRATEGY: native
       # Java e Postgres dividem a VM: o heap fica com metade da memória.
       JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=50 -XX:+UseSerialGC}
     ports:
-      - "80:8080"
+      # Só para o health check do deploy.sh; de fora, o acesso é pelo Caddy.
+      - "127.0.0.1:8080:8080"
+    logging: *logging
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    # O app sobe antes: na primeira troca é ele quem libera a porta 80.
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificados: sem este volume seriam pedidos de novo a cada recriação.
+      - caddy_data:/data
+      - caddy_config:/config
     logging: *logging
 
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:

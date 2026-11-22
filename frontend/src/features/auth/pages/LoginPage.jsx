@@ -98,7 +98,7 @@ export function LoginPage() {
         <span className="logo">
           <Icon name="dumbbell" size={30} strokeWidth={2.4} />
         </span>
-        <h1>Treino</h1>
+        <h1>Bora Treinar</h1>
         <p className="muted">Sua rotina, suas cargas e sua evolução num lugar só.</p>
       </div>
       <form className="card login-card stack" onSubmit={submit} noValidate>
