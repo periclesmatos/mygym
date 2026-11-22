@@ -35,7 +35,16 @@ export function HistoryPage() {
 
   return (
     <>
-      <PageHeader large title="Histórico" />
+      <PageHeader
+        large
+        title="Histórico"
+        actions={
+          <Link className="btn btn-secondary btn-sm" to="/historico/registrar">
+            <Icon name="plus" size={18} />
+            Registrar
+          </Link>
+        }
+      />
       {error && <ErrorState message={error} onRetry={reload} />}
       {loading && !data && (
         <>
@@ -47,7 +56,7 @@ export function HistoryPage() {
         <Empty
           icon="history"
           title="Nenhum treino concluído"
-          text="Os treinos que você concluir aparecem aqui, com séries, cargas e volume."
+          text="Os treinos que você concluir aparecem aqui. Se esqueceu de algum, toque em Registrar."
         >
           <Link className="btn btn-primary" to="/">
             Ir para o início

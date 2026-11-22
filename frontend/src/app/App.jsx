@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom'
 import { Layout } from '@/app/Layout'
 import { LoginPage } from '@/features/auth'
-import { HistoryDayPage, HistoryDetailPage, HistoryPage } from '@/features/history'
+import { HistoryDayPage, HistoryDetailPage, HistoryPage, RegisterPastPage } from '@/features/history'
 import { HomePage } from '@/features/home'
 import { ProfilePage } from '@/features/profile'
 import { ProgressDetailPage, ProgressListPage } from '@/features/progress'
@@ -39,6 +39,7 @@ export function App() {
           <Route path="/rotina/:id" element={<RoutineEditorPage />} />
           <Route path="/treino/:id" element={<WorkoutPage />} />
           <Route path="/historico" element={<HistoryPage />} />
+          <Route path="/historico/registrar" element={<RegisterPastPage />} />
           <Route path="/historico/dia/:date" element={<HistoryDayPage />} />
           <Route path="/historico/:id" element={<HistoryDetailPage />} />
           <Route path="/evolucao" element={<ProgressListPage />} />

@@ -1,5 +1,13 @@
 import { dateKey } from '@/shared/lib/date'
 
+/** Depois disto, um treino aberto é tratado como esquecido. */
+export const LIVE_LIMIT = 4 * 60 * 60 * 1000
+
+/** Acontecendo agora: com relógio, descanso e fim no momento de concluir. */
+export function isLive(session, now = Date.now()) {
+  return !session.backdated && now - new Date(session.startedAt).getTime() <= LIVE_LIMIT
+}
+
 export function streak(sessions, now = new Date()) {
   const days = new Set(sessions.map((session) => dateKey(session.finishedAt || session.startedAt)))
   const cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate())

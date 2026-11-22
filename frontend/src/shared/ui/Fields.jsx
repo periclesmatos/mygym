@@ -105,3 +105,20 @@ export function Segmented({ options, value, onChange, label }) {
     </div>
   )
 }
+
+function NativeField({ label, type, value, onChange, max }) {
+  return (
+    <label className="field">
+      <span className="field-label">{label}</span>
+      <input className="input" type={type} max={max} value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  )
+}
+
+export function DateField(props) {
+  return <NativeField type="date" {...props} />
+}
+
+export function TimeField(props) {
+  return <NativeField type="time" {...props} />
+}

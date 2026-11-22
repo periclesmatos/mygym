@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { draftFrom, findSet, highlights, nextOpenSet, parseDraft, previousSet } from './session'
+import { draftFrom, findSet, highlights, nextOpenSet, parseDraft, previousSet, suggestedEnd } from './session'
 
 const session = {
   exercises: [
@@ -39,6 +39,36 @@ describe('navegação entre séries', () => {
     const last = { supino: { sets: [{ position: 2, reps: 9, load: 35 }] } }
     expect(previousSet(last, session.exercises[0], session.exercises[0].sets[1]).reps).toBe(9)
     expect(previousSet(last, session.exercises[1], session.exercises[1].sets[0])).toBeNull()
+  })
+})
+
+describe('suggestedEnd', () => {
+  const now = Date.parse('2026-11-22T12:00:00Z')
+  const open = (times, extra = {}) => ({
+    startedAt: '2026-11-21T18:00:30.000Z',
+    exercises: [{ sets: times.map((completedAt) => ({ completedAt })) }],
+    ...extra
+  })
+  it('usa a última série, arredondada para cima', () => {
+    const times = ['2026-11-21T18:50:10Z', null, '2026-11-21T18:20:00Z']
+    expect(suggestedEnd(open(times), now)).toBe('2026-11-21T18:51:00.000Z')
+  })
+  it('ignora série marcada no dia seguinte', () => {
+    const times = ['2026-11-21T18:40:00Z', '2026-11-22T11:00:00Z']
+    expect(suggestedEnd(open(times), now)).toBe('2026-11-21T18:40:00.000Z')
+  })
+  it('segue um treino longo sem pausa de 4 h', () => {
+    const times = ['2026-11-21T21:00:00Z', '2026-11-21T23:00:00Z']
+    expect(suggestedEnd(open(times), now)).toBe('2026-11-21T23:00:00.000Z')
+  })
+  it('sem pista ou retroativo, uma hora depois do início', () => {
+    const fallback = '2026-11-21T19:00:30.000Z'
+    expect(suggestedEnd(open([]), now)).toBe(fallback)
+    expect(suggestedEnd(open(['2026-11-21T18:10:00Z'], { backdated: true }), now)).toBe(fallback)
+  })
+  it('nunca passa de agora', () => {
+    const recent = { startedAt: '2026-11-22T11:30:00Z', backdated: true, exercises: [] }
+    expect(suggestedEnd(recent, now)).toBe('2026-11-22T12:00:00.000Z')
   })
 })
 

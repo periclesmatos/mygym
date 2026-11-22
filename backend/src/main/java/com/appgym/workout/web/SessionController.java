@@ -1,7 +1,9 @@
 package com.appgym.workout.web;
 
 import com.appgym.workout.application.SessionService;
+import com.appgym.workout.application.dto.ChangePeriodCommand;
 import com.appgym.workout.application.dto.ExerciseInput;
+import com.appgym.workout.application.dto.FinishSessionCommand;
 import com.appgym.workout.application.dto.SessionSummaryView;
 import com.appgym.workout.application.dto.SessionView;
 import com.appgym.workout.application.dto.StartSessionCommand;
@@ -68,8 +70,19 @@ public class SessionController {
     }
 
     @PostMapping("/{id}/finish")
-    public SessionView finish(@AuthenticationPrincipal Long userId, @PathVariable Long id) {
-        return sessions.finish(userId, id);
+    public SessionView finish(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long id,
+            @RequestBody(required = false) FinishSessionCommand command) {
+        return sessions.finish(userId, id, command);
+    }
+
+    @PutMapping("/{id}/period")
+    public SessionView changePeriod(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long id,
+            @Valid @RequestBody ChangePeriodCommand command) {
+        return sessions.changePeriod(userId, id, command);
     }
 
     @DeleteMapping("/{id}")
