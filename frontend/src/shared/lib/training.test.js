@@ -40,6 +40,7 @@ describe('cálculos', () => {
   it('estimateMinutes arredonda para 5 min', () => {
     expect(estimateMinutes([{ plannedSets: 3, restSeconds: 90 }])).toBe(5)
     expect(estimateMinutes([])).toBe(5)
+    expect(estimateMinutes([{ plannedSets: 1, reps: '30 min', muscleGroup: 'Cardio' }])).toBe(30)
   })
   it('sessionTotals conta só séries feitas no volume', () => {
     const session = {
@@ -47,7 +48,7 @@ describe('cálculos', () => {
       finishedAt: '2026-01-01T11:00:00Z',
       exercises: [{ sets: [set(40, 10), set(40, 8, false), set(null, 12)] }]
     }
-    expect(sessionTotals(session)).toEqual({ done: 2, total: 3, volume: 400, duration: 3600 })
+    expect(sessionTotals(session)).toEqual({ done: 2, total: 3, volume: 400, duration: 3600, cardio: 0 })
   })
   it('bestSet: maior carga, e no empate mais reps', () => {
     expect(bestSet({ sets: [set(40, 10), set(50, 6), set(50, 8), set(80, 5, false)] })).toEqual({ load: 50, reps: 8 })

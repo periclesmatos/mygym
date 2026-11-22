@@ -12,7 +12,7 @@ class SessionTest {
 
     @Test
     void plannedExerciseStartsWithTheTargetInEverySet() {
-        SessionExercise exercise = SessionExercise.planned("Supino", 3, "8-12", new BigDecimal("40.00"), 90, 2);
+        SessionExercise exercise = SessionExercise.planned("Supino", 3, "8-12", new BigDecimal("40.00"), 90, 2, false);
         assertThat(exercise.getSets()).hasSize(3);
         assertThat(exercise.getSets()).allSatisfy(set -> {
             assertThat(set.getLoad()).isEqualByComparingTo("40");
@@ -23,10 +23,10 @@ class SessionTest {
 
     @Test
     void nextSetRepeatsThePreviousOneOrTheTarget() {
-        SessionExercise empty = SessionExercise.planned("Supino", 0, "8-12", new BigDecimal("40.00"), 90, 2);
+        SessionExercise empty = SessionExercise.planned("Supino", 0, "8-12", new BigDecimal("40.00"), 90, 2, false);
         assertThat(empty.addNextSet().getLoad()).isEqualByComparingTo("40");
 
-        SessionExercise exercise = SessionExercise.planned("Supino", 1, "8-12", new BigDecimal("40.00"), 90, 2);
+        SessionExercise exercise = SessionExercise.planned("Supino", 1, "8-12", new BigDecimal("40.00"), 90, 2, false);
         exercise.getSets().get(0).setLoad(new BigDecimal("45.00"));
         WorkoutSet next = exercise.addNextSet();
         assertThat(next.getLoad()).isEqualByComparingTo("45");
@@ -38,7 +38,8 @@ class SessionTest {
         Session session = new Session();
         session.setName("Treino");
         session.setStartedAt(Instant.parse("2026-01-01T10:00:00Z"));
-        SessionExercise exercise = SessionExercise.planned("Supino", 2, "8-12", new BigDecimal("40.00"), 90, null);
+        SessionExercise exercise =
+                SessionExercise.planned("Supino", 2, "8-12", new BigDecimal("40.00"), 90, null, false);
         session.addExercise(exercise);
         WorkoutSet first = exercise.getSets().get(0);
         first.setReps(10);

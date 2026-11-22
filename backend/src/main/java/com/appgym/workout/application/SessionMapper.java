@@ -42,7 +42,8 @@ final class SessionMapper {
                 session.completedSets(),
                 session.totalSets(),
                 session.volume().setScale(2, RoundingMode.HALF_UP),
-                session.durationSeconds());
+                session.durationSeconds(),
+                session.cardioSeconds());
     }
 
     static CompletedExercise toCompleted(SessionExercise exercise) {
@@ -52,8 +53,15 @@ final class SessionMapper {
                 session.getName(),
                 session.getFinishedAt(),
                 exercise.getName(),
+                exercise.isCardio(),
                 sortedSets(exercise).stream()
-                        .map(set -> new SetRecord(set.getPosition(), set.getReps(), set.getLoad(), set.isCompleted()))
+                        .map(set -> new SetRecord(
+                                set.getPosition(),
+                                set.getReps(),
+                                set.getLoad(),
+                                set.getDurationSeconds(),
+                                set.getDistanceMeters(),
+                                set.isCompleted()))
                         .toList());
     }
 
@@ -65,12 +73,21 @@ final class SessionMapper {
                 exercise.getTargetLoad(),
                 exercise.getRestSeconds(),
                 exercise.getTargetRir(),
+                exercise.isCardio(),
                 sortedSets(exercise).stream().map(SessionMapper::toView).toList());
     }
 
     private static SetView toView(WorkoutSet set) {
         return new SetView(
-                set.getId(), set.getPosition(), set.getReps(), set.getLoad(), set.getRir(), set.getCompletedAt());
+                set.getId(),
+                set.getPosition(),
+                set.getReps(),
+                set.getLoad(),
+                set.getRir(),
+                set.getDurationSeconds(),
+                set.getDistanceMeters(),
+                set.getIntensity(),
+                set.getCompletedAt());
     }
 
     private static List<WorkoutSet> sortedSets(SessionExercise exercise) {

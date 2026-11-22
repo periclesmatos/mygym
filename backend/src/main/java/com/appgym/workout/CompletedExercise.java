@@ -6,7 +6,13 @@ import java.util.List;
 
 /** Cópia de leitura de um exercício feito num treino concluído, com todas as séries. */
 public record CompletedExercise(
-        Long sessionId, String sessionName, Instant finishedAt, String name, List<SetRecord> sets) {
+        Long sessionId, String sessionName, Instant finishedAt, String name, boolean cardio, List<SetRecord> sets) {
 
-    public record SetRecord(int position, Integer reps, BigDecimal load, boolean completed) {}
+    public record SetRecord(
+            int position,
+            Integer reps,
+            BigDecimal load,
+            Integer durationSeconds,
+            Integer distanceMeters,
+            boolean completed) {}
 }

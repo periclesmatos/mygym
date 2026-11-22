@@ -14,7 +14,17 @@ public record SessionView(
             BigDecimal targetLoad,
             int restSeconds,
             Integer targetRir,
+            boolean cardio,
             List<SetView> sets) {}
 
-    public record SetView(Long id, int position, Integer reps, BigDecimal load, Integer rir, Instant completedAt) {}
+    public record SetView(
+            Long id,
+            int position,
+            Integer reps,
+            BigDecimal load,
+            Integer rir,
+            Integer durationSeconds,
+            Integer distanceMeters,
+            String intensity,
+            Instant completedAt) {}
 }

@@ -9,6 +9,7 @@ import com.appgym.shared.util.Values;
 import com.appgym.workout.application.dto.ChangePeriodCommand;
 import com.appgym.workout.application.dto.ExerciseInput;
 import com.appgym.workout.application.dto.FinishSessionCommand;
+import com.appgym.workout.application.dto.LogCardioCommand;
 import com.appgym.workout.application.dto.SessionSummaryView;
 import com.appgym.workout.application.dto.SessionView;
 import com.appgym.workout.application.dto.StartSessionCommand;
@@ -19,12 +20,18 @@ import com.appgym.workout.domain.SessionRepository;
 import com.appgym.workout.domain.WorkoutSet;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Casos de uso do treino: começar, registrar séries, mexer em exercícios, encerrar, ajustar e excluir. */
 @Service
 public class SessionService {
+    private static final int MAX_EXERCISES = 30;
+    private static final int MAX_SETS = 30;
+    /** Cliente antigo em cache manda os minutos do cardio no campo de reps. */
+    private static final int MAX_LEGACY_MINUTES = 300;
+
     private final SessionRepository sessions;
     private final RoutineApi routine;
 
@@ -70,7 +77,8 @@ public class SessionService {
                             exercise.reps(),
                             Values.scale2(exercise.load()),
                             exercise.restSeconds(),
-                            exercise.rir())));
+                            exercise.rir(),
+                            exercise.cardio())));
         } else {
             String name = Values.blankToNull(command.name());
             session.setName(name == null ? "Treino avulso" : name);
@@ -84,6 +92,9 @@ public class SessionService {
     @Transactional
     public SessionView addExercise(Long userId, Long id, ExerciseInput input) {
         Session session = open(userId, id);
+        if (session.getExercises().size() >= MAX_EXERCISES) {
+            throw new BadRequestException("O treino pode ter até 30 exercícios.");
+        }
         session.addExercise(planned(input));
         return saved(session);
     }
@@ -91,7 +102,11 @@ public class SessionService {
     @Transactional
     public SessionView addSet(Long userId, Long id, Long exerciseId) {
         Session session = open(userId, id);
-        exercise(session, exerciseId).addNextSet();
+        SessionExercise exercise = exercise(session, exerciseId);
+        if (exercise.getSets().size() >= MAX_SETS) {
+            throw new BadRequestException("Cada exercício pode ter até 30 séries.");
+        }
+        exercise.addNextSet();
         return saved(session);
     }
 
@@ -99,11 +114,43 @@ public class SessionService {
     public SessionView updateSet(Long userId, Long id, Long setId, UpdateSetCommand command) {
         Session session = open(userId, id);
         WorkoutSet set = session.findSet(setId).orElseThrow(() -> new NotFoundException("Série não encontrada."));
+        if (set.getExercise().isCardio()) {
+            Integer seconds = command.durationSeconds();
+            Integer minutes = command.reps();
+            if (seconds == null && minutes != null && minutes > 0 && minutes <= MAX_LEGACY_MINUTES) {
+                seconds = minutes * 60;
+            }
+            if (command.completed() && seconds == null) {
+                throw new BadRequestException("Informe quantos minutos durou.");
+            }
+            set.measureCardio(seconds, command.distanceMeters(), command.intensity());
+        }
         set.setReps(command.reps());
         set.setLoad(Values.scale2(command.load()));
         set.setRir(command.rir());
         set.markCompleted(command.completed(), Instant.now());
         return SessionMapper.toView(session);
+    }
+
+    /** Cardio rápido: já nasce concluído e não depende de haver treino aberto. */
+    @Transactional
+    public SessionView logCardio(Long userId, LogCardioCommand command) {
+        Optional<Session> sent = sessions.findByUserIdAndClientKey(userId, command.clientKey());
+        if (sent.isPresent()) return SessionMapper.toView(sent.get());
+        Instant now = Instant.now();
+        String name = command.name().trim();
+        Session session = new Session();
+        session.setUserId(userId);
+        session.setName(name);
+        Instant end = command.finishedAt() == null ? now : command.finishedAt();
+        session.recordFinished(end, command.durationSeconds(), command.clientKey(), now);
+        long minutes = Math.round(command.durationSeconds() / 60.0);
+        SessionExercise exercise = SessionExercise.planned(name, 1, minutes + " min", null, 0, null, true);
+        WorkoutSet set = exercise.getSets().get(0);
+        set.measureCardio(command.durationSeconds(), command.distanceMeters(), command.intensity());
+        set.markCompleted(true, now);
+        session.addExercise(exercise);
+        return saved(session);
     }
 
     @Transactional
@@ -173,6 +220,7 @@ public class SessionService {
                 input.reps().trim(),
                 Values.scale2(input.load()),
                 input.restSeconds(),
-                input.rir());
+                input.rir(),
+                input.cardio());
     }
 }
