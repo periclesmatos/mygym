@@ -2,9 +2,11 @@ package com.appgym.identity.web;
 
 import com.appgym.identity.application.ProfileService;
 import com.appgym.identity.application.dto.ChangePasswordCommand;
+import com.appgym.identity.application.dto.DiscoveryCommand;
 import com.appgym.identity.application.dto.PhotoCommand;
 import com.appgym.identity.application.dto.ProfileView;
 import com.appgym.identity.application.dto.UpdateProfileCommand;
+import com.appgym.identity.application.dto.UsernameCommand;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,6 +35,16 @@ public class ProfileController {
     @PutMapping
     public ProfileView update(@AuthenticationPrincipal Long userId, @Valid @RequestBody UpdateProfileCommand command) {
         return profile.update(userId, command);
+    }
+
+    @PutMapping("/username")
+    public ProfileView username(@AuthenticationPrincipal Long userId, @Valid @RequestBody UsernameCommand command) {
+        return profile.changeUsername(userId, command);
+    }
+
+    @PutMapping("/discovery")
+    public ProfileView discovery(@AuthenticationPrincipal Long userId, @Valid @RequestBody DiscoveryCommand command) {
+        return profile.changeDiscovery(userId, command);
     }
 
     @PutMapping("/photo")

@@ -15,10 +15,11 @@ const ALLOWED = {
   catalog: [],
   history: ['ranking'],
   home: ['catalog', 'ranking', 'routine', 'workout'],
-  profile: ['auth'],
+  profile: ['auth', 'social'],
   progress: [],
-  ranking: [],
+  ranking: ['social'],
   routine: ['catalog'],
+  social: [],
   workout: ['routine']
 }
 

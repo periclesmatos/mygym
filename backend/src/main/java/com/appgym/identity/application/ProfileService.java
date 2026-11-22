@@ -1,14 +1,18 @@
 package com.appgym.identity.application;
 
 import com.appgym.identity.application.dto.ChangePasswordCommand;
+import com.appgym.identity.application.dto.DiscoveryCommand;
 import com.appgym.identity.application.dto.PhotoCommand;
 import com.appgym.identity.application.dto.ProfileView;
 import com.appgym.identity.application.dto.UpdateProfileCommand;
+import com.appgym.identity.application.dto.UsernameCommand;
+import com.appgym.identity.domain.Phones;
 import com.appgym.identity.domain.PhotoCodec;
 import com.appgym.identity.domain.User;
 import com.appgym.identity.domain.UserPhoto;
 import com.appgym.identity.domain.UserPhotoRepository;
 import com.appgym.identity.domain.UserRepository;
+import com.appgym.identity.domain.Usernames;
 import com.appgym.shared.error.BadRequestException;
 import com.appgym.shared.error.UnauthorizedException;
 import com.appgym.shared.util.Values;
@@ -41,6 +45,30 @@ public class ProfileService {
         user.setWeightKg(Values.scale2(command.weightKg()));
         user.setHeightCm(command.heightCm());
         user.setBirthDate(command.birthDate());
+        return toView(user);
+    }
+
+    @Transactional
+    public ProfileView changeUsername(Long userId, UsernameCommand command) {
+        User user = user(userId);
+        String username = Usernames.parse(command.username());
+        boolean taken = users.findByUsername(username)
+                .filter(other -> !other.getId().equals(userId))
+                .isPresent();
+        if (taken) throw new BadRequestException("Esse username já está em uso.");
+        user.setUsername(username);
+        return toView(user);
+    }
+
+    @Transactional
+    public ProfileView changeDiscovery(Long userId, DiscoveryCommand command) {
+        User user = user(userId);
+        String phone = Values.blankToNull(command.phone());
+        if (phone != null) {
+            phone = Phones.normalize(phone)
+                    .orElseThrow(() -> new BadRequestException("Telefone inválido. Use DDD e número."));
+        }
+        user.changeDiscovery(phone, command.phoneSearchable(), command.emailSearchable());
         return toView(user);
     }
 
@@ -84,7 +112,12 @@ public class ProfileService {
                 photo,
                 user.hasPassword(),
                 user.getGoogleSub() != null,
-                user.getAppleSub() != null);
+                user.getAppleSub() != null,
+                user.getUsername(),
+                user.getPhone(),
+                user.isPhoneSearchable(),
+                user.isEmailSearchable(),
+                user.isEmailVerified());
     }
 
     private User user(Long userId) {

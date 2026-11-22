@@ -6,6 +6,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/appgym
     username: appgym
     password: appgym
+    hikari:
+      data-source-properties:
+        # O detalhe do erro do Postgres traz os valores (e-mail, telefone): não vai para o log.
+        logServerErrorDetail: false
   flyway:
     # Bancos criados antes do Flyway são marcados como V1 e recebem só as migrations seguintes.
     baseline-on-migrate: true

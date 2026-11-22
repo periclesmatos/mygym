@@ -48,6 +48,11 @@ export function HistoryDetailPage() {
 
   const { done, volume, duration, cardio } = sessionTotals(session)
 
+  const onlyCardio = session.exercises.length > 0 && session.exercises.every((exercise) => exercise.cardio)
+  const doneLabel = onlyCardio
+    ? plural(done, 'trecho feito', 'trechos feitos').replace(/^\S+ /, '')
+    : plural(done, 'série feita', 'séries feitas').replace(/^\S+ /, '')
+
   async function repeat() {
     setMenu(false)
     setBusy(true)
@@ -141,7 +146,7 @@ export function HistoryDetailPage() {
 
       <section className="stats">
         <StatCard icon="timer" value={duration ? formatDuration(duration) : '—'} label="duração" />
-        <StatCard icon="check" value={done} label={done === 1 ? 'série feita' : 'séries feitas'} />
+        <StatCard icon="check" value={done} label={doneLabel} />
         {cardio > 0 && !volume ? (
           <StatCard icon="run" value={formatCardio(cardio)} label="de cardio" />
         ) : (

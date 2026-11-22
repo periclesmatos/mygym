@@ -8,6 +8,7 @@ import { ProfilePage } from '@/features/profile'
 import { ProgressDetailPage, ProgressListPage } from '@/features/progress'
 import { RankPage } from '@/features/ranking'
 import { RoutineEditorPage, RoutinePage } from '@/features/routine'
+import { FriendPage } from '@/features/social'
 import { WorkoutPage } from '@/features/workout'
 import { AUTH_EXPIRED_EVENT } from '@/shared/api/client'
 import { getToken } from '@/shared/api/token'
@@ -46,6 +47,7 @@ export function App() {
           <Route path="/evolucao" element={<ProgressListPage />} />
           <Route path="/evolucao/exercicio" element={<ProgressDetailPage />} />
           <Route path="/rank" element={<RankPage />} />
+          <Route path="/amigos/:id" element={<FriendPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
         </Route>
       </Route>
