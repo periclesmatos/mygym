@@ -4,7 +4,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
-public record SessionView(Long id, String name, Instant startedAt, Instant finishedAt, List<ExerciseView> exercises) {
+public record SessionView(
+        Long id, String name, Instant startedAt, Instant finishedAt, boolean backdated, List<ExerciseView> exercises) {
 
     public record ExerciseView(
             Long id,

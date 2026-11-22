@@ -6,7 +6,9 @@ import com.appgym.shared.error.BadRequestException;
 import com.appgym.shared.error.ConflictException;
 import com.appgym.shared.error.NotFoundException;
 import com.appgym.shared.util.Values;
+import com.appgym.workout.application.dto.ChangePeriodCommand;
 import com.appgym.workout.application.dto.ExerciseInput;
+import com.appgym.workout.application.dto.FinishSessionCommand;
 import com.appgym.workout.application.dto.SessionSummaryView;
 import com.appgym.workout.application.dto.SessionView;
 import com.appgym.workout.application.dto.StartSessionCommand;
@@ -20,7 +22,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Casos de uso do treino: começar, registrar séries, mexer em exercícios, encerrar e excluir. */
+/** Casos de uso do treino: começar, registrar séries, mexer em exercícios, encerrar, ajustar e excluir. */
 @Service
 public class SessionService {
     private final SessionRepository sessions;
@@ -53,7 +55,9 @@ public class SessionService {
         }
         Session session = new Session();
         session.setUserId(userId);
-        session.setStartedAt(Instant.now());
+        Instant now = Instant.now();
+        if (command.startedAt() == null) session.setStartedAt(now);
+        else session.startBackdated(command.startedAt(), now);
         if (command.templateId() != null) {
             TemplatePlan plan = routine.findTemplate(userId, command.templateId())
                     .orElseThrow(() -> new NotFoundException("Treino não encontrado."));
@@ -103,9 +107,25 @@ public class SessionService {
     }
 
     @Transactional
-    public SessionView finish(Long userId, Long id) {
+    public SessionView finish(Long userId, Long id, FinishSessionCommand command) {
         Session session = open(userId, id);
-        session.setFinishedAt(Instant.now());
+        Instant now = Instant.now();
+        Instant start = command == null ? null : command.startedAt();
+        Instant end = command == null ? null : command.finishedAt();
+        if (end == null && session.isBackdated()) {
+            throw new BadRequestException("Informe quando o treino terminou.");
+        }
+        // Encerrar agora não valida: um treino esquecido há dias ainda precisa poder fechar.
+        if (start == null && end == null) session.setFinishedAt(now);
+        else session.changePeriod(start == null ? session.getStartedAt() : start, end == null ? now : end, now);
+        return SessionMapper.toView(session);
+    }
+
+    @Transactional
+    public SessionView changePeriod(Long userId, Long id, ChangePeriodCommand command) {
+        Session session = load(userId, id);
+        if (!session.isFinished()) throw new ConflictException("Encerre o treino antes de ajustar o horário.");
+        session.changePeriod(command.startedAt(), command.finishedAt(), Instant.now());
         return SessionMapper.toView(session);
     }
 

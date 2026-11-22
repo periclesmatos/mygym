@@ -234,6 +234,9 @@ export function HomePage() {
               </button>
             </div>
           </form>
+          <Link className="link-btn" to="/historico/registrar">
+            Esqueceu de registrar? Lance um treino passado
+          </Link>
           {open && <p className="muted small">Conclua ou descarte o treino em andamento para começar outro.</p>}
         </div>
       </Sheet>

@@ -2,6 +2,7 @@ package com.appgym.progress.web;
 
 import com.appgym.progress.application.ProgressService;
 import com.appgym.progress.domain.Performance;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,8 +27,10 @@ public class ProgressController {
 
     @GetMapping("/last")
     public Map<String, Performance> last(
-            @AuthenticationPrincipal Long userId, @RequestParam(required = false) List<String> names) {
-        return progress.last(userId, names);
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) List<String> names,
+            @RequestParam(required = false) Instant before) {
+        return progress.last(userId, names, before);
     }
 
     @GetMapping("/progress")

@@ -16,7 +16,7 @@ interface JpaSessionRepository extends Repository<Session, Long>, SessionReposit
 
     List<Session> findByUserIdAndFinishedAtIsNullOrderByStartedAtDesc(Long userId);
 
-    List<Session> findByUserIdAndFinishedAtIsNotNullOrderByStartedAtDesc(Long userId);
+    List<Session> findByUserIdAndFinishedAtIsNotNullOrderByFinishedAtDescIdDesc(Long userId);
 
     @Override
     default boolean hasOpenSession(Long userId) {
@@ -30,7 +30,7 @@ interface JpaSessionRepository extends Repository<Session, Long>, SessionReposit
 
     @Override
     default List<Session> listFinished(Long userId) {
-        return findByUserIdAndFinishedAtIsNotNullOrderByStartedAtDesc(userId);
+        return findByUserIdAndFinishedAtIsNotNullOrderByFinishedAtDescIdDesc(userId);
     }
 
     @Override

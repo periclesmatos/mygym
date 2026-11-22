@@ -7,6 +7,7 @@ import { plural } from '@/shared/lib/text'
 import { bestSet, formatLoad, formatSet, formatVolume, sessionTotals } from '@/shared/lib/training'
 import { Icon, IconButton } from '@/shared/ui/Icon'
 import { PageHeader } from '@/shared/ui/PageHeader'
+import { PeriodSheet } from '@/shared/ui/PeriodSheet'
 import { Action, ActionList, Sheet } from '@/shared/ui/Sheet'
 import { StatCard } from '@/shared/ui/StatCard'
 import { ErrorState, Skeleton } from '@/shared/ui/States'
@@ -21,7 +22,9 @@ export function HistoryDetailPage() {
   const runAction = useAction()
   const [menu, setMenu] = useState(false)
   const [busy, setBusy] = useState(false)
-  const { data: session, error, loading, reload } = useAsync(() => sessionsApi.get(id), [id])
+  const [adjusting, setAdjusting] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const { data: session, error, loading, reload, setData } = useAsync(() => sessionsApi.get(id), [id])
   const celebration = location.state?.justFinished ? location.state : null
 
   if (error)
@@ -65,6 +68,17 @@ export function HistoryDetailPage() {
         setBusy(false)
       }
     )
+  }
+
+  async function adjust(period) {
+    setSaving(true)
+    const ok = await runAction(async () => {
+      setData(await sessionsApi.changePeriod(session.id, period))
+    })
+    setSaving(false)
+    if (!ok) return
+    setAdjusting(false)
+    toast('Horário ajustado.', 'success')
   }
 
   async function remove() {
@@ -182,9 +196,27 @@ export function HistoryDetailPage() {
             onClick={repeat}
             disabled={busy}
           />
+          <Action
+            icon={<Icon name="calendar" />}
+            label="Ajustar data e horário"
+            hint="As séries não mudam"
+            onClick={() => {
+              setMenu(false)
+              setAdjusting(true)
+            }}
+          />
           <Action icon={<Icon name="trash" />} label="Apagar do histórico" danger onClick={remove} />
         </ActionList>
       </Sheet>
+
+      <PeriodSheet
+        open={adjusting}
+        onClose={() => setAdjusting(false)}
+        title="Ajustar data e horário"
+        period={session}
+        busy={saving}
+        onSave={adjust}
+      />
     </>
   )
 }

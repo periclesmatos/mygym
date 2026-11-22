@@ -34,16 +34,26 @@ Dependabot opens grouped weekly PRs to `develop` for Maven, npm, GitHub Actions 
 
 `/opt/appgym` holds:
 
-- `compose.prod.yml`, `deploy.sh`, `backup.sh`: copied by every deploy, don't edit them on the VM.
+- `compose.prod.yml`, `Caddyfile`, `deploy.sh`, `backup.sh`: copied by every deploy, don't edit them on the VM.
 - `.env`: the app secrets, created by hand from [`deploy/env.example`](../deploy/env.example). It never goes through GitHub.
 - `.image_tag`: the image currently running.
 - `backups/`: `pre-deploy-*.sql.gz` (last 10) and `daily-*.sql.gz` (last 7, cron at 03:00).
 
-The app listens on port 80 and Postgres has no published port.
+Caddy listens on ports 80 and 443 and proxies to the app. The app is published only on `127.0.0.1:8080` (for the deploy health check) and Postgres has no published port.
+
+## Domain and HTTPS
+
+The app is served at https://boratreinar.periclesm.dev. `.dev` domains only open over HTTPS in browsers.
+
+- **DNS**: an `A` record `boratreinar` in Cloudflare pointing to the VM's static IP, set to *DNS only*.
+- **Certificate**: Caddy gets and renews it by itself and keeps it in the `caddy_data` volume.
+- **Forwarded headers**: `SERVER_FORWARD_HEADERS_STRATEGY=native` in the compose file is required. Without it Spring answers 403 to the site's own POST, PUT and DELETE requests.
+- **Changing the domain**: create the DNS record, edit `deploy/Caddyfile`, update `VM_PUBLIC_HOST` and release.
+- **Certificate problems**: `docker compose -f compose.prod.yml logs --tail 100 caddy` in `/opt/appgym`.
 
 ### First setup
 
-1. In GCP, allow HTTP on the VM (Firewall → `http-server` tag, or a rule for tcp:80). Port 22 must stay open because GitHub runners have no fixed IP. Only key login is accepted.
+1. In GCP, reserve the external IP as static and allow HTTP and HTTPS on the VM (Firewall → `http-server` and `https-server` tags, or a rule for tcp:80 and tcp:443). Port 22 must stay open because GitHub runners have no fixed IP. Only key login is accepted.
 2. Copy `deploy/setup-vm.sh` to the VM and run it with the deploy public key:
    `sudo bash setup-vm.sh "$(cat appgym-deploy.pub)"`
    It installs Docker, creates the `deploy` user, `/opt/appgym`, 2 GB of swap and the daily backup.
@@ -51,12 +61,12 @@ The app listens on port 80 and Postgres has no published port.
 3. Create `/opt/appgym/.env` from `deploy/env.example` (owner `deploy`, `chmod 600`).
 4. In GitHub, the `production` environment needs:
    - secrets `VM_HOST` (IP), `VM_USER` (`deploy`), `VM_SSH_KEY` (private key), `VM_KNOWN_HOSTS` (`ssh-keyscan -t ed25519 <ip>`)
-   - variable `VM_PUBLIC_HOST` (IP or domain, shown as the environment link)
+   - variable `VM_PUBLIC_HOST` (the domain, shown as the environment link). `VM_HOST` stays the IP.
 
 ## Operations
 
 - **Deploy**: merge the release PR into `production`. Follow it in Actions → Deploy.
-- **Failed deploy**: `deploy.sh` waits up to 3 minutes for `/api/health`. If it doesn't answer, it brings back the previous image and the workflow fails with the app logs.
+- **Failed deploy**: `deploy.sh` waits up to 3 minutes for `/api/health` on the app itself, so a green deploy does not prove the certificate works: open the site after changing the proxy or the domain. If it doesn't answer, it brings back the previous image and the workflow fails with the app logs.
 - **Rollback by hand**: Actions → Deploy → Run workflow, with `image_tag` set to an earlier `sha-<commit>` (see the job summaries or the GHCR package page). This skips CI and the image build.
 - **Migrations**: Flyway runs them on boot and they only go forward. Rolling back the image does **not** undo the schema; for that, restore the `pre-deploy` backup taken right before the bad deploy:
 
@@ -73,5 +83,4 @@ The app listens on port 80 and Postgres has no published port.
 
 ## Known limits
 
-- HTTP only, no TLS: the JWT travels in clear text, and Google/Apple sign-in won't work. With a domain, put Caddy in front for automatic HTTPS.
 - The database and its backups live on the VM disk. Losing the VM loses both; copying `backups/` to a Cloud Storage bucket is the next step.

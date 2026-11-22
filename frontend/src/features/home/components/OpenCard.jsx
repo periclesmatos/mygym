@@ -1,23 +1,37 @@
 import { Link } from 'react-router-dom'
 import { useNow } from '@/shared/hooks/useNow'
-import { formatClock } from '@/shared/lib/date'
+import { isLive } from '@/shared/lib/activity'
+import { formatClock, formatTime, relativeDay } from '@/shared/lib/date'
 import { Icon } from '@/shared/ui/Icon'
 
-/** Treino em andamento, com o relógio correndo. */
+/** Treino aberto: ao vivo com o relógio correndo, ou esquecido/retroativo com a data. */
 export function OpenCard({ session, onDiscard }) {
   const now = useNow(1000)
   const elapsed = (now - new Date(session.startedAt).getTime()) / 1000
   const ratio = session.totalSets ? session.completedSets / session.totalSets : 0
+  const live = isLive(session, now)
+  const when = `${relativeDay(session.startedAt).toLowerCase()} às ${formatTime(session.startedAt)}`
   return (
-    <section className="card hero live">
+    <section className={live ? 'card hero live' : 'card hero'}>
       <div className="hero-top">
-        <span className="badge live-badge">
-          <span className="pulse" />
-          Em andamento
-        </span>
-        <span className="hero-clock">{formatClock(elapsed)}</span>
+        {live ? (
+          <>
+            <span className="badge live-badge">
+              <span className="pulse" />
+              Em andamento
+            </span>
+            <span className="hero-clock">{formatClock(elapsed)}</span>
+          </>
+        ) : (
+          <span className="badge">{session.backdated ? 'Registro de treino passado' : 'Treino não encerrado'}</span>
+        )}
       </div>
       <h2 className="hero-title">{session.name}</h2>
+      {!live && (
+        <p className="muted">
+          {session.backdated ? 'Feito' : 'Iniciado'} {when}
+        </p>
+      )}
       <p className="muted">
         {session.completedSets} de {session.totalSets} séries feitas
       </p>
@@ -26,7 +40,7 @@ export function OpenCard({ session, onDiscard }) {
       </div>
       <Link className="btn btn-primary btn-lg btn-block" to={`/treino/${session.id}`}>
         <Icon name="play" size={18} filled />
-        Continuar treino
+        {live ? 'Continuar treino' : 'Abrir e concluir'}
       </Link>
       <button type="button" className="btn btn-quiet btn-block danger-text" onClick={onDiscard}>
         Descartar

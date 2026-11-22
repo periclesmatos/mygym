@@ -1,3 +1,4 @@
+import { LIVE_LIMIT } from '@/shared/lib/activity'
 import { numberOrNull } from '@/shared/lib/number'
 import { bestSet, estimatedMax, exerciseKey, formatSet } from '@/shared/lib/training'
 
@@ -35,6 +36,29 @@ export function nextOpenSet(session, afterSetId) {
   const start = items.findIndex((item) => item.set.id === afterSetId)
   const ordered = [...items.slice(start + 1), ...items.slice(0, Math.max(0, start))]
   return ordered.find((item) => !item.set.completedAt) || null
+}
+
+/**
+ * Fim provável: a última série antes de uma pausa maior que 4 h, para ignorar o que foi marcado no dia
+ * seguinte. Sem essa pista, ou no retroativo (séries marcadas depois), uma hora após o início.
+ */
+export function suggestedEnd(session, now) {
+  const start = new Date(session.startedAt).getTime()
+  let end = start
+  if (!session.backdated) {
+    const times = session.exercises
+      .flatMap((exercise) => exercise.sets)
+      .filter((set) => set.completedAt)
+      .map((set) => new Date(set.completedAt).getTime())
+      .sort((a, b) => a - b)
+    for (const time of times) {
+      if (time - end > LIVE_LIMIT) break
+      end = Math.max(end, time)
+    }
+  }
+  // Arredonda para cima: o campo só tem minutos e não pode cair antes da última série.
+  end = end === start ? start + 3600000 : Math.ceil(end / 60000) * 60000
+  return new Date(Math.min(end, now)).toISOString()
 }
 
 /** O que foi feito da última vez nesta mesma série (mesma posição), se houver. */

@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { dayPath, monthStats, sessionsByDay, streak, weekStart } from './activity'
+import { dayPath, isLive, monthStats, sessionsByDay, streak, weekStart } from './activity'
 
 const at = (y, m, d, extra = {}) => ({ finishedAt: new Date(y, m, d, 18).toISOString(), ...extra })
+
+describe('isLive', () => {
+  const now = Date.parse('2026-11-22T12:00:00Z')
+  it('até 4 h e não retroativo', () => {
+    expect(isLive({ startedAt: '2026-11-22T08:00:00Z' }, now)).toBe(true)
+    expect(isLive({ startedAt: '2026-11-22T07:59:59Z' }, now)).toBe(false)
+    expect(isLive({ startedAt: '2026-11-22T11:00:00Z', backdated: true }, now)).toBe(false)
+  })
+})
 
 describe('streak', () => {
   const now = new Date(2026, 10, 15, 12)

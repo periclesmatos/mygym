@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.appgym.support.IntegrationTest;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -109,6 +111,105 @@ class SessionApiTest extends IntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Valor inválido para id."));
         perform(get("/api/nao-existe"), account, null).andExpect(status().isNotFound());
+    }
+
+    /** Registra um treino passado de uma série e uma hora. */
+    long recordPast(Account account, Instant start, int load) throws Exception {
+        JsonNode session = body(perform(
+                        post("/api/sessions"),
+                        account,
+                        Map.of("startedAt", start.toString(), "exercises", new Object[] {exercise("Supino", 1, load)}))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.backdated").value(true))
+                .andExpect(jsonPath("$.startedAt").value(start.toString())));
+        long id = session.get("id").asLong();
+        long set = session.at("/exercises/0/sets/0/id").asLong();
+        perform(
+                        put("/api/sessions/" + id + "/sets/" + set),
+                        account,
+                        Map.of("reps", 10, "load", load, "completed", true))
+                .andExpect(status().isOk());
+        String end = start.plus(1, ChronoUnit.HOURS).toString();
+        perform(post("/api/sessions/" + id + "/finish"), account, Map.of("finishedAt", end))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.finishedAt").value(end));
+        return id;
+    }
+
+    static Instant daysAgo(int days) {
+        return Instant.now().minus(days, ChronoUnit.DAYS).truncatedTo(ChronoUnit.SECONDS);
+    }
+
+    @Test
+    void recordsPastWorkoutsInTheOrderTheyHappened() throws Exception {
+        Account account = newAccount();
+        long recent = recordPast(account, daysAgo(2), 60);
+        long older = recordPast(account, daysAgo(9), 50);
+
+        perform(get("/api/sessions?status=finished"), account, null)
+                .andExpect(jsonPath("$[0].id").value(recent))
+                .andExpect(jsonPath("$[0].durationSeconds").value(3600))
+                .andExpect(jsonPath("$[1].id").value(older));
+        perform(get("/api/exercises/last?names=supino"), account, null)
+                .andExpect(jsonPath("$.supino.topLoad").value(60.0));
+        perform(get("/api/exercises/last?names=supino&before=" + daysAgo(5)), account, null)
+                .andExpect(jsonPath("$.supino.topLoad").value(50.0));
+        perform(get("/api/exercises/last?names=supino&before=" + daysAgo(20)), account, null)
+                .andExpect(jsonPath("$.supino").doesNotExist());
+
+        // Mover o mais antigo para ontem muda a ordem do histórico.
+        Instant moved = daysAgo(1);
+        Map<String, String> period = Map.of(
+                "startedAt", moved.toString(),
+                "finishedAt", moved.plus(1, ChronoUnit.HOURS).toString());
+        perform(put("/api/sessions/" + older + "/period"), account, period).andExpect(status().isOk());
+        perform(get("/api/sessions?status=finished"), account, null)
+                .andExpect(jsonPath("$[0].id").value(older));
+    }
+
+    @Test
+    void backdatedWorkoutNeedsAnEndAndKeepsOneOpenAtATime() throws Exception {
+        Account account = newAccount();
+        Map<String, String> past = Map.of("startedAt", daysAgo(3).toString());
+        long id = body(perform(post("/api/sessions"), account, past)).get("id").asLong();
+        perform(post("/api/sessions"), account, past).andExpect(status().isConflict());
+        perform(post("/api/sessions/" + id + "/finish"), account, null)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Informe quando o treino terminou."));
+    }
+
+    @Test
+    void finishesForgottenWorkoutAtTheRealTime() throws Exception {
+        Account account = newAccount();
+        long id = startFromTemplate(account).get("id").asLong();
+        Instant start = daysAgo(1);
+        Instant end = start.plus(50, ChronoUnit.MINUTES);
+        Map<String, String> period = Map.of("startedAt", start.toString(), "finishedAt", end.toString());
+        perform(put("/api/sessions/" + id + "/period"), account, period).andExpect(status().isConflict());
+        perform(post("/api/sessions/" + id + "/finish"), account, period)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.backdated").value(false))
+                .andExpect(jsonPath("$.startedAt").value(start.toString()))
+                .andExpect(jsonPath("$.finishedAt").value(end.toString()));
+    }
+
+    @Test
+    void rejectsInvalidOrForeignPeriods() throws Exception {
+        Account account = newAccount();
+        String future = Instant.now().plus(1, ChronoUnit.HOURS).toString();
+        perform(post("/api/sessions"), account, Map.of("startedAt", future)).andExpect(status().isBadRequest());
+
+        Instant start = daysAgo(4);
+        long id = recordPast(account, start, 40);
+        String path = "/api/sessions/" + id + "/period";
+        perform(put(path), account, Map.of("startedAt", start.toString())).andExpect(status().isBadRequest());
+        perform(put(path), account, Map.of("startedAt", start.toString(), "finishedAt", start.toString()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("O fim precisa ser depois do início."));
+        Map<String, String> valid = Map.of(
+                "startedAt", start.toString(),
+                "finishedAt", start.plus(2, ChronoUnit.HOURS).toString());
+        perform(put(path), newAccount(), valid).andExpect(status().isNotFound());
     }
 
     @Test
