@@ -3,7 +3,6 @@ package com.appgym.identity.application;
 import com.appgym.identity.application.SocialTokenVerifier.Identity;
 import com.appgym.identity.application.SocialTokenVerifier.Provider;
 import com.appgym.identity.application.dto.AuthToken;
-import com.appgym.identity.domain.SignupPolicy;
 import com.appgym.identity.domain.User;
 import com.appgym.identity.domain.UserRepository;
 import com.appgym.shared.error.ForbiddenException;
@@ -20,27 +19,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class SocialLoginService {
     private final SocialTokenVerifier verifier;
     private final UserRepository users;
-    private final SignupPolicy signup;
     private final PasswordEncoder encoder;
     private final TokenIssuer tokens;
 
     public SocialLoginService(
-            SocialTokenVerifier verifier,
-            UserRepository users,
-            SignupPolicy signup,
-            PasswordEncoder encoder,
-            TokenIssuer tokens) {
+            SocialTokenVerifier verifier, UserRepository users, PasswordEncoder encoder, TokenIssuer tokens) {
         this.verifier = verifier;
         this.users = users;
-        this.signup = signup;
         this.encoder = encoder;
         this.tokens = tokens;
     }
 
     /**
      * 1) conta já vinculada ao provedor; 2) conta com o mesmo e-mail, só se ela já provou ser dona
-     * dele e ainda não tem outro vínculo com o provedor; 3) conta nova, se o e-mail estiver liberado
-     * para cadastro.
+     * dele e ainda não tem outro vínculo com o provedor; 3) conta nova.
      */
     @Transactional
     public AuthToken login(Provider provider, String token, String name) {
@@ -77,7 +69,6 @@ public class SocialLoginService {
     }
 
     private User create(Provider provider, Identity identity) {
-        signup.assertAllowed(identity.email());
         User user = new User();
         user.setEmail(identity.email());
         user.setPasswordHash(encoder.encode(UUID.randomUUID().toString()));

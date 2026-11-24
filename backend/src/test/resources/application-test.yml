@@ -4,5 +4,3 @@ app:
     password: senha-inicial
   jwt:
     secret: segredo-de-teste-com-mais-de-32-caracteres
-  signup:
-    allowed-emails: convidado@teste.local,outro-convidado@teste.local

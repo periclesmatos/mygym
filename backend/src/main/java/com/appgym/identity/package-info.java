@@ -1,5 +1,5 @@
 /**
- * Contas de usuário: login por senha, cadastro por convite, login com Google e Apple, perfil
+ * Contas de usuário: login por senha, cadastro, login com Google e Apple, perfil
  * e foto.
  *
  * <p>Nenhum outro módulo enxerga a entidade {@code User}: eles guardam só o {@code userId}.

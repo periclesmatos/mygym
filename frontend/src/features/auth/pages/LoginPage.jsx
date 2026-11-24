@@ -157,11 +157,7 @@ export function LoginPage() {
               <Icon name={showPassword ? 'eyeOff' : 'eye'} size={20} />
             </button>
           </div>
-          {registering && (
-            <span className="muted small">
-              Mínimo de {MIN_PASSWORD_LENGTH} caracteres. O cadastro é só para e-mails convidados.
-            </span>
-          )}
+          {registering && <span className="muted small">Mínimo de {MIN_PASSWORD_LENGTH} caracteres.</span>}
         </label>
         {error && (
           <p className="form-error" role="alert">

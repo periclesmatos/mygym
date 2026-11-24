@@ -48,7 +48,6 @@ services:
     environment:
       DATABASE_URL: ${DEV_DATABASE_URL:-jdbc:postgresql://host.docker.internal:5432/appgym}
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "false"
-      APP_ALLOWED_EMAILS: ${APP_ALLOWED_EMAILS:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
