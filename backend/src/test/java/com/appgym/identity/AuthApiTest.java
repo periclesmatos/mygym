@@ -73,20 +73,17 @@ class AuthApiTest extends IntegrationTest {
     }
 
     @Test
-    void registerOnlyForInvitedEmails() throws Exception {
-        perform(post("/api/auth/register"), null, Map.of("email", "estranho@teste.local", "password", "abcdef"))
-                .andExpect(status().isForbidden());
-
+    void registerCreatesAccount() throws Exception {
         perform(
                         post("/api/auth/register"),
                         null,
-                        Map.of("name", " Bea ", "email", "Convidado@teste.local", "password", "abcdef"))
+                        Map.of("name", " Bea ", "email", "Nova@teste.local", "password", "abcdef"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("convidado@teste.local"));
+                .andExpect(jsonPath("$.email").value("nova@teste.local"));
 
-        perform(post("/api/auth/register"), null, Map.of("email", "convidado@teste.local", "password", "abcdef"))
+        perform(post("/api/auth/register"), null, Map.of("email", "nova@teste.local", "password", "abcdef"))
                 .andExpect(status().isBadRequest());
-        assertThat(users.findByEmail("convidado@teste.local"))
+        assertThat(users.findByEmail("nova@teste.local"))
                 .get()
                 .extracting("name")
                 .isEqualTo("Bea");
@@ -94,7 +91,7 @@ class AuthApiTest extends IntegrationTest {
 
     @Test
     void registerValidatesPassword() throws Exception {
-        perform(post("/api/auth/register"), null, Map.of("email", "outro-convidado@teste.local", "password", "123"))
+        perform(post("/api/auth/register"), null, Map.of("email", "curta@teste.local", "password", "123"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("A senha precisa ter de 6 a 100 caracteres."));
     }

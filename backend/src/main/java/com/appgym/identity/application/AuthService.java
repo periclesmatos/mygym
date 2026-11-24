@@ -6,7 +6,6 @@ import com.appgym.identity.application.dto.LoginCommand;
 import com.appgym.identity.application.dto.RegisterCommand;
 import com.appgym.identity.domain.Emails;
 import com.appgym.identity.domain.LoginThrottle;
-import com.appgym.identity.domain.SignupPolicy;
 import com.appgym.identity.domain.User;
 import com.appgym.identity.domain.UserRepository;
 import com.appgym.shared.error.BadRequestException;
@@ -16,13 +15,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Login por senha e cadastro por convite. */
+/** Login por senha e cadastro. */
 @Service
 public class AuthService {
     private final UserRepository users;
     private final PasswordEncoder encoder;
     private final TokenIssuer tokens;
-    private final SignupPolicy signup;
     private final LoginThrottle throttle;
     private final AuthConfigView config;
 
@@ -30,13 +28,11 @@ public class AuthService {
             UserRepository users,
             PasswordEncoder encoder,
             TokenIssuer tokens,
-            SignupPolicy signup,
             LoginThrottle throttle,
             AuthConfigView config) {
         this.users = users;
         this.encoder = encoder;
         this.tokens = tokens;
-        this.signup = signup;
         this.throttle = throttle;
         this.config = config;
     }
@@ -56,7 +52,6 @@ public class AuthService {
     @Transactional
     public AuthToken register(RegisterCommand command) {
         String email = Emails.normalize(command.email());
-        signup.assertAllowed(email);
         if (users.existsByEmail(email)) {
             throw new BadRequestException("Já existe uma conta com este e-mail. Entre com ele.");
         }

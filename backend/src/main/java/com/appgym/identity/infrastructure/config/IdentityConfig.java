@@ -2,7 +2,6 @@ package com.appgym.identity.infrastructure.config;
 
 import com.appgym.identity.application.dto.AuthConfigView;
 import com.appgym.identity.domain.LoginThrottle;
-import com.appgym.identity.domain.SignupPolicy;
 import com.appgym.shared.util.Values;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
@@ -17,11 +16,6 @@ class IdentityConfig {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    SignupPolicy signupPolicy(IdentityProperties properties) {
-        return SignupPolicy.of(properties.signup().allowedEmails());
     }
 
     @Bean

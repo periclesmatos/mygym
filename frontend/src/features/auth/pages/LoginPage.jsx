@@ -159,7 +159,7 @@ export function LoginPage() {
           </div>
           {registering && (
             <span className="muted small">
-              Mínimo de {MIN_PASSWORD_LENGTH} caracteres. O cadastro é só para e-mails convidados.
+              Mínimo de {MIN_PASSWORD_LENGTH} caracteres.
             </span>
           )}
         </label>
