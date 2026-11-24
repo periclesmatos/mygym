@@ -77,7 +77,7 @@ A **modular monolith** with **Clean Architecture** inside each module, ready to 
 
 The first boot on an empty database creates the user from `APP_USER_EMAIL` / `APP_USER_PASSWORD`. Later boots don't touch users. Changing an e-mail is turned off until the app can confirm the new address by code.
 
-Sign-up is invite-only. `APP_ALLOWED_EMAILS` holds the e-mails (comma separated) that may create an account with a password, Google or Apple. If it is empty, nobody new can sign up. Each account only sees its own workouts.
+Anyone can create an account with a password, Google or Apple. Each account only sees its own workouts.
 
 Google and Apple buttons appear only when their variables are set:
 

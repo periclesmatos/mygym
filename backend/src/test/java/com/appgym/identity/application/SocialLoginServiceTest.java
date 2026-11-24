@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import com.appgym.identity.application.SocialTokenVerifier.Identity;
 import com.appgym.identity.application.SocialTokenVerifier.Provider;
-import com.appgym.identity.domain.SignupPolicy;
 import com.appgym.identity.domain.User;
 import com.appgym.identity.domain.UserRepository;
 import com.appgym.shared.error.ForbiddenException;
@@ -27,8 +26,7 @@ class SocialLoginServiceTest {
     UserRepository users = mock(UserRepository.class);
     PasswordEncoder encoder = mock(PasswordEncoder.class);
     JwtService jwt = mock(JwtService.class);
-    SocialLoginService service =
-            new SocialLoginService(verifier, users, SignupPolicy.of("nova@x.com"), encoder, new TokenIssuer(jwt));
+    SocialLoginService service = new SocialLoginService(verifier, users, encoder, new TokenIssuer(jwt));
 
     @BeforeEach
     void setUp() {
@@ -61,7 +59,7 @@ class SocialLoginServiceTest {
     }
 
     @Test
-    void createsAccountForInvitedEmailWithoutPassword() {
+    void createsAccountWithoutPassword() {
         when(verifier.verify(Provider.GOOGLE, "tk")).thenReturn(new Identity("g-2", "nova@x.com"));
         when(users.findByGoogleSub("g-2")).thenReturn(Optional.empty());
         when(users.findByEmail("nova@x.com")).thenReturn(Optional.empty());
@@ -72,15 +70,6 @@ class SocialLoginServiceTest {
         assertThat(saved.getValue().getGoogleSub()).isEqualTo("g-2");
         assertThat(saved.getValue().hasPassword()).isFalse();
         assertThat(saved.getValue().isEmailVerified()).isTrue();
-    }
-
-    @Test
-    void refusesUninvitedNewAccount() {
-        when(verifier.verify(Provider.GOOGLE, "tk")).thenReturn(new Identity("g-3", "estranho@x.com"));
-        when(users.findByGoogleSub("g-3")).thenReturn(Optional.empty());
-        when(users.findByEmail("estranho@x.com")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.login(Provider.GOOGLE, "tk", null)).isInstanceOf(ForbiddenException.class);
     }
 
     @Test
