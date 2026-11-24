@@ -18,8 +18,8 @@
 
     <properties>
         <java.version>25</java.version>
-        <jjwt.version>0.12.6</jjwt.version>
-        <spotless.version>3.11.0</spotless.version>
+        <jjwt.version>0.13.0</jjwt.version>
+        <spotless.version>3.12.0</spotless.version>
         <palantir-java-format.version>2.103.0</palantir-java-format.version>
         <spring-modulith.version>1.4.14</spring-modulith.version>
     </properties>
